@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "clean": {"cache": false},
+    "build": {
+      "cache": false,
+      "dependsOn": ["clean", "^build"],
+      "outputs": ["cjs", "esm", "types"]
+    }
+  }
+}

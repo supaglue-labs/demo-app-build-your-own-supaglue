@@ -1,0 +1,18 @@
+# Unignore dotfiles
+!.*
+
+# dependencies
+**/node_modules/
+
+# temporary files
+**/temp/
+
+# jest
+*.snap
+# Maybe do not ignore examples? We want them to be nice and consistent after all
+
+.next
+
+# next.js app should have its own lint settings
+main
+
