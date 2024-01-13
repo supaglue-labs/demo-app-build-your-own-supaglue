@@ -1,11 +1,12 @@
-import {appRouter, createContext} from '@supaglue/app-router'
-import {fetchRequestHandler} from '@trpc/server/adapters/fetch'
-
-// import { appRouter } from '~/server/api/router';
+import {
+  appRouter,
+  createContext,
+  createOpenApiFetchHandler,
+} from '@supaglue/app-router'
 
 const handler = (req: Request) =>
-  fetchRequestHandler({
-    endpoint: '/api/trpc',
+  createOpenApiFetchHandler({
+    endpoint: '/api',
     req,
     router: appRouter,
     createContext: () => createContext({headers: req.headers}),
