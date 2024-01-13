@@ -211,8 +211,8 @@ importers:
         version: link:../../packages/vdk
     devDependencies:
       '@opensdks/sdk-apollo':
-        specifier: 0.0.18
-        version: 0.0.18
+        specifier: 0.0.19
+        version: 0.0.19
       '@opensdks/sdk-outreach':
         specifier: 0.0.15
         version: 0.0.15
@@ -2666,8 +2666,8 @@ packages:
       openapi3-ts: 4.1.2
     dev: false
 
-  /@opensdks/sdk-apollo@0.0.18:
-    resolution: {integrity: sha512-i2rps56eTt22cM1pwbVyTVlZtpjP65T3jMJhX2rKO2CiHd7+QoI3+hT+ko6dCIsi6STPnoM+IIJhmyQZjJIktA==}
+  /@opensdks/sdk-apollo@0.0.19:
+    resolution: {integrity: sha512-t4bvc5M37++L9RyhlI2F9Jj71iiuLe/ysDkAKcGFEl6NRj6zKRed+QLOLSCCvgZ/Pt+c9JRtzuF3SVmQLsWh3w==}
     dev: true
 
   /@opensdks/sdk-outreach@0.0.15:
