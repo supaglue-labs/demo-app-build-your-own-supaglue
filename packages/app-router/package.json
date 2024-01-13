@@ -1,0 +1,16 @@
+{
+  "name": "@supaglue/app-router",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "module": "./index.ts",
+  "dependencies": {
+    "@supaglue/vdk": "workspace:*",
+    "@supaglue/vertical-sales-engagement": "workspace:*"
+  },
+  "devDependencies": {
+    "@opensdks/runtime": "^0.0.14",
+    "@usevenice/trpc-openapi": "1.3.8"
+  }
+}

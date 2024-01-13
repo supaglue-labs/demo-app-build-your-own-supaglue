@@ -79,7 +79,7 @@
       "files": ["**/*.{ts,tsx}"],
       // https://typescript-eslint.io/linting/typed-linting/monorepos/#one-tsconfigjson-per-package-and-an-optional-one-in-the-root
       // Not entirely sure if this is the right setup, but seems all right
-      "parserOptions": {"project": ["examples/tsconfig.json", "tsconfig.json"]},
+      "parserOptions": {"project": ["tsconfig.json"]},
       "plugins": ["@typescript-eslint", "eslint-plugin-expect-type"],
       "extends": [
         "plugin:@typescript-eslint/strict",

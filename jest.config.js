@@ -1,3 +1,4 @@
+// @ts-expect-error alias-hq does not have type definitions...
 import hq from 'alias-hq'
 
 /**
