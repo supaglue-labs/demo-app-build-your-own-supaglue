@@ -1,5 +1,5 @@
 {
-  "name": "@supaglue/app-router",
+  "name": "@supaglue/api",
   "version": "0.0.0",
   "private": true,
   "sideEffects": false,

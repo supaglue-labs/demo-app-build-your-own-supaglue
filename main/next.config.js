@@ -7,7 +7,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // transpilePackages: [
-  //   // path.resolve(__dirname, '../packages/app-router'),
+  //   // path.resolve(__dirname, '../packages/api'),
   //   // path.resolve(__dirname, '../packages/vdk'),
   //   // path.resolve(__dirname, '../verticals/vertical-sales-engagement'),
   // ],

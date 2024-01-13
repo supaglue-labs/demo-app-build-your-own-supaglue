@@ -2,7 +2,7 @@ import {
   appRouter,
   createContext,
   createOpenApiFetchHandler,
-} from '@supaglue/app-router'
+} from '@supaglue/api'
 
 const handler = (req: Request) =>
   createOpenApiFetchHandler({
