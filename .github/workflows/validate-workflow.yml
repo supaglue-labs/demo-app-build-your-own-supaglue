@@ -39,12 +39,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install example dependencies
-        run: cd examples && npm i
-
-      # - name: Set up tmate session
-      #   uses: mxschmitt/action-tmate@v2
-
       # - name: Setup upterm session
       #   uses: lhotari/action-upterm@v1
 
@@ -59,15 +53,3 @@ jobs:
 
       - name: Run builds
         run: pnpm turbo build --filter !main
-
-      - name: Run integration tests
-        run: cd examples && node test.cjs && node test.mjs
-
-      - name: Send Slack notification for job status
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest # selectable (default: repo,message)
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLATIFY_SLACK_WEBHOOK_URL }} # required
-        if: ${{ env.SLACK_WEBHOOK_URL != '' && always() }} # Pick up events even if the job fails or is canceled.

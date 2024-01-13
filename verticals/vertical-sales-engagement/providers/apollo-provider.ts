@@ -31,7 +31,8 @@ export const apolloProvider = {
       items: res.data.contacts.map(mappers.contact),
     }
   },
-  listSequences: async ({instance}) => {
+  // eslint-disable-next-line @typescript-eslint/require-await, arrow-body-style
+  listSequences: async () => {
     return {
       hasNextPage: true,
       items: [],
