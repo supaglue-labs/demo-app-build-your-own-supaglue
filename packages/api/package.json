@@ -7,16 +7,14 @@
   "scripts": {
     "gen": "run-s gen:*",
     "gen:oas": "npx tsx ./appRouter.ts > ./client/openapi.json",
-    "gen:types": "openapi-typescript ./client/openapi.json --output ./client/openapi.d.ts"
+    "gen:types": "npx @opensdks/cli --meta-dir ./client/ --types-dir ./client/ ./client/openapi.json"
   },
   "dependencies": {
     "@lilyrose2798/trpc-openapi": "1.3.10",
     "@opensdks/runtime": "0.0.16",
-    "@supaglue/vertical-sales-engagement": "workspace:*",
-    "openapi-fetch": "0.8.2"
+    "@supaglue/vertical-sales-engagement": "workspace:*"
   },
   "devDependencies": {
-    "@supaglue/vdk": "workspace:*",
-    "openapi-typescript": "6.7.3"
+    "@supaglue/vdk": "workspace:*"
   }
 }

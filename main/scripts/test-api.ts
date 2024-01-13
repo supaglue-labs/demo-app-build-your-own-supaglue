@@ -1,11 +1,13 @@
-import {createApiClient} from '@supaglue/api'
+import {initBYOSupaglueSDK} from '@supaglue/api'
 
-const client = createApiClient({
-  providerName: 'outreach',
-  connectionId: 'outreach1',
+const supaglue = initBYOSupaglueSDK({
+  headers: {
+    'x-connection-id': 'outreach1',
+    'x-provider-name': 'outreach',
+  },
 })
 
-client.GET('/engagement/v2/sequences').then((r) => {
+supaglue.GET('/engagement/v2/sequences').then((r) => {
   if (r.error) {
     console.log('Error', r.error)
   } else {
