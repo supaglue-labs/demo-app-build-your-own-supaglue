@@ -19,7 +19,7 @@ const mappers = {
 }
 
 export const apolloProvider = {
-  init: ({fetchLinks}) =>
+  __init__: ({fetchLinks}) =>
     initApolloSDK({
       api_key: '', // This will be populated by Nango, or you can populate your own
       links: (defaultLinks) => [...fetchLinks, ...defaultLinks],

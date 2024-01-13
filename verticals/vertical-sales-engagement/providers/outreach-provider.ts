@@ -31,7 +31,7 @@ const mappers = {
 }
 
 export const outreachProvider = {
-  init: ({fetchLinks}) =>
+  __init__: ({fetchLinks}) =>
     initOutreachSDK({
       headers: {authorization: 'Bearer ...'}, // This will be populated by Nango, or you can populate your own...
       links: (defaultLinks) => [...fetchLinks, ...defaultLinks],

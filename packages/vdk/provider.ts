@@ -14,7 +14,7 @@ export type Provider = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [k: string]: (...args: any[]) => any
 } & {
-  init: (opts: {fetchLinks: FetchLink[]}) => unknown
+  __init__: (opts: {fetchLinks: FetchLink[]}) => unknown
 }
 
 export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
@@ -27,7 +27,7 @@ export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
       }) => MaybePromise<inferProcedureOutput<TRouter[k]>>
     : never
 } & {
-  init: (opts: {fetchLinks: FetchLink[]}) => TInstance
+  __init__: (opts: {fetchLinks: FetchLink[]}) => TInstance
 }
 
 export async function proxyCallProvider({
@@ -37,7 +37,7 @@ export async function proxyCallProvider({
   input: unknown
   ctx: RemoteProcedureContext
 }) {
-  const instance = ctx.provider.init({
+  const instance = ctx.provider.__init__({
     fetchLinks: [
       (req, next) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
@@ -60,7 +60,7 @@ export async function proxyCallProvider({
   if (typeof implementation !== 'function') {
     throw new TRPCError({
       code: 'NOT_IMPLEMENTED',
-      message: `${ctx.providerName} adapter does not implement ${ctx.path}`,
+      message: `${ctx.providerName} provider does not implement ${ctx.path}`,
     })
   }
 
