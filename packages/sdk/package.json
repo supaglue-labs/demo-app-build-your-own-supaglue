@@ -1,0 +1,17 @@
+{
+  "name": "@supaglue/sdk",
+  "version": "0.0.0",
+  "description": "SDK for BYO Supaglue",
+  "module": "./index.ts",
+  "scripts": {
+    "gen": "run-s gen:*",
+    "gen:oas": "npx tsx -e \"console.log(JSON.stringify(require('@supaglue/api').getOpenAPISpec(), null, 2))\" > ./openapi.json",
+    "gen:types": "npx @opensdks/cli ./openapi.json --meta-dir ./ --types-dir ./ "
+  },
+  "dependencies": {
+    "@opensdks/runtime": "0.0.16"
+  },
+  "devDependencies": {
+    "@supaglue/api": "workspace:*"
+  }
+}

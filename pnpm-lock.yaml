@@ -119,6 +119,9 @@ importers:
       '@supaglue/api':
         specifier: workspace:*
         version: link:../packages/api
+      '@supaglue/sdk':
+        specifier: workspace:*
+        version: link:../packages/sdk
       '@t3-oss/env-nextjs':
         specifier: 0.7.3
         version: 0.7.3(typescript@5.3.2)(zod@3.22.4)
@@ -178,6 +181,16 @@ importers:
       '@supaglue/vdk':
         specifier: workspace:*
         version: link:../vdk
+
+  packages/sdk:
+    dependencies:
+      '@opensdks/runtime':
+        specifier: 0.0.16
+        version: 0.0.16
+    devDependencies:
+      '@supaglue/api':
+        specifier: workspace:*
+        version: link:../api
 
   packages/vdk:
     dependencies:

@@ -112,6 +112,10 @@ export interface components {
         message: string
       }[]
     }
+    'sales-engagement.sequence': {
+      id: string
+      name?: string
+    }
   }
   responses: never
   parameters: never
@@ -208,7 +212,7 @@ export interface operations {
         content: {
           'application/json': {
             hasNextPage: boolean
-            items: components['schemas']['sales-engagement.contact'][]
+            items: components['schemas']['sales-engagement.sequence'][]
           }
         }
       }

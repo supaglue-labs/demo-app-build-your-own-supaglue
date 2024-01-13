@@ -174,7 +174,7 @@
                     "items": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/sales-engagement.contact"
+                        "$ref": "#/components/schemas/sales-engagement.sequence"
                       }
                     }
                   },
@@ -372,6 +372,20 @@
           "message": "Not found",
           "issues": []
         }
+      },
+      "sales-engagement.sequence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
       }
     }
   }

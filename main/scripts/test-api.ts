@@ -1,4 +1,4 @@
-import {initBYOSupaglueSDK} from '@supaglue/api'
+import {initBYOSupaglueSDK} from '@supaglue/sdk'
 
 const supaglue = initBYOSupaglueSDK({
   headers: {
