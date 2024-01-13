@@ -3,13 +3,18 @@ import {
   createContext,
   createOpenApiFetchHandler,
 } from '@supaglue/api'
+import {env} from '@/env'
 
 const handler = (req: Request) =>
   createOpenApiFetchHandler({
     endpoint: '/api',
     req,
     router: appRouter,
-    createContext: () => createContext({headers: req.headers}),
+    createContext: () =>
+      createContext({
+        headers: req.headers,
+        nangoSecretKey: env.NANGO_SECRET_KEY,
+      }),
   })
 
 export {

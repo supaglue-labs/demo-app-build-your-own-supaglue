@@ -4,7 +4,6 @@ import {
   outreachProvider,
   salesloftProvider,
 } from '@supaglue/vertical-sales-engagement'
-import {env} from './env'
 
 const providerByName = {
   apollo: apolloProvider,
@@ -12,10 +11,13 @@ const providerByName = {
   outreach: outreachProvider,
 }
 
-export function createContext(opts: {headers: Headers}): RouterContext {
+export function createContext(opts: {
+  headers: Headers
+  nangoSecretKey: string
+}): RouterContext {
   return {
     headers: opts.headers,
+    nangoSecretKey: opts.nangoSecretKey,
     providerByName,
-    nangoSecretKey: env.NANGO_SECRET_KEY,
   }
 }
