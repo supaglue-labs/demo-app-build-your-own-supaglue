@@ -35,3 +35,7 @@ export function getOpenAPISpec() {
   })
   return oas
 }
+
+if (require.main === module) {
+  console.log(JSON.stringify(getOpenAPISpec(), null, 2))
+}

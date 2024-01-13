@@ -15,7 +15,6 @@ interface NangoProxyHeaders {
   retries?: string
 }
 
-// TODO: Move this outside of qbo connector as it can be used in many places
 export function nangoProxyLink(opts: {
   secretKey: string
   /** `connection-id` header */

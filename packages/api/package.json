@@ -4,13 +4,21 @@
   "private": true,
   "sideEffects": false,
   "module": "./index.ts",
+  "scripts": {
+    "gen": "run-s gen:*",
+    "gen:oas": "npx tsx ./appRouter.ts > ./client/openapi.json",
+    "gen:types": "openapi-typescript ./client/openapi.json --output ./client/openapi.d.ts"
+  },
   "dependencies": {
+    "@opensdks/runtime": "0.0.16",
     "@supaglue/vertical-sales-engagement": "workspace:*",
-    "@usevenice/trpc-openapi": "1.3.8",
     "@t3-oss/env-core": "0.7.3",
+    "@usevenice/trpc-openapi": "1.3.8",
+    "openapi-fetch": "0.8.2",
     "zod": "3.22.4"
   },
   "devDependencies": {
-    "@supaglue/vdk": "workspace:*"
+    "@supaglue/vdk": "workspace:*",
+    "openapi-typescript": "6.7.3"
   }
 }
