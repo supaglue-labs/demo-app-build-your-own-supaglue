@@ -1,5 +1,3 @@
-// TODO: Get all the tsconfigs to extend this one
-// in particular the root /tsconfig.json and /apps/web/tsconfig.json
 {
   "extends": "@tsconfig/strictest/tsconfig.json",
   "compilerOptions": {
@@ -17,12 +15,10 @@
     "jsxImportSource": "react",
     "outDir": "./dist",
     "sourceMap": true,
-    "declaration": true,
-    // This is what allows vscode etc. to automatically jump to /src files
-    // as user navigate into the library. And this is the reason we don't quite want to use tsup
-    // for the foreseeable future
-    // @see https://github.com/egoist/tsup/issues/885
-    "declarationMap": true
+    // Disable declaration as we aren't publishing. Fixes issue related to "the inferred type of x cannot be named without a reference to y"
+    // @see https://github.com/microsoft/TypeScript/issues/47663#issuecomment-1519138189
+    "declaration": false
+    // "declarationMap": true
   },
   "exclude": ["node_modules"]
 }
