@@ -31,4 +31,10 @@ export const apolloProvider = {
       items: res.data.contacts.map(mappers.contact),
     }
   },
+  listSequences: async ({instance}) => {
+    return {
+      hasNextPage: true,
+      items: [],
+    }
+  },
 } satisfies SalesEngagementProvider<ApolloSDK>

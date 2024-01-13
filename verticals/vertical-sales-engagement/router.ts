@@ -25,6 +25,16 @@ export const salesEngagementRouter = trpc.router({
       }),
     )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  listSequences: remoteProcedure
+    .meta(oapi({method: 'GET', path: '/sequences'}))
+    .input(zPaginationParams.nullish())
+    .output(
+      z.object({
+        hasNextPage: z.boolean(),
+        items: z.array(commonModels.sequence),
+      }),
+    )
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
 export type SalesEngagementProvider<TInstance> = ProviderFromRouter<

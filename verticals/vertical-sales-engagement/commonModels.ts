@@ -52,3 +52,10 @@ export const contact = z
     // raw_data: z.object({}).catchall(z.any()).optional(),
   })
   .openapi({ref: 'sales-engagement.contact'})
+
+export const sequence = z
+  .object({
+    id: z.string(),
+    name: z.string().optional(),
+  })
+  .openapi({ref: 'sales-engagement.sequence'})

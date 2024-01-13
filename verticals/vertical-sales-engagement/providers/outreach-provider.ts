@@ -20,6 +20,14 @@ const mappers = {
       last_name: (r) => r.attributes?.lastName ?? '',
     },
   ),
+  sequence: mapper(
+    zCast<StrictObj<Outreach['sequenceResponse']>>(),
+    commonModels.sequence,
+    {
+      id: (r) => r.id?.toString() ?? '',
+      name: (r) => r.attributes?.name ?? '',
+    },
+  ),
 }
 
 export const outreachProvider = {
@@ -31,5 +39,13 @@ export const outreachProvider = {
   listContacts: async ({instance}) => {
     const res = await instance.GET('/prospects', {})
     return {hasNextPage: true, items: res.data.data?.map(mappers.contact) ?? []}
+  },
+  listSequences: async ({instance}) => {
+    const res = await instance.GET('/sequences')
+
+    return {
+      hasNextPage: true,
+      items: res.data.data?.map(mappers.sequence) ?? [],
+    }
   },
 } satisfies SalesEngagementProvider<OutreachSDK>
