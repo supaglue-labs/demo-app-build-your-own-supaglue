@@ -1,5 +1,6 @@
 import {generateOpenApiDocument} from '@lilyrose2798/trpc-openapi'
 import {publicProcedure, trpc, z} from '@supaglue/vdk'
+import {crmRouter} from '@supaglue/vertical-crm'
 import {salesEngagementRouter} from '@supaglue/vertical-sales-engagement'
 
 const publicRouter = trpc.router({
@@ -24,6 +25,7 @@ const publicRouter = trpc.router({
 export const appRouter = trpc.router({
   public: publicRouter,
   salesEngagement: salesEngagementRouter,
+  crm: crmRouter,
 })
 
 export function getOpenAPISpec() {

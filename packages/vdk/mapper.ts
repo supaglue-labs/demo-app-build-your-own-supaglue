@@ -2,7 +2,6 @@ import * as R from 'remeda'
 import type {z} from '@opensdks/util-zod'
 import type {PathsOf} from './type-utils/PathsOf'
 
-
 export const literal = <T>(literal: T) => ({literal})
 
 export function mapper<
@@ -11,8 +10,8 @@ export function mapper<
   TOut extends z.infer<ZOutputSchema> = z.infer<ZOutputSchema>,
   TIn extends z.infer<ZInputSchema> = z.infer<ZInputSchema>,
 >(
-  zExt: ZInputSchema,
-  zCom: ZOutputSchema,
+  zInput: ZInputSchema,
+  zOutput: ZOutputSchema,
   mapping: {
     [k in keyof TOut]:  // | ExtractKeyOfValueType<TIn, TOut[k]> // | Getter<ExtractKeyOfValueType<TIn, TOut[k]>> // | TOut[k] // Constant
       | PathsOf<TIn> // Getter for the keypaths
@@ -23,17 +22,28 @@ export function mapper<
   const meta = {
     _in: undefined as TIn,
     _out: undefined as TOut,
-    inputSchema: zCom,
-    outputSchema: zExt,
+    inputSchema: zInput,
+    outputSchema: zOutput,
     mapping,
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const apply = (input: TIn): TOut => applyMapper(meta, input)
   apply._in = undefined as TIn
   apply._out = undefined as TOut
-  apply.inputSchema = zCom
-  apply.outputSchema = zExt
+  apply.inputSchema = zInput
+  apply.outputSchema = zOutput
   apply.mapping = mapping
+  /** Parse, don't validate! */
+  apply.parse = (input: unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validInput = zInput.parse(input)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const output = apply(validInput)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const validOutput = zOutput.parse(output)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return validOutput as TOut
+  }
   return apply
 }
 

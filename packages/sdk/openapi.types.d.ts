@@ -17,6 +17,9 @@ export interface paths {
   '/engagement/v2/sequences': {
     get: operations['salesEngagement-listSequences']
   }
+  '/crm/v2/contacts': {
+    get: operations['crm-listContacts']
+  }
 }
 
 export type webhooks = Record<string, never>
@@ -116,6 +119,11 @@ export interface components {
       id: string
       name?: string
     }
+    'crm.contact': {
+      id: string
+      first_name?: string | null
+      last_name?: string | null
+    }
   }
   responses: never
   parameters: never
@@ -213,6 +221,43 @@ export interface operations {
           'application/json': {
             hasNextPage: boolean
             items: components['schemas']['sales-engagement.sequence'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-listContacts': {
+    parameters: {
+      query?: {
+        limit?: number
+        offset?: number
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            hasNextPage: boolean
+            items: components['schemas']['crm.contact'][]
           }
         }
       }
