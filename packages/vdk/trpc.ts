@@ -1,5 +1,5 @@
+import type {OpenApiMeta} from '@lilyrose2798/trpc-openapi'
 import {initTRPC, TRPCError} from '@trpc/server'
-import type {OpenApiMeta} from '@usevenice/trpc-openapi'
 import {nangoProxyLink} from './nangoProxyLink'
 import type {Provider} from './provider'
 
@@ -37,7 +37,7 @@ export const remoteProcedure = publicProcedure.use(
       })
     }
 
-    const provider = ctx.providerByName[providerName]    
+    const provider = ctx.providerByName[providerName]
     if (!provider) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -48,7 +48,8 @@ export const remoteProcedure = publicProcedure.use(
     const nangoLink = nangoProxyLink({
       secretKey: ctx.nangoSecretKey,
       connectionId,
-      providerConfigKey: ctx.headers.get('x-provider-config-key') ?? providerName,
+      providerConfigKey:
+        ctx.headers.get('x-provider-config-key') ?? providerName,
     })
 
     return next({

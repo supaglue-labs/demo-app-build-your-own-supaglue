@@ -4,7 +4,7 @@
     "@supaglue/vdk": "workspace:*"
   },
   "devDependencies": {
-    "@opensdks/sdk-apollo": "0.0.19",
+    "@opensdks/sdk-apollo": "0.0.20",
     "@opensdks/sdk-outreach": "0.0.15",
     "@opensdks/sdk-salesloft": "0.0.16"
   }

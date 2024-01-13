@@ -1,6 +1,6 @@
+import {generateOpenApiDocument} from '@lilyrose2798/trpc-openapi'
 import {publicProcedure, trpc, z} from '@supaglue/vdk'
 import {salesEngagementRouter} from '@supaglue/vertical-sales-engagement'
-import {generateOpenApiDocument} from '@usevenice/trpc-openapi'
 
 const publicRouter = trpc.router({
   health: publicProcedure

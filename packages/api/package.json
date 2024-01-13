@@ -10,9 +10,9 @@
     "gen:types": "openapi-typescript ./client/openapi.json --output ./client/openapi.d.ts"
   },
   "dependencies": {
+    "@lilyrose2798/trpc-openapi": "1.3.10",
     "@opensdks/runtime": "0.0.16",
     "@supaglue/vertical-sales-engagement": "workspace:*",
-    "@usevenice/trpc-openapi": "1.3.8",
     "openapi-fetch": "0.8.2"
   },
   "devDependencies": {
