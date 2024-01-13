@@ -6,14 +6,14 @@ import {
   type OutreachSDKTypes,
 } from '@opensdks/sdk-outreach'
 import type {SalesEngagementProvider} from '../router'
-import {schemas} from '../router'
+import {commonModels} from '../router'
 
 type Outreach = OutreachSDKTypes['oas']['components']['schemas']
 
 const mappers = {
   contact: mapper(
     zCast<StrictObj<Outreach['prospectResponse']>>(),
-    schemas.contact,
+    commonModels.contact,
     {
       id: (r) => r.id?.toString() ?? '',
       first_name: (r) => r.attributes?.firstName ?? '',

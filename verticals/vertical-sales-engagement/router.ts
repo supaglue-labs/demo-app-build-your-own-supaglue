@@ -6,13 +6,12 @@ import {
   z,
   zPaginationParams,
 } from '@supaglue/vdk'
-import * as schemas from './schemas'
+import * as commonModels from './commonModels'
 
-export {schemas}
+export {commonModels}
 
 function oapi(meta: NonNullable<RouterMeta['openapi']>): RouterMeta {
-  const vertical = 'sales-engagement'
-  return {openapi: {...meta, path: `/verticals/${vertical}${meta.path}`}}
+  return {openapi: {...meta, path: `/engagement/v2${meta.path}`}}
 }
 
 export const salesEngagementRouter = trpc.router({
@@ -22,7 +21,7 @@ export const salesEngagementRouter = trpc.router({
     .output(
       z.object({
         hasNextPage: z.boolean(),
-        items: z.array(schemas.contact),
+        items: z.array(commonModels.contact),
       }),
     )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),

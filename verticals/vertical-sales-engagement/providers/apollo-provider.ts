@@ -6,12 +6,12 @@ import {
   type ApolloSDKTypes,
 } from '@opensdks/sdk-apollo'
 import type {SalesEngagementProvider} from '../router'
-import {schemas} from '../router'
+import {commonModels} from '../router'
 
 type Apollo = ApolloSDKTypes['oas']['components']['schemas']
 
 const mappers = {
-  contact: mapper(zCast<StrictObj<Apollo['contact']>>(), schemas.contact, {
+  contact: mapper(zCast<StrictObj<Apollo['contact']>>(), commonModels.contact, {
     id: 'id',
     first_name: (c) => c.first_name ?? '',
     last_name: (c) => c.last_name ?? '',
