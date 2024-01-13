@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@nangohq/frontend": "0.36.89",
-    "@nangohq/node": "0.36.89",
+    "@opensdks/sdk-nango": "0.0.2",
     "@supaglue/api": "workspace:*",
     "@t3-oss/env-nextjs": "0.7.3",
     "next": "14.0.3",

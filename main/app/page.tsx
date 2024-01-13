@@ -1,11 +1,13 @@
-import {Nango} from '@nangohq/node'
+import {initNangoSDK} from '@opensdks/sdk-nango'
 import {env} from '@/env'
 import {NewConnection} from './NewConnection'
 
-const nango = new Nango({secretKey: env.NANGO_SECRET_KEY})
+const nango = initNangoSDK({
+  headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
+})
 
 export default async function Home() {
-  const {connections} = await nango.listConnections()
+  const res = await nango.GET('/connection')
 
   return (
     <main className="flex min-h-screen flex-col items-center p-24">
@@ -18,7 +20,7 @@ export default async function Home() {
           </tr>
         </thead>
         <tbody>
-          {connections.map((connection) => (
+          {res.data.connections.map((connection) => (
             <tr key={connection.id}>
               <td>{connection.provider}</td>
               <td>{connection.connection_id}</td>

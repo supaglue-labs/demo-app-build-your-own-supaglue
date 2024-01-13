@@ -1,11 +1,11 @@
 import {createApiClient} from '@supaglue/api'
 
 const client = createApiClient({
-  providerName: 'salesloft',
-  connectionId: 'salesloft1',
+  providerName: 'outreach',
+  connectionId: 'outreach1',
 })
 
-client.GET('/engagement/v2/contacts').then((r) => {
+client.GET('/engagement/v2/sequences').then((r) => {
   if (r.error) {
     console.log('Error', r.error)
   } else {
