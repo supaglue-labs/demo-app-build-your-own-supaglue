@@ -1,2 +1,2 @@
-export * from './appRouter.js'
-export * from './createContext.js'
+export * from './appRouter'
+export * from './createContext'

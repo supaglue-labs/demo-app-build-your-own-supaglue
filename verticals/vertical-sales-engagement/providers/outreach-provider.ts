@@ -5,8 +5,8 @@ import {
   type OutreachSDK,
   type OutreachSDKTypes,
 } from '@opensdks/sdk-outreach'
-import type {SalesEngagementProvider} from '../router.js'
-import {schemas} from '../router.js'
+import type {SalesEngagementProvider} from '../router'
+import {schemas} from '../router'
 
 type Outreach = OutreachSDKTypes['oas']['components']['schemas']
 

@@ -1,4 +1,3 @@
-// @ts-expect-error alias-hq does not have type definitions...
 import hq from 'alias-hq'
 
 /**
@@ -8,9 +7,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
   resolver: '<rootDir>/jest.resolver.cjs',
-  testPathIgnorePatterns: [
-    '/node_modules/',
-  ],
+  testPathIgnorePatterns: ['/node_modules/'],
   watchPathIgnorePatterns: [
     '\\.gen\\.d\\.ts',
     '\\.gen\\.ts',

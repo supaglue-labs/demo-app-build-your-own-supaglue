@@ -1,8 +1,7 @@
 {
-  "name": "website",
+  "name": "main",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "next build --no-lint",
     "dev": "next dev",
@@ -10,6 +9,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supaglue/app-router": "workspace:*",
+    "@trpc/server": "10.40.0",
     "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18"

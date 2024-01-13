@@ -116,6 +116,12 @@ importers:
 
   main:
     dependencies:
+      '@supaglue/app-router':
+        specifier: workspace:*
+        version: link:../packages/app-router
+      '@trpc/server':
+        specifier: 10.40.0
+        version: 10.40.0
       next:
         specifier: 14.0.3
         version: 14.0.3(@babel/core@7.23.5)(react-dom@18.2.0)(react@18.2.0)

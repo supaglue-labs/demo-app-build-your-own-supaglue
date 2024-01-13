@@ -6,7 +6,7 @@ import {
   z,
   zPaginationParams,
 } from '@supaglue/vdk'
-import * as schemas from './schemas.js'
+import * as schemas from './schemas'
 
 export {schemas}
 

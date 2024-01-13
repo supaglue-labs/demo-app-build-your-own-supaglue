@@ -5,8 +5,8 @@ import {
   type ApolloSDK,
   type ApolloSDKTypes,
 } from '@opensdks/sdk-apollo'
-import type {SalesEngagementProvider} from '../router.js'
-import {schemas} from '../router.js'
+import type {SalesEngagementProvider} from '../router'
+import {schemas} from '../router'
 
 type Apollo = ApolloSDKTypes['oas']['components']['schemas']
 

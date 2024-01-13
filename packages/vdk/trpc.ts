@@ -1,7 +1,7 @@
 import {initTRPC, TRPCError} from '@trpc/server'
 import type {OpenApiMeta} from '@usevenice/trpc-openapi'
-import {nangoProxyLink} from './nangoProxyLink.js'
-import type {Provider} from './provider.js'
+import {nangoProxyLink} from './nangoProxyLink'
+import type {Provider} from './provider'
 
 export type RouterContext = {
   nangoSecretKey: string

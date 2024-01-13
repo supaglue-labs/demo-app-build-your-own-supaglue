@@ -1,6 +1,5 @@
 {
   "name": "@supaglue/vertical-sales-engagement",
-  "type": "module",
   "dependencies": {
     "@supaglue/vdk": "workspace:*"
   },

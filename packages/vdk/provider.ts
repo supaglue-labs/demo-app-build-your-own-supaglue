@@ -7,8 +7,8 @@ import {
   type MaybePromise,
 } from '@trpc/server'
 import type {Link as FetchLink} from '@opensdks/fetch-links'
-import {nangoProxyLink} from './nangoProxyLink.js'
-import type {RemoteProcedureContext} from './trpc.js'
+import {nangoProxyLink} from './nangoProxyLink'
+import type {RemoteProcedureContext} from './trpc'
 
 export type Provider = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

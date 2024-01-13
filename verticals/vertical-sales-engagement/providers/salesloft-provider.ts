@@ -5,8 +5,8 @@ import {
   type SalesloftSDK,
   type SalesloftSDKTypes,
 } from '@opensdks/sdk-salesloft'
-import type {SalesEngagementProvider} from '../router.js'
-import {schemas} from '../router.js'
+import type {SalesEngagementProvider} from '../router'
+import {schemas} from '../router'
 
 type Salesloft = SalesloftSDKTypes['oas']['components']['schemas']
 

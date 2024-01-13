@@ -1,6 +1,6 @@
 import * as R from 'remeda'
 import type {z} from '@opensdks/util-zod'
-import type {PathsOf} from './type-utils/PathsOf.js'
+import type {PathsOf} from './type-utils/PathsOf'
 
 
 export const literal = <T>(literal: T) => ({literal})

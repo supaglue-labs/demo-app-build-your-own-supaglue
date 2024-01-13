@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "sideEffects": false,
-  "type": "module",
   "module": "./index.ts",
   "dependencies": {
     "@supaglue/vdk": "workspace:*",

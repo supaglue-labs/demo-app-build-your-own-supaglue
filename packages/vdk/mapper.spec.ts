@@ -1,5 +1,5 @@
 import {z} from '@opensdks/util-zod'
-import {literal, mapper} from './mapper.js'
+import {literal, mapper} from './mapper'
 
 const Account = z.object({
   name: z.string(),
