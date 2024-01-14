@@ -210,8 +210,7 @@ export interface operations {
   'salesEngagement-listSequences': {
     parameters: {
       query?: {
-        limit?: number
-        offset?: number
+        cursor?: string | null
       }
     }
     responses: {
@@ -219,7 +218,7 @@ export interface operations {
       200: {
         content: {
           'application/json': {
-            hasNextPage: boolean
+            nextPageCursor?: string | null
             items: components['schemas']['sales-engagement.sequence'][]
           }
         }

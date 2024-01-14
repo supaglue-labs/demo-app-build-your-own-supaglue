@@ -147,16 +147,12 @@
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "cursor",
             "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "schema": {
-              "type": "number"
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         ],
@@ -168,8 +164,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "hasNextPage": {
-                      "type": "boolean"
+                    "nextPageCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "items": {
                       "type": "array",
@@ -179,7 +178,6 @@
                     }
                   },
                   "required": [
-                    "hasNextPage",
                     "items"
                   ]
                 }

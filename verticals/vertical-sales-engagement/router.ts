@@ -27,10 +27,10 @@ export const salesEngagementRouter = trpc.router({
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   listSequences: remoteProcedure
     .meta(oapi({method: 'GET', path: '/sequences'}))
-    .input(zPaginationParams.nullish())
+    .input(z.object({cursor: z.string().nullish()}))
     .output(
       z.object({
-        hasNextPage: z.boolean(),
+        nextPageCursor: z.string().nullish(),
         items: z.array(commonModels.sequence),
       }),
     )

@@ -1,5 +1,5 @@
 import type {StrictObj} from '@supaglue/vdk'
-import {mapper, zCast} from '@supaglue/vdk'
+import {mapper, z, zCast} from '@supaglue/vdk'
 import {
   initOutreachSDK,
   type OutreachSDK,
@@ -9,6 +9,20 @@ import type {SalesEngagementProvider} from '../router'
 import {commonModels} from '../router'
 
 type Outreach = OutreachSDKTypes['oas']['components']['schemas']
+
+/** Outreach OpenAPI is unfortunately incomplete */
+const listResponse = z.object({
+  data: z.array(z.unknown()),
+  meta: z.object({
+    count: z.number(),
+    count_truncated: z.boolean(),
+  }),
+  links: z.object({
+    // does first / previous exist?
+    last: z.string().nullish(),
+    next: z.string().nullish(),
+  }),
+})
 
 const mappers = {
   contact: mapper(
@@ -37,14 +51,21 @@ export const outreachProvider = {
       links: (defaultLinks) => [...fetchLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
-    const res = await instance.GET('/prospects', {})
+    const res = await instance.GET('/prospects', {params: {query: {}}})
     return {hasNextPage: true, items: res.data.data?.map(mappers.contact) ?? []}
   },
-  listSequences: async ({instance}) => {
-    const res = await instance.GET('/sequences')
-
+  listSequences: async ({instance, input}) => {
+    const res = await instance.GET(
+      input.cursor
+        ? // Need this for now because SDK cannot handlle absolute URL just yet.
+          (input.cursor.replace(
+            instance.clientOptions.baseUrl ?? '',
+            '',
+          ) as '/sequences')
+        : '/sequences',
+    )
     return {
-      hasNextPage: true,
+      nextPageCursor: listResponse.parse(res.data).links.next,
       items: res.data.data?.map(mappers.sequence) ?? [],
     }
   },
