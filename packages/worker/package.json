@@ -5,8 +5,11 @@
   "module": "./index.ts",
   "scripts": {},
   "dependencies": {
+    "@opensdks/sdk-nango": "0.0.2",
     "@supaglue/sdk": "workspace:*",
-    "inngest": "^3.10.0"
+    "@t3-oss/env-core": "0.7.3",
+    "inngest": "^3.10.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {}
 }
