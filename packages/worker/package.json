@@ -3,13 +3,20 @@
   "version": "0.0.0",
   "private": true,
   "module": "./index.ts",
-  "scripts": {},
+  "scripts": {
+    "db:pull": "drizzle-kit introspect:pg --connectionString $POSTGRES_URL --driver pg",
+    "db:push": "drizzle-kit push:pg --connectionString $POSTGRES_URL --driver pg --schema ./postgres/schema.ts --verbose"
+  },
   "dependencies": {
     "@opensdks/sdk-nango": "0.0.2",
     "@supaglue/sdk": "workspace:*",
     "@t3-oss/env-core": "0.7.3",
+    "drizzle-orm": "^0.29.3",
     "inngest": "^3.10.0",
+    "postgres": "^3.4.3",
     "zod": "^3.22.4"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "drizzle-kit": "^0.20.12"
+  }
 }

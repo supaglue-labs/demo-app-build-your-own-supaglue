@@ -1,5 +1,7 @@
 import {inngest} from './client'
 import {nango} from './env'
+import {db} from './postgres'
+import {syncLog} from './postgres/schema'
 
 export const helloWorld = inngest.createFunction(
   {id: 'hello-world'},
@@ -21,7 +23,7 @@ export const scheduleSyncs = inngest.createFunction(
     await inngest.send(
       connections.map((c) => ({
         name: 'connection/sync',
-        // Double check whether provider is same as providerConfigKey
+        // c.provider is the providerConfigKey, very confusing of nango
         data: {connectionId: c.connection_id, providerConfigKey: c.provider},
       })),
     )
@@ -36,5 +38,6 @@ export const syncConnection = inngest.createFunction(
       data: {connectionId, providerConfigKey},
     } = event
     console.log('Handling sync for', {connectionId, providerConfigKey})
+    await db.insert(syncLog).values({connectionId, providerConfigKey})
   },
 )
