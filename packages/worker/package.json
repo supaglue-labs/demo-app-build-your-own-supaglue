@@ -1,0 +1,12 @@
+{
+  "name": "@supaglue/worker",
+  "version": "0.0.0",
+  "private": true,
+  "module": "./index.ts",
+  "scripts": {},
+  "dependencies": {
+    "@supaglue/sdk": "workspace:*",
+    "inngest": "^3.10.0"
+  },
+  "devDependencies": {}
+}
