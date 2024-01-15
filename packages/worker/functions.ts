@@ -1,7 +1,9 @@
+import {initBYOSupaglueSDK} from '@supaglue/sdk'
+import {sql} from 'drizzle-orm'
 import {inngest} from './client'
 import {nango} from './env'
 import {db} from './postgres'
-import {syncLog} from './postgres/schema'
+import {engagementSequences, syncLog} from './postgres/schema'
 
 export const helloWorld = inngest.createFunction(
   {id: 'hello-world'},
@@ -19,13 +21,16 @@ export const scheduleSyncs = inngest.createFunction(
     const {
       data: {connections},
     } = await nango.GET('/connection')
-    console.log(connections)
+    // console.log(connections)
+
     await inngest.send(
-      connections.map((c) => ({
-        name: 'connection/sync',
-        // c.provider is the providerConfigKey, very confusing of nango
-        data: {connectionId: c.connection_id, providerConfigKey: c.provider},
-      })),
+      connections
+        .filter((c) => c.provider === 'outreach')
+        .map((c) => ({
+          name: 'connection/sync',
+          // c.provider is the providerConfigKey, very confusing of nango
+          data: {connectionId: c.connection_id, providerConfigKey: c.provider},
+        })),
     )
   },
 )
@@ -37,7 +42,54 @@ export const syncConnection = inngest.createFunction(
     const {
       data: {connectionId, providerConfigKey},
     } = event
-    console.log('Handling sync for', {connectionId, providerConfigKey})
+    console.log('[syncConnection] Start', {
+      connectionId,
+      providerConfigKey,
+      eventId: event.id,
+    })
     await db.insert(syncLog).values({connectionId, providerConfigKey})
+
+    const supaglue = initBYOSupaglueSDK({
+      headers: {
+        'x-connection-id': connectionId,
+        'x-provider-name': providerConfigKey,
+      },
+    })
+
+    let cursor = null as null | string | undefined
+    while (true) {
+      const res = await supaglue.GET('/engagement/v2/sequences', {
+        params: {query: {cursor}},
+      })
+      console.log('Syncing sequences count=', res.data.items.length)
+      await db
+        .insert(engagementSequences)
+        .values(
+          res.data.items.map((item) => ({
+            supaglueApplicationId: '$YOUR_APPLICATION_ID',
+            supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
+            supaglueProviderName: providerConfigKey,
+            id: item.id,
+            lastModifiedAt: new Date().toISOString(),
+            supaglueEmittedAt: new Date().toISOString(),
+            isDeleted: false,
+            // TODO: Return both raw and unified data here...
+            // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+            rawData: sql`${item}::jsonb`,
+            supaglueUnifiedData: sql`${item}::jsonb`,
+          })),
+        )
+        .onConflictDoNothing()
+
+      if (!res.data.nextPageCursor) {
+        break
+      }
+      cursor = res.data.nextPageCursor
+    }
+    console.log('[syncConnection] Complete', {
+      connectionId,
+      providerConfigKey,
+      eventId: event.id,
+    })
   },
 )

@@ -34,7 +34,7 @@ export const apolloProvider = {
   // eslint-disable-next-line @typescript-eslint/require-await, arrow-body-style
   listSequences: async () => {
     return {
-      hasNextPage: true,
+      nextPageCursor: null,
       items: [],
     }
   },
