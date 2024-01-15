@@ -457,6 +457,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "raw_data": {
+            "type": "object",
+            "additionalProperties": {}
           }
         },
         "required": [

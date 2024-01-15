@@ -67,7 +67,7 @@ export const syncConnection = inngest.createFunction(
         await db
           .insert(engagementSequences)
           .values(
-            res.data.items.map((item) => ({
+            res.data.items.map(({raw_data, ...item}) => ({
               supaglueApplicationId: '$YOUR_APPLICATION_ID',
               supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
               supaglueProviderName: providerConfigKey,
@@ -75,9 +75,8 @@ export const syncConnection = inngest.createFunction(
               lastModifiedAt: new Date().toISOString(),
               supaglueEmittedAt: new Date().toISOString(),
               isDeleted: false,
-              // TODO: Return both raw and unified data here...
               // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-              rawData: sql`${item}::jsonb`,
+              rawData: sql`${raw_data}::jsonb`,
               supaglueUnifiedData: sql`${item}::jsonb`,
             })),
           )

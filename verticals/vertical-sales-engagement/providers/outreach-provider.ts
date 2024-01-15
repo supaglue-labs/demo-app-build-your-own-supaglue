@@ -40,6 +40,7 @@ const mappers = {
     {
       id: (r) => r.id?.toString() ?? '',
       name: (r) => r.attributes?.name ?? '',
+      raw_data: (r) => r,
     },
   ),
 }

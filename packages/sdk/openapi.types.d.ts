@@ -118,6 +118,9 @@ export interface components {
     'sales-engagement.sequence': {
       id: string
       name?: string
+      raw_data?: {
+        [key: string]: unknown
+      }
     }
     'crm.contact': {
       id: string

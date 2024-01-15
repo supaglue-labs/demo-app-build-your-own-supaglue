@@ -57,5 +57,6 @@ export const sequence = z
   .object({
     id: z.string(),
     name: z.string().optional(),
+    raw_data: z.record(z.unknown()).optional(),
   })
   .openapi({ref: 'sales-engagement.sequence'})
