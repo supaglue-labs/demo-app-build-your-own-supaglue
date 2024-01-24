@@ -17,11 +17,13 @@ const listResponse = z.object({
     count: z.number(),
     count_truncated: z.boolean(),
   }),
-  links: z.object({
-    // does first / previous exist?
-    last: z.string().nullish(),
-    next: z.string().nullish(),
-  }),
+  links: z
+    .object({
+      // does first / previous exist?
+      last: z.string().nullish(),
+      next: z.string().nullish(),
+    })
+    .optional(),
 })
 
 const mappers = {
@@ -66,7 +68,7 @@ export const outreachProvider = {
         : '/sequences',
     )
     return {
-      nextPageCursor: listResponse.parse(res.data).links.next,
+      nextPageCursor: listResponse.parse(res.data).links?.next,
       items: res.data.data?.map(mappers.sequence) ?? [],
     }
   },
