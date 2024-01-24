@@ -21,7 +21,7 @@ async function main() {
   //   cursor = r.data.nextPageCursor as string | undefined
   // }
   const res = await supaglue.POST('/engagement/v2/accounts/_upsert', {
-    body: {record: {domain: 'example.com'}, upsert_on: {name: 'Bob'}},
+    body: {record: {domain: 'examplebob.com', }, upsert_on: {name: 'Jacob'}},
   })
   console.log('Success', res.data)
 }

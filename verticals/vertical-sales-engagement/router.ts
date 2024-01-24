@@ -66,7 +66,7 @@ export const salesEngagementRouter = trpc.router({
         }),
       }),
     )
-    .output(z.unknown())
+    .output(z.object({record: z.object({id: z.string()}).optional()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 

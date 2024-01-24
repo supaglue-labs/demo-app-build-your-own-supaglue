@@ -279,7 +279,11 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          'application/json': unknown
+          'application/json': {
+            record?: {
+              id: string
+            }
+          }
         }
       }
       /** @description Invalid input data */

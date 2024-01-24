@@ -100,7 +100,7 @@ export const outreachProvider = {
             type: 'account',
             attributes: {
               name,
-              domain,
+              domain: domain ?? input.record.domain ?? undefined,
               ...input.record.custom_fields,
             },
             relationships: {
@@ -116,7 +116,7 @@ export const outreachProvider = {
           },
         },
       })
-      return updateRes.data
+      return {record: {id: `${updateRes.data.data?.id}`}}
     } else {
       const createRes = await instance.POST('/accounts', {
         body: {
@@ -140,7 +140,7 @@ export const outreachProvider = {
           },
         },
       })
-      return createRes.data
+      return {record: {id: `${createRes.data.data?.id}`}}
     }
 
     // const searchResult = await this.#searchAccounts({
