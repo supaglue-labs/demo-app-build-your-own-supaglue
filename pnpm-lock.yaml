@@ -175,8 +175,8 @@ importers:
         specifier: 1.3.10
         version: 1.3.10(@trpc/server@10.40.0)(zod@3.22.4)
       '@opensdks/runtime':
-        specifier: 0.0.16
-        version: 0.0.16
+        specifier: 0.0.17
+        version: 0.0.17
       '@supaglue/vertical-crm':
         specifier: workspace:*
         version: link:../../verticals/vertical-crm
@@ -191,8 +191,8 @@ importers:
   packages/sdk:
     dependencies:
       '@opensdks/runtime':
-        specifier: 0.0.16
-        version: 0.0.16
+        specifier: 0.0.17
+        version: 0.0.17
     devDependencies:
       '@supaglue/api':
         specifier: workspace:*
@@ -201,8 +201,8 @@ importers:
   packages/vdk:
     dependencies:
       '@opensdks/fetch-links':
-        specifier: 0.0.17
-        version: 0.0.17
+        specifier: 0.0.18
+        version: 0.0.18
       '@opensdks/util-zod':
         specifier: 0.0.15
         version: 0.0.15
@@ -257,14 +257,14 @@ importers:
   verticals/vertical-sales-engagement:
     dependencies:
       '@opensdks/sdk-apollo':
-        specifier: 0.0.20
-        version: 0.0.20
+        specifier: 0.0.21
+        version: 0.0.21
       '@opensdks/sdk-outreach':
-        specifier: 0.0.15
-        version: 0.0.15
-      '@opensdks/sdk-salesloft':
         specifier: 0.0.16
         version: 0.0.16
+      '@opensdks/sdk-salesloft':
+        specifier: 0.0.17
+        version: 0.0.17
       '@supaglue/vdk':
         specifier: workspace:*
         version: link:../../packages/vdk
@@ -2723,21 +2723,21 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dev: true
 
-  /@opensdks/fetch-links@0.0.17:
-    resolution: {integrity: sha512-BUomrnpFtlu085W1wOY0k52Kf6qkJwBDifQxFoSHkfjyjS81AkpOTPsBTYS5HffAXS8rgoBBJF+7fu2NSYipFw==}
+  /@opensdks/fetch-links@0.0.18:
+    resolution: {integrity: sha512-EhBj92wLXoj3pF4ERxzoEhAlwlefIzQ31At0zaksSbA9zqMlod9DyfypQRX/6J8w4iZzraV33BtFEk7l98nsLA==}
     dev: false
 
-  /@opensdks/runtime@0.0.16:
-    resolution: {integrity: sha512-aCRhxlWr2e+hB38quP2tLkaPGZNPMV9rBE+IoTwDoHS4mql2dyn7HvxRYisoU3XmdaMCLvbf8+H/7Nrj02tMpg==}
+  /@opensdks/runtime@0.0.17:
+    resolution: {integrity: sha512-H4Fl5++daJhM6ILxpBOT8FDTdEGP6JCdVeGN5ZN/pyxnhsFjBW8ddPCMOZbe6IGilrMKQZf6AF0Tm9f7Pdwn0A==}
     dependencies:
-      '@opensdks/fetch-links': 0.0.17
+      '@opensdks/fetch-links': 0.0.18
       openapi-fetch: 0.8.1
       openapi-typescript-helpers: 0.0.4
       openapi3-ts: 4.1.2
     dev: false
 
-  /@opensdks/sdk-apollo@0.0.20:
-    resolution: {integrity: sha512-XFyjrvt8zEKjI+tvuy9dxxiQY/Q1BxrgHAMu08bbRradPhiyw7xsepZIgibOB1vaKmgqErvsnmXFq3/r8kZcLg==}
+  /@opensdks/sdk-apollo@0.0.21:
+    resolution: {integrity: sha512-2vysmbvPH7lncmOoxqy870Pv3ZMeMK9bSxzyrJgWsUAFNn7Q6MjNHz+C2igDVnbaKnR5ow7eSl6lOr1/bI5P9g==}
     dev: false
 
   /@opensdks/sdk-hubspot@0.0.4:
@@ -2748,12 +2748,12 @@ packages:
     resolution: {integrity: sha512-dlc7EVGsbWAoe1KeWjc2RoIgeN4TmEARUH5udovxkqIUTGSCUp7lDc8BbQQeMveaTVl5djjyiYOJbQxz8qYpBA==}
     dev: false
 
-  /@opensdks/sdk-outreach@0.0.15:
-    resolution: {integrity: sha512-X3HsfDHFs3VFi6xn3EZ75b6WoKL0geVIj+00MuypAgilbbecfrtNlslfMHD/KHQgfZPo+n92ipECJfO5XbtYsg==}
+  /@opensdks/sdk-outreach@0.0.16:
+    resolution: {integrity: sha512-i2p4JSNWpzz/BbSTvcOyOziiB88SWUOVOl1OrwDG3fVLhzRPFkg+icZDXL7nWa9w0L4HEavPm/2Wl4uIYZLYeA==}
     dev: false
 
-  /@opensdks/sdk-salesloft@0.0.16:
-    resolution: {integrity: sha512-G59x1L+XdFyw4SNJP2hQFYd6Iw6lSHskCl3ZPpFmTzCahFS48a3HwNpOsl3lk+c29Cr7ZXVEiq8pmpLzHR7CHQ==}
+  /@opensdks/sdk-salesloft@0.0.17:
+    resolution: {integrity: sha512-y7RRpk/f2FgXzYqjvx7lL8pMMG48v6UV+qGwPfGhSqi8mhWZFF67kV++vH9G4ter1chn2ZVn2Oianas3ZHunQQ==}
     dev: false
 
   /@opensdks/util-zod@0.0.15:

@@ -9,7 +9,7 @@
     "gen:types": "npx @opensdks/cli ./openapi.json --meta-dir ./ --types-dir ./ "
   },
   "dependencies": {
-    "@opensdks/runtime": "0.0.16"
+    "@opensdks/runtime": "0.0.17"
   },
   "devDependencies": {
     "@supaglue/api": "workspace:*"

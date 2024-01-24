@@ -1,9 +1,9 @@
 {
   "name": "@supaglue/vertical-sales-engagement",
   "dependencies": {
-    "@opensdks/sdk-apollo": "0.0.20",
-    "@opensdks/sdk-outreach": "0.0.15",
-    "@opensdks/sdk-salesloft": "0.0.16",
+    "@opensdks/sdk-apollo": "0.0.21",
+    "@opensdks/sdk-outreach": "0.0.16",
+    "@opensdks/sdk-salesloft": "0.0.17",
     "@supaglue/vdk": "workspace:*"
   }
 }
