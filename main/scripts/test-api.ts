@@ -8,18 +8,22 @@ const supaglue = initBYOSupaglueSDK({
 })
 
 async function main() {
-  let cursor: string | undefined = undefined
-
-  while (true) {
-    const r = await supaglue.GET('/engagement/v2/sequences', {
-      params: {query: {cursor}},
-    })
-    console.log('Success', r.data)
-    if (!r.data.nextPageCursor) {
-      break
-    }
-    cursor = r.data.nextPageCursor as string | undefined
-  }
+  // let cursor: string | undefined = undefined
+  //
+  // while (true) {
+  //   const r = await supaglue.GET('/engagement/v2/sequences', {
+  //     params: {query: {cursor}},
+  //   })
+  //   console.log('Success', r.data)
+  //   if (!r.data.nextPageCursor) {
+  //     break
+  //   }
+  //   cursor = r.data.nextPageCursor as string | undefined
+  // }
+  const res = await supaglue.POST('/engagement/v2/accounts/_upsert', {
+    body: {record: {domain: 'example.com'}, upsert_on: {name: 'Bob'}},
+  })
+  console.log('Success', res.data)
 }
 
 main()

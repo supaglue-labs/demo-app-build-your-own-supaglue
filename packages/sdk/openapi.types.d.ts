@@ -17,6 +17,9 @@ export interface paths {
   '/engagement/v2/sequences': {
     get: operations['salesEngagement-listSequences']
   }
+  '/engagement/v2/accounts/_upsert': {
+    post: operations['salesEngagement-upsertAccount']
+  }
   '/crm/v2/contacts': {
     get: operations['crm-listContacts']
   }
@@ -236,6 +239,53 @@ export interface operations {
       404: {
         content: {
           'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-upsertAccount': {
+    requestBody: {
+      content: {
+        'application/json': {
+          record: {
+            /** @example My Company */
+            name?: string | null
+            /** @example mycompany.com */
+            domain?: string | null
+            /** @example 9f3e97fd-4d5d-4efc-959d-bbebfac079f5 */
+            owner_id?: string | null
+            /** @example ae4be028-9078-4850-a0bf-d2112b7c4d11 */
+            account_id?: string | null
+            custom_fields?: {
+              [key: string]: unknown
+            } | null
+          }
+          upsert_on: {
+            /** @description The name of the account to upsert on. Supported for Outreach, Salesloft, and Apollo. */
+            name?: string
+            /** @description The domain of the account to upsert on. Only supported for Outreach and Salesloft. */
+            domain?: string
+          }
+        }
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': unknown
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
         }
       }
       /** @description Internal server error */

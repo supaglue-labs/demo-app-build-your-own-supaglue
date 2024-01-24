@@ -35,6 +35,39 @@ export const salesEngagementRouter = trpc.router({
       }),
     )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  upsertAccount: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/accounts/_upsert'}))
+    .input(
+      z.object({
+        record: z.object({
+          name: z.string().nullish().openapi({example: 'My Company'}),
+          domain: z.string().nullish().openapi({example: 'mycompany.com'}),
+          owner_id: z
+            .string()
+            .nullish()
+            .openapi({example: '9f3e97fd-4d5d-4efc-959d-bbebfac079f5'}),
+          account_id: z
+            .string()
+            .nullish()
+            .openapi({example: 'ae4be028-9078-4850-a0bf-d2112b7c4d11'}),
+          custom_fields: z.record(z.unknown()).nullish(),
+        }),
+        upsert_on: z.object({
+          name: z.string().optional().openapi({
+            description:
+              'The name of the account to upsert on. Supported for Outreach, Salesloft, and Apollo.',
+          }),
+          domain: z
+            .string()
+            .optional()
+            .describe(
+              'The domain of the account to upsert on. Only supported for Outreach and Salesloft.',
+            ),
+        }),
+      }),
+    )
+    .output(z.unknown())
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
 export type SalesEngagementProvider<TInstance> = ProviderFromRouter<
