@@ -42,20 +42,15 @@ export const salesforceProvider = {
         ...defaultLinks,
       ],
     }),
-  listContacts: async ({instance}) => {
-    const res = await instance.GET('/sobjects/Contact', {})
-    const contacts = await Promise.all(
-      (res.data.recentItems ?? []).map((item) =>
-        instance
-          .GET('/sobjects/Contact/{id}', {
-            params: {path: {id: (item as {Id: string}).Id}},
-          })
-          .then((r) => r.data),
-      ),
+  listContacts: async ({instance, input}) => {
+    const res = await instance.query<SFDC['ContactSObject']>(
+      `SELECT Id, FirstName, LastName FROM Contact ORDER BY SystemModstamp ASC LIMIT ${
+        input?.limit ?? 10
+      }`,
     )
     return {
       hasNextPage: true,
-      items: contacts.map(mappers.contact.parse),
+      items: res.records.map(mappers.contact.parse),
     }
   },
 } satisfies CRMProvider<SalesforceSDK>
