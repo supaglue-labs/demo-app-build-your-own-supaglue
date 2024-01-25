@@ -2,8 +2,10 @@ import {initBYOSupaglueSDK} from '@supaglue/sdk'
 
 const supaglue = initBYOSupaglueSDK({
   headers: {
-    'x-connection-id': 'outreach1',
-    'x-provider-name': 'outreach',
+    // 'x-connection-id': 'outreach1',
+    // 'x-provider-name': 'outreach',
+    'x-connection-id': 'test-connection-id',
+    'x-provider-name': 'salesforce',
   },
 })
 
@@ -20,9 +22,11 @@ async function main() {
   //   }
   //   cursor = r.data.nextPageCursor as string | undefined
   // }
-  const res = await supaglue.POST('/engagement/v2/accounts/_upsert', {
-    body: {record: {domain: 'examplebob.com', }, upsert_on: {name: 'Jacob'}},
-  })
+  // const res = await supaglue.POST('/engagement/v2/accounts/_upsert', {
+  //   body: {record: {domain: 'examplebob.com', }, upsert_on: {name: 'Jacob'}},
+  // })
+  // console.log('Success', res.data)
+  const res = await supaglue.GET('/crm/v2/contacts', {})
   console.log('Success', res.data)
 }
 
