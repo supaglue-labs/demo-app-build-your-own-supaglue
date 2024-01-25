@@ -1,4 +1,4 @@
-import {mapper, zCast} from '@supaglue/vdk'
+import {mapper, modifyRequest, PLACEHOLDER_BASE_URL, zCast} from '@supaglue/vdk'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {initSalesforceSDK, type SalesforceSDK} from '@opensdks/sdk-salesforce'
 import type {CRMProvider} from '../router'
@@ -14,17 +14,33 @@ const mappers = {
   }),
 }
 
-// TODO: Get this from our config
-const instanceUrl = process.env['SALESFORCE_INSTANCE_URL']
-// To get list of available versions, visit $instanceUrl/services/data
+/**
+ * Hard-coded for now, to get list of available versions, visit $instanceUrl/services/data
+ * TODO: Consider making this configurable by
+ * 1) Exposing ConnectionConfiguration and ConnectionMetadata as part of params to __init__.
+ * We don't do that today to reduce 1x roundtrip needed on every request
+ * 2) Allow it to be configured on a per request basis via a `x-salesforce-api-version` header.
+ * Simpler but we would be forcing the consumer to have to worry about it.
+ */
 const apiVersion = 'v59.0'
 
 export const salesforceProvider = {
-  __init__: ({fetchLinks}) =>
+  __init__: ({proxyLinks}) =>
     initSalesforceSDK({
-      baseUrl: instanceUrl + '/services/data/' + apiVersion,
-      // headers: {authorization: 'Bearer ...'} , // Handled by Nango
-      links: (defaultLinks) => [...fetchLinks, ...defaultLinks],
+      baseUrl: PLACEHOLDER_BASE_URL,
+      links: (defaultLinks) => [
+        (req, next) =>
+          next(
+            modifyRequest(req, {
+              url: req.url.replace(
+                PLACEHOLDER_BASE_URL,
+                PLACEHOLDER_BASE_URL + '/services/data/' + apiVersion,
+              ),
+            }),
+          ),
+        ...proxyLinks,
+        ...defaultLinks,
+      ],
     }),
   listContacts: async ({instance}) => {
     const res = await instance.GET('/sobjects/Contact', {})

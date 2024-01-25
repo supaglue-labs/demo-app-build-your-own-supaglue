@@ -48,10 +48,10 @@ const mappers = {
 }
 
 export const outreachProvider = {
-  __init__: ({fetchLinks}) =>
+  __init__: ({proxyLinks}) =>
     initOutreachSDK({
       headers: {authorization: 'Bearer ...'}, // This will be populated by Nango, or you can populate your own...
-      links: (defaultLinks) => [...fetchLinks, ...defaultLinks],
+      links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
     const res = await instance.GET('/prospects', {params: {query: {}}})

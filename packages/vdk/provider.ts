@@ -14,7 +14,7 @@ export type Provider = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [k: string]: (...args: any[]) => any
 } & {
-  __init__: (opts: {fetchLinks: FetchLink[]}) => unknown
+  __init__: (opts: {proxyLinks: FetchLink[]}) => unknown
 }
 
 export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
@@ -27,8 +27,16 @@ export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
       }) => MaybePromise<inferProcedureOutput<TRouter[k]>>
     : never
 } & {
-  __init__: (opts: {fetchLinks: FetchLink[]}) => TInstance
+  __init__: (opts: {proxyLinks: FetchLink[]}) => TInstance
 }
+
+/**
+ * Workaround for situation where we do not want to set an override of the base url
+ * and simply want to use the default.
+ * TODO: Rethink the interface between nangoProxyLink, proxyCallProvider and the providers themselves to
+ * make this relationship clearer
+ */
+export const PLACEHOLDER_BASE_URL = 'http://placeholder'
 
 export async function proxyCallProvider({
   input,
@@ -38,13 +46,13 @@ export async function proxyCallProvider({
   ctx: RemoteProcedureContext
 }) {
   const instance = ctx.provider.__init__({
-    fetchLinks: [
+    proxyLinks: [
       (req, next) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         const baseUrl = (instance as any)?.clientOptions?.baseUrl as
           | string
           | undefined
-        if (baseUrl) {
+        if (baseUrl && baseUrl !== PLACEHOLDER_BASE_URL) {
           req.headers.set(nangoProxyLink.kBaseUrlOverride, baseUrl)
         }
         return next(req)

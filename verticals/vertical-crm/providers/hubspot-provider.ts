@@ -32,10 +32,10 @@ const mappers = {
 }
 
 export const hubspotProvider = {
-  __init__: ({fetchLinks}) =>
+  __init__: ({proxyLinks}) =>
     initHubspotSDK({
       headers: {authorization: 'Bearer ...'}, // This will be populated by Nango, or you can populate your own...
-      links: (defaultLinks) => [...fetchLinks, ...defaultLinks],
+      links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
     const res = await instance.contacts.GET('/crm/v3/objects/contacts', {})

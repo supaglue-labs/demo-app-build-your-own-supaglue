@@ -6,3 +6,4 @@ export * from './type-utils/PathsOf'
 export * from './type-utils/StrictObj'
 
 export * from '@opensdks/util-zod'
+export * from '@opensdks/fetch-links'

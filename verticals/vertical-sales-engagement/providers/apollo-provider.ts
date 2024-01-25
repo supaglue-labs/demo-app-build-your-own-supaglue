@@ -19,10 +19,10 @@ const mappers = {
 }
 
 export const apolloProvider = {
-  __init__: ({fetchLinks}) =>
+  __init__: ({proxyLinks}) =>
     initApolloSDK({
       api_key: '', // This will be populated by Nango, or you can populate your own
-      links: (defaultLinks) => [...fetchLinks, ...defaultLinks],
+      links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
     const res = await instance.POST('/v1/contacts/search', {})
