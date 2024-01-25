@@ -251,8 +251,8 @@ importers:
         specifier: 0.0.4
         version: 0.0.4
       '@opensdks/sdk-salesforce':
-        specifier: 0.0.1
-        version: 0.0.1
+        specifier: 0.0.2
+        version: 0.0.2
       '@supaglue/vdk':
         specifier: workspace:*
         version: link:../../packages/vdk
@@ -2755,8 +2755,8 @@ packages:
     resolution: {integrity: sha512-i2p4JSNWpzz/BbSTvcOyOziiB88SWUOVOl1OrwDG3fVLhzRPFkg+icZDXL7nWa9w0L4HEavPm/2Wl4uIYZLYeA==}
     dev: false
 
-  /@opensdks/sdk-salesforce@0.0.1:
-    resolution: {integrity: sha512-DDZ7/O4/RtEY3omQxu40Z9Fb6Syzldyr2uCoBfsndqhWXSbD5UgFbBnJ6QSCSVEBs1+FWVdmuo5oWZE1tckDfw==}
+  /@opensdks/sdk-salesforce@0.0.2:
+    resolution: {integrity: sha512-gjHwKwfAwtqMgCFrFlWkYfYWlwRm0mYx2Wv3efhgryvpaKGboVZ3519vQlkC1cPGUD1g+WqAzbhb0crlhPSMow==}
     dev: false
 
   /@opensdks/sdk-salesloft@0.0.17:
