@@ -26,7 +26,11 @@ async function main() {
   //   body: {record: {domain: 'examplebob.com', }, upsert_on: {name: 'Jacob'}},
   // })
   // console.log('Success', res.data)
-  const res = await supaglue.GET('/crm/v2/contacts', {})
+  // const res = await supaglue.GET('/crm/v2/contacts', {})
+  // console.log('Success', res.data)
+  const res = await supaglue.GET('/crm/v2/contacts/{id}', {
+    params: {path: {id: '0033x00003D6SBOAA3'}},
+  })
   console.log('Success', res.data)
 }
 

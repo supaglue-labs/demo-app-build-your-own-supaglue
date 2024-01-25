@@ -53,4 +53,13 @@ export const salesforceProvider = {
       items: res.records.map(mappers.contact.parse),
     }
   },
+  getContact: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/Contact/{id}', {
+      params: {path: {id: input.id}},
+    })
+    return {
+      record: mappers.contact.parse(res.data),
+      raw: res.data,
+    }
+  },
 } satisfies CRMProvider<SalesforceSDK>

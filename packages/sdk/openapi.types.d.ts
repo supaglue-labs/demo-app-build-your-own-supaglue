@@ -23,6 +23,9 @@ export interface paths {
   '/crm/v2/contacts': {
     get: operations['crm-listContacts']
   }
+  '/crm/v2/contacts/{id}': {
+    get: operations['crm-getContact']
+  }
 }
 
 export type webhooks = Record<string, never>
@@ -314,6 +317,42 @@ export interface operations {
           'application/json': {
             hasNextPage: boolean
             items: components['schemas']['crm.contact'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getContact': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['crm.contact']
+            raw?: unknown
           }
         }
       }
