@@ -8,6 +8,20 @@ We use a mono repo. Rounded rectangles represent packages, while circles represe
 
 ## Roadmap
 
+### [API](./packages/api/)
+
+- [ ] Add endpoints needed for sync to work
+  - [ ] List unified (aka common) objects
+  - [ ] List provider specific (aka standard) objects
+
+### [Sync (worker)](./packages/worker/)
+
+- [ ] Re-entrant, idempotent and resume-able upsert based sync
+- [ ] Iterate through common model objects & standard objects during sync
+- [ ] Log sync history into DB
+- [ ] Deletion detection
+- [ ] Rate limit handling
+
 ## Changelog
 
 ### Jan 17: Initial release
