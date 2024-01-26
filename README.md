@@ -1,5 +1,12 @@
 # Build your own Supaglue
 
+We use a mono repo. Rounded rectangles represent packages, while circles represent external servcies
+
+[Architecture diagram](https://excalidraw.com/#json=5DResE9Kv68kPiyig_-K_,hieAlBHX-7njUkD3sS7Bbg)
+
+![architecture.png](./architecture.png)
+
+
 ## Jan 17: Initial release
 A quick video demo walkthrough of the codebase and implementing a new endpoint 
 
