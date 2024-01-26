@@ -1,15 +1,43 @@
 import {initBYOSupaglueSDK} from '@supaglue/sdk'
 import {sql} from 'drizzle-orm'
-import type {Events} from './client'
+import type {SendEventPayload} from 'inngest/helpers/types'
+import {nango} from './env'
+import type {Events} from './events'
 import {db} from './postgres'
 import {engagementSequences, syncLog} from './postgres/schema'
 
 /**
- * Unlike functions, routines are designed to run without dependency on inngeset
+ * Unlike functions, routines are designed to run without dependency on Inngest
+ * So they can be used with any job queue system, such as BullMQ or home grown system built
+ * on top of postgres / redis / pubsub / whatever.
  */
-type RoutineInput<T extends keyof Events> = {
+export type RoutineInput<T extends keyof Events> = {
   event: {data: Events[T]['data']; id?: string}
-  step: {run: <T>(name: string, fn: () => Promise<T>) => Promise<T> | T}
+  step: {
+    run: <T>(name: string, fn: () => Promise<T>) => Promise<T> | T
+    sendEvent: (
+      stepId: string,
+      events: SendEventPayload<Events>,
+    ) => Promise<unknown> // SendEventOutput
+  }
+}
+
+export async function scheduleSyncs({step}: RoutineInput<never>) {
+  const {
+    data: {connections},
+  } = await nango.GET('/connection')
+  // console.log(connections)
+
+  await step.sendEvent(
+    'emit-connection-sync-events',
+    connections
+      .filter((c) => c.provider === 'outreach')
+      .map((c) => ({
+        name: 'connection/sync',
+        // c.provider is the providerConfigKey, very confusing of nango
+        data: {connectionId: c.connection_id, providerConfigKey: c.provider},
+      })),
+  )
 }
 
 export async function syncConnection({
