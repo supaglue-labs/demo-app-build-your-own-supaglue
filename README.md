@@ -52,4 +52,6 @@ Next step we are going to dive deeper into sync in the demo app. Hope they are h
 
 Previously the sync logic was tightly coupled with Inngest, now we have a separation between [functions](./packages/worker/inngest/functions.ts) vs. [routines](./packages/worker/routines.ts). Routines contains the core business logic that can be used in any job queue, such as BullMQ or home grown system built on top of postgres / redis / pubsub / whatever. While `functions` are created with `inngest.createFunction` and contains inngest specific logic to hook up functions with event based triggers. 
 
+For an example of how to operate without Inngest, you can see the [cli file](./packages/worker/cli.ts) that runs logic for syncing a connection from the command line rather than triggered by Inngest. 
+
 Overall the sync system is event-driven, with the core event schemas declared inside events.ts
