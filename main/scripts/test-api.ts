@@ -28,10 +28,15 @@ async function main() {
   // console.log('Success', res.data)
   // const res = await supaglue.GET('/crm/v2/contacts', {})
   // console.log('Success', res.data)
-  const res = await supaglue.GET('/crm/v2/contacts/{id}', {
+  // const res = await supaglue.GET('/crm/v2/contacts/{id}', {
+  //   params: {path: {id: '0033x00003D6SBOAA3'}},
+  // })
+  // console.log('Success', res.data)
+
+  const res = await supaglue.GET('/crm/v2/companies/{id}', {
     params: {path: {id: '0033x00003D6SBOAA3'}},
   })
-  console.log('Success', res.data)
+  res.data.record.name
 }
 
 main()

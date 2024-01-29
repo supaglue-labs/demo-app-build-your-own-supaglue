@@ -26,6 +26,9 @@ export interface paths {
   '/crm/v2/contacts/{id}': {
     get: operations['crm-getContact']
   }
+  '/crm/v2/companies/{id}': {
+    get: operations['crm-getCompanies']
+  }
 }
 
 export type webhooks = Record<string, never>
@@ -132,6 +135,10 @@ export interface components {
       id: string
       first_name?: string | null
       last_name?: string | null
+    }
+    'crm.company': {
+      id: string
+      name?: string | null
     }
   }
   responses: never
@@ -352,6 +359,42 @@ export interface operations {
         content: {
           'application/json': {
             record: components['schemas']['crm.contact']
+            raw?: unknown
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getCompanies': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['crm.company']
             raw?: unknown
           }
         }

@@ -7,3 +7,10 @@ export const contact = z
     last_name: z.string().nullish(),
   })
   .openapi({ref: 'crm.contact'})
+
+  export const company = z
+  .object({
+    id: z.string(),
+    name: z.string().nullish(),
+  })
+  .openapi({ref: 'crm.company'})
