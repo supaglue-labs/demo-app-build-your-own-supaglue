@@ -5,6 +5,7 @@ import {nango} from './env'
 import type {Events} from './events'
 import {db} from './postgres'
 import {engagementSequences, syncLog} from './postgres/schema'
+import {dbUpsert} from './postgres/upsert'
 
 /**
  * Unlike functions, routines are designed to run without dependency on Inngest
@@ -69,23 +70,27 @@ export async function syncConnection({
         params: {query: {cursor}},
       })
       console.log('Syncing sequences count=', res.data.items.length)
-      await db
-        .insert(engagementSequences)
-        .values(
-          res.data.items.map(({raw_data, ...item}) => ({
-            supaglueApplicationId: '$YOUR_APPLICATION_ID',
-            supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
-            supaglueProviderName: providerConfigKey,
-            id: item.id,
-            lastModifiedAt: new Date().toISOString(),
-            supaglueEmittedAt: new Date().toISOString(),
-            isDeleted: false,
-            // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-            rawData: sql`${raw_data}::jsonb`,
-            supaglueUnifiedData: sql`${item}::jsonb`,
-          })),
-        )
-        .onConflictDoNothing()
+      await dbUpsert(
+        engagementSequences,
+        res.data.items.map(({raw_data, ...item}) => ({
+          supaglueApplicationId: '$YOUR_APPLICATION_ID',
+          supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
+          supaglueProviderName: providerConfigKey,
+          id: item.id,
+          lastModifiedAt: new Date().toISOString(),
+          supaglueEmittedAt: new Date().toISOString(),
+          isDeleted: false,
+          // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+          rawData: sql`${raw_data}::jsonb`,
+          supaglueUnifiedData: sql`${item}::jsonb`,
+        })),
+        [
+          engagementSequences.supaglueApplicationId,
+          engagementSequences.supaglueProviderName,
+          engagementSequences.supaglueCustomerId,
+          engagementSequences.id,
+        ],
+      )
 
       return res.data.nextPageCursor
     })

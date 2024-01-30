@@ -9,9 +9,10 @@ import type {
 import {db} from '.'
 
 /** We assume that every row contains the same keys even if not defined in its value */
-export function upsertQuery<TTable extends PgTable>(
+export function dbUpsert<TTable extends PgTable>(
   table: TTable,
   values: Array<PgInsertValue<TTable>>,
+  // TODO: Default this to primary keys would be good
   keyColumns: IndexColumn[],
 ) {
   const keyColumnNames = new Set(keyColumns.map((k) => k.name))
@@ -33,11 +34,9 @@ export function upsertQuery<TTable extends PgTable>(
       ) as PgUpdateSetSource<TTable>,
       where: sql.join(
         Object.values(upsertCols).map(
-          (c) =>
-            sql`${sql.identifier(c.name)} != ${sql.raw(`excluded.${c.name}`)}`,
+          (c) => sql`${c} != ${sql.raw(`excluded.${c.name}`)}`,
         ),
         sql` AND `,
       ),
     })
-    .toSQL()
 }

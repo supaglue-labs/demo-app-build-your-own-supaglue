@@ -2,7 +2,7 @@ import {sql} from 'drizzle-orm'
 import prettier from 'prettier'
 import prettierSql from 'prettier-plugin-sql'
 import {engagementSequences} from './schema'
-import {upsertQuery} from './upsert'
+import {dbUpsert} from './upsert'
 
 async function formatSql(sqlString: string) {
   return prettier.format(sqlString, {
@@ -14,7 +14,7 @@ async function formatSql(sqlString: string) {
 }
 
 test('upsert query', async () => {
-  const query = upsertQuery(
+  const query = dbUpsert(
     engagementSequences,
     [
       {
@@ -37,7 +37,7 @@ test('upsert query', async () => {
       engagementSequences.id,
     ],
   )
-  expect(await formatSql(query.sql)).toMatchInlineSnapshot(`
+  expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
     "insert into
       "engagement_sequences" (
         "_supaglue_application_id",
@@ -80,11 +80,11 @@ test('upsert query', async () => {
       "raw_data" = excluded.raw_data,
       "_supaglue_unified_data" = excluded._supaglue_unified_data
     where
-      "last_modified_at" != excluded.last_modified_at
-      AND "_supaglue_emitted_at" != excluded._supaglue_emitted_at
-      AND "is_deleted" != excluded.is_deleted
-      AND "raw_data" != excluded.raw_data
-      AND "_supaglue_unified_data" != excluded._supaglue_unified_data
+      "engagement_sequences"."last_modified_at" != excluded.last_modified_at
+      AND "engagement_sequences"."_supaglue_emitted_at" != excluded._supaglue_emitted_at
+      AND "engagement_sequences"."is_deleted" != excluded.is_deleted
+      AND "engagement_sequences"."raw_data" != excluded.raw_data
+      AND "engagement_sequences"."_supaglue_unified_data" != excluded._supaglue_unified_data
     "
   `)
 })
