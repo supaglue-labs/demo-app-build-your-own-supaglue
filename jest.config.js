@@ -33,4 +33,7 @@ export default {
   // maybe this would be a reason to use ts-jest which has native support for pathsToModuleNameMapper
   // instead of esbuild-jest which does not?
   moduleNameMapper: hq.get('jest'),
+  // https://jestjs.io/docs/configuration/#prettierpath-string
+  // Jest does not work with prettier-3 for now...
+  prettierPath: null,
 }
