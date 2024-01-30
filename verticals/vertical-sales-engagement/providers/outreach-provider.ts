@@ -158,4 +158,42 @@ export const outreachProvider = {
     // }
     // return this.createAccount(params.record);
   },
+  insertSequenceState: async ({instance, input}) => {
+    const res = await instance.POST('/sequenceStates', {
+      body: {
+        data: {
+          type: 'sequenceState',
+          relationships: {
+            prospect: {
+              data: {
+                type: 'prospect',
+                id: Number.parseInt(input.record.contact_id, 10)
+              }
+            },
+            mailbox: {
+              data: {
+                type: 'mailbox',
+                id: Number.parseInt(input.record.mailbox_id, 10)
+              }
+            },
+            sequence: {
+              data: {
+                type: 'sequence',
+                id: Number.parseInt(input.record.sequence_id, 10)
+              }
+            },
+            creator: input.record.user_id
+              ? {
+                  data: {
+                    type: 'user',
+                    id: Number.parseInt(input.record.user_id, 10)
+                  }
+                }
+              : undefined
+          }
+        }
+      }
+    })
+    return {record: {id: `${res.data.data?.id}`}}
+  }
 } satisfies SalesEngagementProvider<OutreachSDK>
