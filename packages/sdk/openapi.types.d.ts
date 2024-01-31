@@ -70,6 +70,9 @@ export interface components {
       id: string
       first_name: string
       last_name: string
+      raw_data?: {
+        [key: string]: unknown
+      }
     }
     /**
      * Error
@@ -201,7 +204,7 @@ export interface operations {
       200: {
         content: {
           'application/json': {
-            hasNextPage: boolean
+            nextPageCursor?: string | null
             items: components['schemas']['sales-engagement.contact'][]
           }
         }

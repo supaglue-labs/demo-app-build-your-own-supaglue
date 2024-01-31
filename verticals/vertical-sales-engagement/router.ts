@@ -20,7 +20,7 @@ export const salesEngagementRouter = trpc.router({
     .input(zPaginationParams.nullish())
     .output(
       z.object({
-        hasNextPage: z.boolean(),
+        nextPageCursor: z.string().nullish(),
         items: z.array(commonModels.contact),
       }),
     )
@@ -73,15 +73,24 @@ export const salesEngagementRouter = trpc.router({
     .input(
       z.object({
         record: z.object({
-          contact_id: z.string().openapi({example: '9f3e97fd-4d5d-4efc-959d-bbebfac079f5'}),
-          mailbox_id: z.string().openapi({example: 'ae4be028-9078-4850-a0bf-d2112b7c4d11'}),
-          sequence_id: z.string().openapi({example: 'b854e510-1c40-4ef6-ade4-8eb35f49d331'}),
-          user_id: z.string().nullish().openapi({example: 'c590dc63-8e43-48a4-8154-1fbb00ac936b'})
-        })
-      })
+          contact_id: z
+            .string()
+            .openapi({example: '9f3e97fd-4d5d-4efc-959d-bbebfac079f5'}),
+          mailbox_id: z
+            .string()
+            .openapi({example: 'ae4be028-9078-4850-a0bf-d2112b7c4d11'}),
+          sequence_id: z
+            .string()
+            .openapi({example: 'b854e510-1c40-4ef6-ade4-8eb35f49d331'}),
+          user_id: z
+            .string()
+            .nullish()
+            .openapi({example: 'c590dc63-8e43-48a4-8154-1fbb00ac936b'}),
+        }),
+      }),
     )
     .output(z.object({record: z.object({id: z.string()}).optional()}))
-    .query(async ({input, ctx}) => proxyCallProvider({input, ctx}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
 export type SalesEngagementProvider<TInstance> = ProviderFromRouter<

@@ -49,7 +49,7 @@ export const contact = z
     // updated_at: z.string(),
     // is_deleted: z.boolean(),
     // last_modified_at: z.string(),
-    // raw_data: z.object({}).catchall(z.any()).optional(),
+    raw_data: z.record(z.unknown()).optional(),
   })
   .openapi({ref: 'sales-engagement.contact'})
 

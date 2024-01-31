@@ -54,7 +54,9 @@ export const outreachProvider = {
       links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
-    const res = await instance.GET('/prospects', {params: {query: {}}})
+    const res = await instance.GET('/prospects', {
+      params: {query: {'page[size]': 1}},
+    })
     return {hasNextPage: true, items: res.data.data?.map(mappers.contact) ?? []}
   },
   listSequences: async ({instance, input}) => {
@@ -66,7 +68,7 @@ export const outreachProvider = {
             '',
           ) as '/sequences')
         : '/sequences',
-      // {params: {query: {'page[size]': 1}}},
+      {params: {query: {'page[size]': 1}}},
     )
     return {
       nextPageCursor: listResponse.parse(res.data).links?.next,

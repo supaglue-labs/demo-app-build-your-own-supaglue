@@ -90,8 +90,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "hasNextPage": {
-                      "type": "boolean"
+                    "nextPageCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "items": {
                       "type": "array",
@@ -101,7 +104,6 @@
                     }
                   },
                   "required": [
-                    "hasNextPage",
                     "items"
                   ]
                 }
@@ -702,6 +704,10 @@
           },
           "last_name": {
             "type": "string"
+          },
+          "raw_data": {
+            "type": "object",
+            "additionalProperties": {}
           }
         },
         "required": [

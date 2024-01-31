@@ -4,7 +4,8 @@ import type {SendEventPayload} from 'inngest/helpers/types'
 import {nango} from './env'
 import type {Events} from './events'
 import {db} from './postgres'
-import {engagementSequences, syncLog} from './postgres/schema'
+import {syncLog} from './postgres/schema'
+import {getCommonObjectTable} from './postgres/schema-factory'
 import {dbUpsert} from './postgres/upsert'
 
 /**
@@ -62,35 +63,49 @@ export async function syncConnection({
     },
   })
 
-  // TODO: Need to figure out if stepFunction behaves as expected...
-  let cursor = null as null | string | undefined
-  do {
-    cursor = await step.run(`sync-page-${cursor}`, async () => {
-      const res = await supaglue.GET('/engagement/v2/sequences', {
-        params: {query: {cursor}},
+  // Load this from a config please...
+  const vertical = 'engagement' as const
+  const entitiesToSync = ['contacts', 'sequences'] as const
+
+  for (const entity of entitiesToSync) {
+    let cursor = null as null | string | undefined
+    do {
+      cursor = await step.run(`${entity}-sync-page-${cursor}`, async () => {
+        const res = await supaglue.GET(`/${vertical}/v2/${entity}`, {
+          params: {query: {cursor}},
+        })
+        console.log(
+          `Syncing ${vertical} ${entity} count=`,
+          res.data.items.length,
+        )
+
+        const table = getCommonObjectTable(`${vertical}_${entity}`)
+
+        // TODO: Do migration for our table...
+        // migrate(db, {migrationsTable: []})
+
+        await dbUpsert(
+          db,
+          table,
+          res.data.items.map(({raw_data, ...item}) => ({
+            supaglueApplicationId: '$YOUR_APPLICATION_ID',
+            supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
+            supaglueProviderName: providerConfigKey,
+            id: item.id,
+            lastModifiedAt: new Date().toISOString(),
+            supaglueEmittedAt: new Date().toISOString(),
+            isDeleted: false,
+            // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+            rawData: sql`${raw_data ?? ''}::jsonb`,
+            supaglueUnifiedData: sql`${item}::jsonb`,
+          })),
+          {shallowMergeJsonbColumns: ['supaglueUnifiedData']},
+        )
+        return res.data.nextPageCursor
       })
-      console.log('Syncing sequences count=', res.data.items.length)
-      await dbUpsert(
-        db,
-        engagementSequences,
-        res.data.items.map(({raw_data, ...item}) => ({
-          supaglueApplicationId: '$YOUR_APPLICATION_ID',
-          supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
-          supaglueProviderName: providerConfigKey,
-          id: item.id,
-          lastModifiedAt: new Date().toISOString(),
-          supaglueEmittedAt: new Date().toISOString(),
-          isDeleted: false,
-          // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-          rawData: sql`${raw_data}::jsonb`,
-          supaglueUnifiedData: sql`${item}::jsonb`,
-        })),
-        {shallowMergeJsonbColumns: ['supaglueUnifiedData']},
-      )
-      return res.data.nextPageCursor
-    })
-    break
-  } while (cursor)
+      break
+    } while (cursor)
+  }
 
   console.log('[syncConnection] Complete', {
     connectionId,
@@ -98,3 +113,6 @@ export async function syncConnection({
     eventId: event.id,
   })
 }
+
+// Later...
+// Need to figure out if stepFunction behaves as expected...

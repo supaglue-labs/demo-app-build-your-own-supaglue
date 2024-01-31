@@ -17,11 +17,11 @@ export function getCommonObjectTable<TName extends string>(tableName: TName) {
       supaglueApplicationId: text('_supaglue_application_id').notNull(),
       supaglueProviderName: text('_supaglue_provider_name').notNull(),
       supaglueCustomerId: text('_supaglue_customer_id').notNull(),
-      id: text('id').notNull(),
       supaglueEmittedAt: timestamp('_supaglue_emitted_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
+      id: text('id').notNull(),
       createdAt: timestamp('created_at', {precision: 3, mode: 'string'}),
       updatedAt: timestamp('updated_at', {precision: 3, mode: 'string'}),
       isDeleted: boolean('is_deleted').default(false).notNull(),
@@ -57,11 +57,11 @@ export function getProviderObjectTable<TName extends string>(
       supaglueApplicationId: text('_supaglue_application_id').notNull(),
       supaglueProviderName: text('_supaglue_provider_name').notNull(),
       supaglueCustomerId: text('_supaglue_customer_id').notNull(),
-      id: text('id').notNull(),
       supaglueEmittedAt: timestamp('_supaglue_emitted_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
+      id: text('id').notNull(),
       supaglueLastModifiedAt: timestamp('_supaglue_last_modified_at', {
         precision: 3,
         mode: 'string',
