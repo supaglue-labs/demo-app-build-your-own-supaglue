@@ -2,7 +2,7 @@ import {sql} from 'drizzle-orm'
 import prettier from 'prettier'
 import prettierSql from 'prettier-plugin-sql'
 import {db} from '.'
-import {engagementSequences} from './schema'
+import {engagement_sequences} from './schema'
 import {dbUpsert} from './upsert'
 
 async function formatSql(sqlString: string) {
@@ -14,29 +14,29 @@ async function formatSql(sqlString: string) {
   })
 }
 
-console.log(engagementSequences._)
+console.log(engagement_sequences._)
 
 test('upsert query', async () => {
   const query = dbUpsert(
     db,
-    engagementSequences,
+    engagement_sequences,
     [
       {
-        supaglueApplicationId: '$YOUR_APPLICATION_ID',
-        supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
-        supaglueProviderName: 'providerConfigKey',
+        _supaglue_application_id: '$YOUR_APPLICATION_ID',
+        _supaglue_customer_id: 'connectionId', //  '$YOUR_CUSTOMER_ID',
+        _supaglue_provider_name: 'providerConfigKey',
         id: '123',
-        lastModifiedAt: new Date().toISOString(),
-        supaglueEmittedAt: sql`now()`,
-        isDeleted: false,
+        last_modified_at: new Date().toISOString(),
+        _supaglue_emitted_at: sql`now()`,
+        is_deleted: false,
         // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-        rawData: sql`${{hello: 1}}::jsonb`,
-        supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
+        raw_data: sql`${{hello: 1}}::jsonb`,
+        _supaglue_unified_data: sql`${{world: 2}}::jsonb`,
       },
     ],
     {
-      shallowMergeJsonbColumns: ['rawData'],
-      ignoredColumns: ['supaglueEmittedAt'],
+      shallowMergeJsonbColumns: ['raw_data'],
+      ignoredColumns: ['_supaglue_emitted_at'],
     },
   )
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`

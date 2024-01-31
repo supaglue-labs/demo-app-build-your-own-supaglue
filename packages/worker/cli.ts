@@ -12,7 +12,7 @@ const step: routines.RoutineInput<never>['step'] = {
 
 void routines
   .syncConnection({
-    event: {data: {connectionId: 'outreach1', providerConfigKey: 'outreach'}},
+    event: {data: {connection_id: 'outreach1', provider_config_key: 'outreach'}},
     step,
   })
   .finally(() => pgClient.end())

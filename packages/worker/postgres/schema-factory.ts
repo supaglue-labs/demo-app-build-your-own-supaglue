@@ -14,30 +14,30 @@ export function getCommonObjectTable<TName extends string>(tableName: TName) {
   return pgTable(
     tableName,
     {
-      supaglueApplicationId: text('_supaglue_application_id').notNull(),
-      supaglueProviderName: text('_supaglue_provider_name').notNull(),
-      supaglueCustomerId: text('_supaglue_customer_id').notNull(),
-      supaglueEmittedAt: timestamp('_supaglue_emitted_at', {
+      _supaglue_application_id: text('_supaglue_application_id').notNull(),
+      _supaglue_provider_name: text('_supaglue_provider_name').notNull(),
+      _supaglue_customer_id: text('_supaglue_customer_id').notNull(),
+      _supaglue_emitted_at: timestamp('_supaglue_emitted_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
       id: text('id').notNull(),
-      createdAt: timestamp('created_at', {precision: 3, mode: 'string'}),
-      updatedAt: timestamp('updated_at', {precision: 3, mode: 'string'}),
-      isDeleted: boolean('is_deleted').default(false).notNull(),
-      lastModifiedAt: timestamp('last_modified_at', {
+      created_at: timestamp('created_at', {precision: 3, mode: 'string'}),
+      updated_at: timestamp('updated_at', {precision: 3, mode: 'string'}),
+      is_deleted: boolean('is_deleted').default(false).notNull(),
+      last_modified_at: timestamp('last_modified_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
-      rawData: jsonb('raw_data'),
-      supaglueUnifiedData: jsonb('_supaglue_unified_data'),
+      raw_data: jsonb('raw_data'),
+      _supaglue_unified_data: jsonb('_supaglue_unified_data'),
     },
     (table) => ({
       primaryKey: primaryKey({
         columns: [
-          table.supaglueApplicationId,
-          table.supaglueProviderName,
-          table.supaglueCustomerId,
+          table._supaglue_application_id,
+          table._supaglue_provider_name,
+          table._supaglue_customer_id,
           table.id,
         ],
         name: `${tableName}_pkey`,
@@ -54,34 +54,34 @@ export function getProviderObjectTable<TName extends string>(
   return pgTable(
     tableName,
     {
-      supaglueApplicationId: text('_supaglue_application_id').notNull(),
-      supaglueProviderName: text('_supaglue_provider_name').notNull(),
-      supaglueCustomerId: text('_supaglue_customer_id').notNull(),
-      supaglueEmittedAt: timestamp('_supaglue_emitted_at', {
+      _supaglue_application_id: text('_supaglue_application_id').notNull(),
+      _supaglue_provider_name: text('_supaglue_provider_name').notNull(),
+      _supaglue_customer_id: text('_supaglue_customer_id').notNull(),
+      _supaglue_emitted_at: timestamp('_supaglue_emitted_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
       id: text('id').notNull(),
-      supaglueLastModifiedAt: timestamp('_supaglue_last_modified_at', {
+      _supaglue_last_modified_at: timestamp('_supaglue_last_modified_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
-      supaglueIsDeleted: boolean('_supaglue_is_deleted')
+      _supaglue_is_deleted: boolean('_supaglue_is_deleted')
         .default(false)
         .notNull(),
-      supaglueRawData: jsonb('_supaglue_raw_data'),
-      supaglueMappedData: jsonb('_supaglue_mapped_data'),
+      _supaglue_raw_data: jsonb('_supaglue_raw_data'),
+      _supaglue_mapped_data: jsonb('_supaglue_mapped_data'),
       // e.g. salesforce_product_gaps_c , or hubspot_productgaps
       ...(opts?.custom && {
-        supaglueObjectName: text('_supaglue_object_name').notNull(),
+        _supaglue_object_name: text('_supaglue_object_name').notNull(),
       }),
     },
     (table) => ({
       primaryKey: primaryKey({
         columns: [
-          table.supaglueApplicationId,
-          table.supaglueProviderName,
-          table.supaglueCustomerId,
+          table._supaglue_application_id,
+          table._supaglue_provider_name,
+          table._supaglue_customer_id,
           table.id,
         ],
         name: `${tableName}_pkey`,

@@ -4,7 +4,7 @@ import type {SendEventPayload} from 'inngest/helpers/types'
 import {nango} from './env'
 import type {Events} from './events'
 import {db} from './postgres'
-import {syncLog} from './postgres/schema'
+import {sync_log} from './postgres/schema'
 import {getCommonObjectTable} from './postgres/schema-factory'
 import {dbUpsert} from './postgres/upsert'
 
@@ -37,7 +37,7 @@ export async function scheduleSyncs({step}: RoutineInput<never>) {
       .map((c) => ({
         name: 'connection/sync',
         // c.provider is the providerConfigKey, very confusing of nango
-        data: {connectionId: c.connection_id, providerConfigKey: c.provider},
+        data: {connection_id: c.connection_id, provider_config_key: c.provider},
       })),
   )
 }
@@ -47,19 +47,19 @@ export async function syncConnection({
   step,
 }: RoutineInput<'connection/sync'>) {
   const {
-    data: {connectionId, providerConfigKey},
+    data: {connection_id, provider_config_key},
   } = event
   console.log('[syncConnection] Start', {
-    connectionId,
-    providerConfigKey,
+    connectionId: connection_id,
+    providerConfigKey: provider_config_key,
     eventId: event.id,
   })
-  await db.insert(syncLog).values({connectionId, providerConfigKey})
+  await db.insert(sync_log).values({connection_id, provider_config_key})
 
   const supaglue = initBYOSupaglueSDK({
     headers: {
-      'x-connection-id': connectionId,
-      'x-provider-name': providerConfigKey,
+      'x-connection-id': connection_id,
+      'x-provider-name': provider_config_key,
     },
   })
 
@@ -88,18 +88,18 @@ export async function syncConnection({
           db,
           table,
           res.data.items.map(({raw_data, ...item}) => ({
-            supaglueApplicationId: '$YOUR_APPLICATION_ID',
-            supaglueCustomerId: connectionId, //  '$YOUR_CUSTOMER_ID',
-            supaglueProviderName: providerConfigKey,
+            _supaglue_application_id: '$YOUR_APPLICATION_ID',
+            _supaglue_customer_id: connection_id, //  '$YOUR_CUSTOMER_ID',
+            _supaglue_provider_name: provider_config_key,
             id: item.id,
-            lastModifiedAt: new Date().toISOString(),
-            supaglueEmittedAt: new Date().toISOString(),
+            last_modified_at: new Date().toISOString(),
+            _supaglue_emitted_at: new Date().toISOString(),
             isDeleted: false,
             // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-            rawData: sql`${raw_data ?? ''}::jsonb`,
-            supaglueUnifiedData: sql`${item}::jsonb`,
+            raw_data: sql`${raw_data ?? ''}::jsonb`,
+            _supaglue_unified_data: sql`${item}::jsonb`,
           })),
-          {shallowMergeJsonbColumns: ['supaglueUnifiedData']},
+          {shallowMergeJsonbColumns: ['_supaglue_unified_data']},
         )
         return res.data.nextPageCursor
       })
@@ -108,8 +108,8 @@ export async function syncConnection({
   }
 
   console.log('[syncConnection] Complete', {
-    connectionId,
-    providerConfigKey,
+    connectionId: connection_id,
+    providerConfigKey: provider_config_key,
     eventId: event.id,
   })
 }
