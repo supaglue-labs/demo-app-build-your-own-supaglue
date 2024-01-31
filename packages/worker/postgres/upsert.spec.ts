@@ -82,10 +82,12 @@ test('upsert query', async () => {
       "raw_data" = COALESCE("engagement_sequences"."raw_data", '{}'::jsonb) || excluded.raw_data,
       "_supaglue_unified_data" = excluded._supaglue_unified_data
     where
-      "engagement_sequences"."last_modified_at" IS DISTINCT FROM excluded.last_modified_at
-      OR "engagement_sequences"."is_deleted" IS DISTINCT FROM excluded.is_deleted
-      OR "engagement_sequences"."raw_data" IS DISTINCT FROM excluded.raw_data
-      OR "engagement_sequences"."_supaglue_unified_data" IS DISTINCT FROM excluded._supaglue_unified_data
+      (
+        "engagement_sequences"."last_modified_at" IS DISTINCT FROM excluded.last_modified_at
+        or "engagement_sequences"."is_deleted" IS DISTINCT FROM excluded.is_deleted
+        or "engagement_sequences"."raw_data" IS DISTINCT FROM excluded.raw_data
+        or "engagement_sequences"."_supaglue_unified_data" IS DISTINCT FROM excluded._supaglue_unified_data
+      )
     "
   `)
 })

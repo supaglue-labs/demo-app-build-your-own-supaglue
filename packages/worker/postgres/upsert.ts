@@ -1,4 +1,4 @@
-import {sql} from 'drizzle-orm'
+import {or, sql} from 'drizzle-orm'
 import {
   getTableConfig,
   type PgColumn,
@@ -70,8 +70,8 @@ export function dbUpsert<
           ]),
         ]),
       ) as PgUpdateSetSource<TTable>,
-      where: sql.join(
-        Object.values(upsertCols)
+      where: or(
+        ...Object.values(upsertCols)
           .filter((c) => !ignoredColumns?.find((ic) => ic.name === c.name))
           .map(
             // In PostgreSQL, the "IS DISTINCT FROM" operator is used to compare two values and determine
@@ -80,7 +80,6 @@ export function dbUpsert<
             // but treats NULL as an unknown value and does not consider it as different from other values.
             (c) => sql`${c} IS DISTINCT FROM ${sql.raw(`excluded.${c.name}`)}`,
           ),
-        sql` OR `,
       ),
     })
 }
