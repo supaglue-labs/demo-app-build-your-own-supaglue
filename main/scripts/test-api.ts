@@ -2,10 +2,10 @@ import {initBYOSupaglueSDK} from '@supaglue/sdk'
 
 const supaglue = initBYOSupaglueSDK({
   headers: {
-    // 'x-connection-id': 'outreach1',
-    // 'x-provider-name': 'outreach',
-    'x-connection-id': 'test-connection-id',
-    'x-provider-name': 'salesforce',
+    'x-connection-id': 'outreach1',
+    'x-provider-name': 'outreach',
+    // 'x-connection-id': 'test-connection-id',
+    // 'x-provider-name': 'salesforce',
   },
 })
 
@@ -33,10 +33,20 @@ async function main() {
   // })
   // console.log('Success', res.data)
 
-  const res = await supaglue.GET('/crm/v2/companies/{id}', {
-    params: {path: {id: '0033x00003D6SBOAA3'}},
+  // const res = await supaglue.GET('/crm/v2/companies/{id}', {
+  //   params: {path: {id: '0033x00003D6SBOAA3'}},
+  // })
+  const res = await supaglue.POST('/engagement/v2/sequenceState', {
+    body: {
+      record: {
+        contact_id: '41834',
+        mailbox_id: '1',
+        sequence_id: '38',
+      },
+    },
   })
-  res.data.record.name
+  console.log('Success', res.data)
+  // res.data.record.name
 }
 
 main()

@@ -20,6 +20,9 @@ export interface paths {
   '/engagement/v2/accounts/_upsert': {
     post: operations['salesEngagement-upsertAccount']
   }
+  '/engagement/v2/sequenceState': {
+    post: operations['salesEngagement-insertSequenceState']
+  }
   '/crm/v2/contacts': {
     get: operations['crm-listContacts']
   }
@@ -281,6 +284,48 @@ export interface operations {
             name?: string
             /** @description The domain of the account to upsert on. Only supported for Outreach and Salesloft. */
             domain?: string
+          }
+        }
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record?: {
+              id: string
+            }
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-insertSequenceState': {
+    requestBody: {
+      content: {
+        'application/json': {
+          record: {
+            /** @example 9f3e97fd-4d5d-4efc-959d-bbebfac079f5 */
+            contact_id: string
+            /** @example ae4be028-9078-4850-a0bf-d2112b7c4d11 */
+            mailbox_id: string
+            /** @example b854e510-1c40-4ef6-ade4-8eb35f49d331 */
+            sequence_id: string
+            /** @example c590dc63-8e43-48a4-8154-1fbb00ac936b */
+            user_id?: string | null
           }
         }
       }
