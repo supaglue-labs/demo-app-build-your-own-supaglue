@@ -1,6 +1,7 @@
 import {sql} from 'drizzle-orm'
 import prettier from 'prettier'
 import prettierSql from 'prettier-plugin-sql'
+import {db} from '.'
 import {engagementSequences} from './schema'
 import {dbUpsert} from './upsert'
 
@@ -13,30 +14,23 @@ async function formatSql(sqlString: string) {
   })
 }
 
+console.log(engagementSequences._)
+
 test('upsert query', async () => {
-  const query = dbUpsert(
-    engagementSequences,
-    [
-      {
-        supaglueApplicationId: '$YOUR_APPLICATION_ID',
-        supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
-        supaglueProviderName: 'providerConfigKey',
-        id: '123',
-        lastModifiedAt: new Date().toISOString(),
-        supaglueEmittedAt: new Date().toISOString(),
-        isDeleted: false,
-        // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-        rawData: sql`${{hello: 1}}::jsonb`,
-        supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
-      },
-    ],
-    [
-      engagementSequences.supaglueApplicationId,
-      engagementSequences.supaglueProviderName,
-      engagementSequences.supaglueCustomerId,
-      engagementSequences.id,
-    ],
-  )
+  const query = dbUpsert(db, engagementSequences, [
+    {
+      supaglueApplicationId: '$YOUR_APPLICATION_ID',
+      supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
+      supaglueProviderName: 'providerConfigKey',
+      id: '123',
+      lastModifiedAt: new Date().toISOString(),
+      supaglueEmittedAt: new Date().toISOString(),
+      isDeleted: false,
+      // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+      rawData: sql`${{hello: 1}}::jsonb`,
+      supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
+    },
+  ])
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
     "insert into
       "engagement_sequences" (

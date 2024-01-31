@@ -167,33 +167,33 @@ export const outreachProvider = {
             prospect: {
               data: {
                 type: 'prospect',
-                id: Number.parseInt(input.record.contact_id, 10)
-              }
+                id: Number.parseInt(input.record.contact_id, 10),
+              },
             },
             mailbox: {
               data: {
                 type: 'mailbox',
-                id: Number.parseInt(input.record.mailbox_id, 10)
-              }
+                id: Number.parseInt(input.record.mailbox_id, 10),
+              },
             },
             sequence: {
               data: {
                 type: 'sequence',
-                id: Number.parseInt(input.record.sequence_id, 10)
-              }
+                id: Number.parseInt(input.record.sequence_id, 10),
+              },
             },
             creator: input.record.user_id
               ? {
                   data: {
                     type: 'user',
-                    id: Number.parseInt(input.record.user_id, 10)
-                  }
+                    id: Number.parseInt(input.record.user_id, 10),
+                  },
                 }
-              : undefined
-          }
-        }
-      }
+              : undefined,
+          },
+        },
+      },
     })
     return {record: {id: `${res.data.data?.id}`}}
-  }
+  },
 } satisfies SalesEngagementProvider<OutreachSDK>
