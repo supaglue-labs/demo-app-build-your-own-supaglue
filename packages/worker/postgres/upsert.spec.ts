@@ -26,15 +26,18 @@ test('upsert query', async () => {
         supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
         supaglueProviderName: 'providerConfigKey',
         id: '123',
-        lastModifiedAt: sql`now()`,
-        supaglueEmittedAt: new Date().toISOString(),
+        lastModifiedAt: new Date().toISOString(),
+        supaglueEmittedAt: sql`now()`,
         isDeleted: false,
         // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
         rawData: sql`${{hello: 1}}::jsonb`,
         supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
       },
     ],
-    {shallowMergeJsonbColumns: ['rawData']},
+    {
+      shallowMergeJsonbColumns: ['rawData'],
+      ignoredColumns: ['supaglueEmittedAt'],
+    },
   )
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
     "insert into
@@ -56,12 +59,12 @@ test('upsert query', async () => {
         $1,
         $2,
         $3,
-        $4,
-        $5,
-        default,
-        default,
-        $6,
         now(),
+        $4,
+        default,
+        default,
+        $5,
+        $6,
         $7::jsonb,
         $8::jsonb
       )
@@ -80,7 +83,6 @@ test('upsert query', async () => {
       "_supaglue_unified_data" = excluded._supaglue_unified_data
     where
       "engagement_sequences"."last_modified_at" IS DISTINCT FROM excluded.last_modified_at
-      OR "engagement_sequences"."_supaglue_emitted_at" IS DISTINCT FROM excluded._supaglue_emitted_at
       OR "engagement_sequences"."is_deleted" IS DISTINCT FROM excluded.is_deleted
       OR "engagement_sequences"."raw_data" IS DISTINCT FROM excluded.raw_data
       OR "engagement_sequences"."_supaglue_unified_data" IS DISTINCT FROM excluded._supaglue_unified_data
