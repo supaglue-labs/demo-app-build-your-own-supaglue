@@ -1,10 +1,9 @@
 import {initBYOSupaglueSDK} from '@supaglue/sdk'
-import {eq, sql} from 'drizzle-orm'
+import {and, eq, sql} from 'drizzle-orm'
 import type {SendEventPayload} from 'inngest/helpers/types'
 import {nango} from './env'
 import type {Events} from './events'
-import {db} from './postgres'
-import {sync_run} from './postgres/schema'
+import {db, schema} from './postgres'
 import {getCommonObjectTable} from './postgres/schema-factory'
 import {dbUpsert} from './postgres/upsert'
 
@@ -56,7 +55,7 @@ export async function syncConnection({
   })
 
   const syncRunId = await db
-    .insert(sync_run)
+    .insert(schema.sync_run)
     .values({
       connection_id,
       provider_config_key,
@@ -65,6 +64,27 @@ export async function syncConnection({
     })
     .returning()
     .then((rows) => rows[0]!.id)
+
+  const syncState = await db.query.sync_state
+    .findFirst({
+      where: and(
+        eq(schema.sync_state.connection_id, connection_id),
+        eq(schema.sync_state.provider_config_key, provider_config_key),
+      ),
+    })
+    .then(
+      (ss) =>
+        ss ??
+        db
+          .insert(schema.sync_state)
+          .values({
+            connection_id,
+            provider_config_key,
+            state: sql`${{}}::jsonb`,
+          })
+          .returning()
+          .then((rows) => rows[0]!),
+    )
 
   const supaglue = initBYOSupaglueSDK({
     headers: {
@@ -77,12 +97,16 @@ export async function syncConnection({
   const vertical = 'engagement' as const
   const entitiesToSync = ['contacts', 'sequences'] as const
 
+  const state = syncState.state as Record<string, {max_updated_at?: string}>
+
   for (const entity of entitiesToSync) {
+    // TODO: Update this
+    const max_updated_at = state[entity]?.max_updated_at
     let cursor = null as null | string | undefined
     do {
       cursor = await step.run(`${entity}-sync-page-${cursor}`, async () => {
         const res = await supaglue.GET(`/${vertical}/v2/${entity}`, {
-          params: {query: {cursor}},
+          params: {query: {cursor, updated_after: max_updated_at}},
         })
         console.log(
           `Syncing ${vertical} ${entity} count=`,
@@ -112,14 +136,14 @@ export async function syncConnection({
         )
         return res.data.nextPageCursor
       })
-      break
+      // break
     } while (cursor)
   }
 
   await db
-    .update(sync_run)
+    .update(schema.sync_run)
     .set({completed_at: new Date().toISOString(), status: 'COMPLETED'})
-    .where(eq(sync_run.id, syncRunId))
+    .where(eq(schema.sync_run.id, syncRunId))
 
   console.log('[syncConnection] Complete', {
     connectionId: connection_id,

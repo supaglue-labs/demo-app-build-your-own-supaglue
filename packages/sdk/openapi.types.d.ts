@@ -197,6 +197,7 @@ export interface operations {
       query?: {
         limit?: number
         offset?: number
+        updated_after?: string
       }
     }
     responses: {
@@ -363,6 +364,7 @@ export interface operations {
       query?: {
         limit?: number
         offset?: number
+        updated_after?: string
       }
     }
     responses: {

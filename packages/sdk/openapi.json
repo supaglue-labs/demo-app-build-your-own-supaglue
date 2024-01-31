@@ -80,6 +80,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "in": "query",
+            "name": "updated_after",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "responses": {
@@ -448,6 +456,14 @@
             "name": "offset",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "updated_after",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],

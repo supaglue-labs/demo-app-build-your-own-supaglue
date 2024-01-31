@@ -3,6 +3,12 @@ import {z} from '@opensdks/util-zod'
 export const zPaginationParams = z.object({
   limit: z.number().optional(),
   offset: z.number().optional(),
+
+  updated_after: z
+    .string()
+    .datetime()
+    .optional()
+    .describe('Used for incremental syncs, inclusive of the date'),
 })
 export type Pagination = z.infer<typeof zPaginationParams>
 
