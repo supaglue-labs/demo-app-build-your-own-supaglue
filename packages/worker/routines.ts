@@ -1,10 +1,10 @@
 import {initBYOSupaglueSDK} from '@supaglue/sdk'
-import {sql} from 'drizzle-orm'
+import {eq, sql} from 'drizzle-orm'
 import type {SendEventPayload} from 'inngest/helpers/types'
 import {nango} from './env'
 import type {Events} from './events'
 import {db} from './postgres'
-import {sync_log} from './postgres/schema'
+import {sync_run} from './postgres/schema'
 import {getCommonObjectTable} from './postgres/schema-factory'
 import {dbUpsert} from './postgres/upsert'
 
@@ -54,7 +54,17 @@ export async function syncConnection({
     providerConfigKey: provider_config_key,
     eventId: event.id,
   })
-  await db.insert(sync_log).values({connection_id, provider_config_key})
+
+  const syncRunId = await db
+    .insert(sync_run)
+    .values({
+      connection_id,
+      provider_config_key,
+      status: 'STARTED',
+      started_at: new Date().toISOString(),
+    })
+    .returning()
+    .then((rows) => rows[0]!.id)
 
   const supaglue = initBYOSupaglueSDK({
     headers: {
@@ -94,18 +104,22 @@ export async function syncConnection({
             id: item.id,
             last_modified_at: new Date().toISOString(),
             _supaglue_emitted_at: new Date().toISOString(),
-            isDeleted: false,
+            is_deleted: false,
             // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
             raw_data: sql`${raw_data ?? ''}::jsonb`,
             _supaglue_unified_data: sql`${item}::jsonb`,
           })),
-          {shallowMergeJsonbColumns: ['_supaglue_unified_data']},
         )
         return res.data.nextPageCursor
       })
       break
     } while (cursor)
   }
+
+  await db
+    .update(sync_run)
+    .set({completed_at: new Date().toISOString(), status: 'COMPLETED'})
+    .where(eq(sync_run.id, syncRunId))
 
   console.log('[syncConnection] Complete', {
     connectionId: connection_id,

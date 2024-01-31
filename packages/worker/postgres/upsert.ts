@@ -28,9 +28,15 @@ export function dbUpsert<
     ignoredColumns?: Array<ColumnKeyOf<TTable>>
   } = {},
 ) {
-  const getColumn = (name: string) => table[name as keyof PgTable] as PgColumn
-
   const tbCfg = getTableConfig(table)
+  const getColumn = (name: string) => {
+    const col = table[name as keyof PgTable] as PgColumn
+    if (!col) {
+      throw new Error(`Column ${name} not found in table ${tbCfg.name}`)
+    }
+    return col
+  }
+
   const keyColumns =
     options.keyColumns?.map(getColumn) ?? tbCfg.primaryKeys[0]?.columns
   const shallowMergeJsonbColumns =
@@ -45,7 +51,7 @@ export function dbUpsert<
   const keyColumnNames = new Set(keyColumns.map((k) => k.name))
   const upsertCols = Object.fromEntries(
     Object.keys(values[0] ?? {})
-      .map((k) => [k, table[k as keyof TTable] as PgColumn] as const)
+      .map((k) => [k, getColumn(k)] as const)
       .filter(([, c]) => !keyColumnNames.has(c.name)),
   )
   return db
