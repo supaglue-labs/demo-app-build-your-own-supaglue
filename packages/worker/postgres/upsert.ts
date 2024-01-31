@@ -1,7 +1,6 @@
 import {sql} from 'drizzle-orm'
 import {
   getTableConfig,
-  type IndexColumn,
   type PgColumn,
   type PgDatabase,
   type PgInsertValue,
@@ -20,14 +19,18 @@ export function dbUpsert<
   values: Array<PgInsertValue<TTable>>,
   options: {
     /** defaults to primaryKeyColumns */
-    keyColumns?: IndexColumn[]
-
+    keyColumns?: Array<keyof TTable['_']['columns']>
     /** Shallow jsonb merge as via sql`COALESCE(${fullId}, '{}'::jsonb) || excluded.${colId}` */
-    shallowMergeJsonbColumns?: PgColumn[]
+    shallowMergeJsonbColumns?: Array<keyof TTable['_']['columns']>
   } = {},
 ) {
   const tbCfg = getTableConfig(table)
-  const keyColumns = options.keyColumns ?? tbCfg.primaryKeys[0]?.columns
+  const keyColumns =
+    options.keyColumns?.map((k) => table[k as keyof TTable] as PgColumn) ??
+    tbCfg.primaryKeys[0]?.columns
+  const shallowMergeJsonbColumns = options.shallowMergeJsonbColumns?.map(
+    (k) => table[k as keyof TTable] as PgColumn,
+  )
   if (!keyColumns) {
     throw new Error(
       `Unable to upsert without keyColumns for table ${tbCfg.name}`,
@@ -48,7 +51,7 @@ export function dbUpsert<
         Object.entries(upsertCols).map(([k, c]) => [
           k,
           sql.join([
-            options.shallowMergeJsonbColumns?.find((jc) => jc.name === c.name)
+            shallowMergeJsonbColumns?.find((jc) => jc.name === c.name)
               ? sql`COALESCE(${c}, '{}'::jsonb) ||`
               : sql``,
             sql.raw(`excluded.${c.name}`),

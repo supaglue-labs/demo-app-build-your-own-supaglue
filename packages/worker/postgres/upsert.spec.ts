@@ -34,9 +34,7 @@ test('upsert query', async () => {
         supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
       },
     ],
-    {
-      shallowMergeJsonbColumns: [engagementSequences.rawData, ],
-    },
+    {shallowMergeJsonbColumns: ['rawData']},
   )
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
     "insert into
@@ -82,10 +80,10 @@ test('upsert query', async () => {
       "_supaglue_unified_data" = excluded._supaglue_unified_data
     where
       "engagement_sequences"."last_modified_at" IS DISTINCT FROM excluded.last_modified_at
-      AND "engagement_sequences"."_supaglue_emitted_at" IS DISTINCT FROM excluded._supaglue_emitted_at
-      AND "engagement_sequences"."is_deleted" IS DISTINCT FROM excluded.is_deleted
-      AND "engagement_sequences"."raw_data" IS DISTINCT FROM excluded.raw_data
-      AND "engagement_sequences"."_supaglue_unified_data" IS DISTINCT FROM excluded._supaglue_unified_data
+      OR "engagement_sequences"."_supaglue_emitted_at" IS DISTINCT FROM excluded._supaglue_emitted_at
+      OR "engagement_sequences"."is_deleted" IS DISTINCT FROM excluded.is_deleted
+      OR "engagement_sequences"."raw_data" IS DISTINCT FROM excluded.raw_data
+      OR "engagement_sequences"."_supaglue_unified_data" IS DISTINCT FROM excluded._supaglue_unified_data
     "
   `)
 })

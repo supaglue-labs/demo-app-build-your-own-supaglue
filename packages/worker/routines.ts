@@ -85,7 +85,7 @@ export async function syncConnection({
           rawData: sql`${raw_data}::jsonb`,
           supaglueUnifiedData: sql`${item}::jsonb`,
         })),
-        {shallowMergeJsonbColumns: [engagementSequences.supaglueUnifiedData]},
+        {shallowMergeJsonbColumns: ['supaglueUnifiedData']},
       )
       return res.data.nextPageCursor
     })
