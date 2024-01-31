@@ -17,20 +17,27 @@ async function formatSql(sqlString: string) {
 console.log(engagementSequences._)
 
 test('upsert query', async () => {
-  const query = dbUpsert(db, engagementSequences, [
+  const query = dbUpsert(
+    db,
+    engagementSequences,
+    [
+      {
+        supaglueApplicationId: '$YOUR_APPLICATION_ID',
+        supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
+        supaglueProviderName: 'providerConfigKey',
+        id: '123',
+        lastModifiedAt: sql`now()`,
+        supaglueEmittedAt: new Date().toISOString(),
+        isDeleted: false,
+        // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+        rawData: sql`${{hello: 1}}::jsonb`,
+        supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
+      },
+    ],
     {
-      supaglueApplicationId: '$YOUR_APPLICATION_ID',
-      supaglueCustomerId: 'connectionId', //  '$YOUR_CUSTOMER_ID',
-      supaglueProviderName: 'providerConfigKey',
-      id: '123',
-      lastModifiedAt: new Date().toISOString(),
-      supaglueEmittedAt: new Date().toISOString(),
-      isDeleted: false,
-      // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-      rawData: sql`${{hello: 1}}::jsonb`,
-      supaglueUnifiedData: sql`${{world: 2}}::jsonb`,
+      shallowMergeJsonbColumns: [engagementSequences.rawData, ],
     },
-  ])
+  )
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
     "insert into
       "engagement_sequences" (
@@ -56,9 +63,9 @@ test('upsert query', async () => {
         default,
         default,
         $6,
-        $7,
-        $8::jsonb,
-        $9::jsonb
+        now(),
+        $7::jsonb,
+        $8::jsonb
       )
     on conflict (
       "_supaglue_application_id",
@@ -71,7 +78,7 @@ test('upsert query', async () => {
       "last_modified_at" = excluded.last_modified_at,
       "_supaglue_emitted_at" = excluded._supaglue_emitted_at,
       "is_deleted" = excluded.is_deleted,
-      "raw_data" = excluded.raw_data,
+      "raw_data" = COALESCE("engagement_sequences"."raw_data", '{}'::jsonb) || excluded.raw_data,
       "_supaglue_unified_data" = excluded._supaglue_unified_data
     where
       "engagement_sequences"."last_modified_at" IS DISTINCT FROM excluded.last_modified_at

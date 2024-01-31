@@ -71,6 +71,7 @@ export async function syncConnection({
       })
       console.log('Syncing sequences count=', res.data.items.length)
       await dbUpsert(
+        db,
         engagementSequences,
         res.data.items.map(({raw_data, ...item}) => ({
           supaglueApplicationId: '$YOUR_APPLICATION_ID',
@@ -84,16 +85,11 @@ export async function syncConnection({
           rawData: sql`${raw_data}::jsonb`,
           supaglueUnifiedData: sql`${item}::jsonb`,
         })),
-        [
-          engagementSequences.supaglueApplicationId,
-          engagementSequences.supaglueProviderName,
-          engagementSequences.supaglueCustomerId,
-          engagementSequences.id,
-        ],
+        {shallowMergeJsonbColumns: [engagementSequences.supaglueUnifiedData]},
       )
-
       return res.data.nextPageCursor
     })
+    break
   } while (cursor)
 
   console.log('[syncConnection] Complete', {

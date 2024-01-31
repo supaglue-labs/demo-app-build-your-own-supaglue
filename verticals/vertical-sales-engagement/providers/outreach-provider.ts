@@ -66,6 +66,7 @@ export const outreachProvider = {
             '',
           ) as '/sequences')
         : '/sequences',
+      // {params: {query: {'page[size]': 1}}},
     )
     return {
       nextPageCursor: listResponse.parse(res.data).links?.next,

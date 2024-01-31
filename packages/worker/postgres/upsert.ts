@@ -18,11 +18,16 @@ export function dbUpsert<
   db: DB,
   table: TTable,
   values: Array<PgInsertValue<TTable>>,
-  /** defaults to primaryKeyColumns */
-  _keyColumns?: IndexColumn[],
+  options: {
+    /** defaults to primaryKeyColumns */
+    keyColumns?: IndexColumn[]
+
+    /** Shallow jsonb merge as via sql`COALESCE(${fullId}, '{}'::jsonb) || excluded.${colId}` */
+    shallowMergeJsonbColumns?: PgColumn[]
+  } = {},
 ) {
   const tbCfg = getTableConfig(table)
-  const keyColumns = _keyColumns ?? tbCfg.primaryKeys[0]?.columns
+  const keyColumns = options.keyColumns ?? tbCfg.primaryKeys[0]?.columns
   if (!keyColumns) {
     throw new Error(
       `Unable to upsert without keyColumns for table ${tbCfg.name}`,
@@ -42,7 +47,12 @@ export function dbUpsert<
       set: Object.fromEntries(
         Object.entries(upsertCols).map(([k, c]) => [
           k,
-          sql.raw(`excluded.${c.name}`),
+          sql.join([
+            options.shallowMergeJsonbColumns?.find((jc) => jc.name === c.name)
+              ? sql`COALESCE(${c}, '{}'::jsonb) ||`
+              : sql``,
+            sql.raw(`excluded.${c.name}`),
+          ]),
         ]),
       ) as PgUpdateSetSource<TTable>,
       where: sql.join(
@@ -53,7 +63,7 @@ export function dbUpsert<
           // but treats NULL as an unknown value and does not consider it as different from other values.
           (c) => sql`${c} IS DISTINCT FROM ${sql.raw(`excluded.${c.name}`)}`,
         ),
-        sql` AND `,
+        sql` OR `,
       ),
     })
 }
