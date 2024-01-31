@@ -47,7 +47,11 @@ export function dbUpsert<
       ) as PgUpdateSetSource<TTable>,
       where: sql.join(
         Object.values(upsertCols).map(
-          (c) => sql`${c} != ${sql.raw(`excluded.${c.name}`)}`,
+          // In PostgreSQL, the "IS DISTINCT FROM" operator is used to compare two values and determine
+          // if they are different, even if they are both NULL. On the other hand, the "!=" operator
+          // (also known as "not equals") compares two values and returns true if they are different,
+          // but treats NULL as an unknown value and does not consider it as different from other values.
+          (c) => sql`${c} IS DISTINCT FROM ${sql.raw(`excluded.${c.name}`)}`,
         ),
         sql` AND `,
       ),
