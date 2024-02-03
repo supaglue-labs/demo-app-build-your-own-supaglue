@@ -25,5 +25,4 @@ export {
   handler as OPTIONS,
   handler as HEAD,
   handler as PATCH,
-  handler as TRACE,
 }
