@@ -11,6 +11,7 @@ import {commonModels} from '../router'
 type Apollo = ApolloSDKTypes['oas']['components']['schemas']
 
 const mappers = {
+  // @ts-expect-error TODO: Implement me
   contact: mapper(zCast<StrictObj<Apollo['contact']>>(), commonModels.contact, {
     id: 'id',
     first_name: (c) => c.first_name ?? '',

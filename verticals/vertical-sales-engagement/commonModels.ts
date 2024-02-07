@@ -34,22 +34,21 @@ export const contact = z
     id: z.string(),
     first_name: z.string(),
     last_name: z.string(),
-    // Enable me later...
-    // owner_id: z.string(),
-    // account_id: z.string().optional(),
-    // job_title: z.string(),
-    // address,
-    // email_addresses,
-    // phone_numbers,
-    // open_count: z.number(),
-    // click_count: z.number(),
-    // reply_count: z.number(),
-    // bounced_count: z.number(),
-    // created_at: z.string(),
-    // updated_at: z.string(),
-    // is_deleted: z.boolean(),
-    // last_modified_at: z.string(),
-    raw_data: z.record(z.unknown()).optional(),
+    owner_id: z.string(),
+    account_id: z.string().optional(),
+    job_title: z.string(),
+    address,
+    email_addresses,
+    phone_numbers,
+    open_count: z.number(),
+    click_count: z.number(),
+    reply_count: z.number(),
+    bounced_count: z.number(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
   })
   .openapi({ref: 'sales-engagement.contact'})
 
@@ -57,6 +56,72 @@ export const sequence = z
   .object({
     id: z.string(),
     name: z.string().optional(),
-    raw_data: z.record(z.unknown()).optional(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    owner_id: z.string(),
+    tags: z.array(z.string()),
+    num_steps: z.number(),
+    metrics: z.object({}).catchall(z.any()).optional(),
+    is_enabled: z.boolean(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
   })
   .openapi({ref: 'sales-engagement.sequence'})
+
+export const account = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    domain: z.string(),
+    owner_id: z.string(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
+  })
+  .openapi({ref: 'sales-engagement.account'})
+
+export const sequenceState = z
+  .object({
+    id: z.string(),
+    state: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    sequence_id: z.string(),
+    contact_id: z.string(),
+    mailbox_id: z.string(),
+    user_id: z.string(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
+  })
+  .openapi({ref: 'sales-engagement.sequenceState'})
+
+export const mailbox = z
+  .object({
+    id: z.string(),
+    email: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    user_id: z.string(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
+  })
+  .openapi({ref: 'sales-engagement.mailbox'})
+
+export const user = z
+  .object({
+    id: z.string(),
+    first_name: z.string(),
+    last_name: z.string(),
+    email: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    is_deleted: z.boolean(),
+    last_modified_at: z.string(),
+    raw_data: z.object({}).catchall(z.any()).optional(),
+  })
+  .openapi({ref: 'sales-engagement.user'})

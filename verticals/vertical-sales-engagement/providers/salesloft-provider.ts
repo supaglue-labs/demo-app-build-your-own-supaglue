@@ -14,6 +14,7 @@ const mappers = {
   contact: mapper(
     zCast<StrictObj<Salesloft['Person']>>(),
     commonModels.contact,
+    // @ts-expect-error TODO: Implement me
     {
       // TODO: Mapper should be able to enforce types as well so number does not automatically become string.
       id: (p) => p.id?.toString() ?? '',
