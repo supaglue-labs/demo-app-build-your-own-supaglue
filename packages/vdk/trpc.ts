@@ -22,11 +22,11 @@ export const publicProcedure = trpc.procedure
 
 export const remoteProcedure = publicProcedure.use(
   async ({next, ctx, path}) => {
-    const connectionId = ctx.headers.get('x-connection-id')
-    if (!connectionId) {
+    const customerId = ctx.headers.get('x-customer-id')
+    if (!customerId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'x-connection-id header is required',
+        message: 'x-customer-id header is required',
       })
     }
     const providerName = ctx.headers.get('x-provider-name')
@@ -47,13 +47,20 @@ export const remoteProcedure = publicProcedure.use(
 
     const nangoLink = nangoProxyLink({
       secretKey: ctx.nangoSecretKey,
-      connectionId,
+      connectionId: ctx.headers.get('x-connection-id') ?? customerId,
       providerConfigKey:
         ctx.headers.get('x-provider-config-key') ?? providerName,
     })
 
     return next({
-      ctx: {...ctx, path, connectionId, providerName, provider, nangoLink},
+      ctx: {
+        ...ctx,
+        path,
+        connectionId: customerId,
+        providerName,
+        provider,
+        nangoLink,
+      },
     })
   },
 )

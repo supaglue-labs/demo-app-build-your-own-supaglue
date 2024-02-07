@@ -2,9 +2,9 @@ import {initBYOSupaglueSDK} from '@supaglue/sdk'
 
 const supaglue = initBYOSupaglueSDK({
   headers: {
-    'x-connection-id': 'outreach1',
+    'x-customer-id': 'outreach1',
     'x-provider-name': 'outreach',
-    // 'x-connection-id': 'test-connection-id',
+    // 'x-customer-id': 'test-connection-id',
     // 'x-provider-name': 'salesforce',
   },
 })
@@ -53,7 +53,7 @@ main()
 
 // const supaglue = initBYOSupaglueSDK({
 //   headers: {
-//     'x-connection-id': 'hubspot1',
+//     'x-customer-id': 'hubspot1',
 //     'x-provider-name': 'hubspot',
 //   },
 // })
