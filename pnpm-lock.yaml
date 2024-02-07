@@ -222,6 +222,9 @@ importers:
       '@opensdks/runtime':
         specifier: 0.0.17
         version: 0.0.17
+      '@opensdks/sdk-apollo':
+        specifier: 0.0.21
+        version: 0.0.21
       '@opensdks/sdk-outreach':
         specifier: 0.0.16
         version: 0.0.16
@@ -2748,7 +2751,6 @@ packages:
 
   /@opensdks/sdk-apollo@0.0.21:
     resolution: {integrity: sha512-2vysmbvPH7lncmOoxqy870Pv3ZMeMK9bSxzyrJgWsUAFNn7Q6MjNHz+C2igDVnbaKnR5ow7eSl6lOr1/bI5P9g==}
-    dev: false
 
   /@opensdks/sdk-hubspot@0.0.4:
     resolution: {integrity: sha512-WID1sP/wl5YLjLShy8vTcqg60C+Hb0oqL0XpPGPLPrGe3ahO2grLBSbla9E2mJZv7mAhAS9IwEmSaKB4U6s6Ug==}
