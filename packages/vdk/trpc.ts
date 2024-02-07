@@ -2,9 +2,11 @@ import type {OpenApiMeta} from '@lilyrose2798/trpc-openapi'
 import {initTRPC, TRPCError} from '@trpc/server'
 import {nangoProxyLink} from './nangoProxyLink'
 import type {Provider} from './provider'
+import {supaglueProxyLink} from './supaglueProxyLink'
 
 export type RouterContext = {
   nangoSecretKey: string
+  supaglueApiKey: string
   headers: Headers
   providerByName: Record<string, Provider>
 }
@@ -52,14 +54,21 @@ export const remoteProcedure = publicProcedure.use(
         ctx.headers.get('x-provider-config-key') ?? providerName,
     })
 
+    const supaglueLink = supaglueProxyLink({
+      apiKey: ctx.headers.get('x-api-key') ?? ctx.supaglueApiKey,
+      customerId,
+      providerName,
+    })
+
     return next({
       ctx: {
         ...ctx,
         path,
-        connectionId: customerId,
+        customerId,
         providerName,
         provider,
         nangoLink,
+        supaglueLink,
       },
     })
   },

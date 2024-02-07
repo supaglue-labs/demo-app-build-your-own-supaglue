@@ -88,8 +88,8 @@ export async function syncConnection({
 
   const supaglue = initBYOSupaglueSDK({
     headers: {
-      'x-customer-id': connection_id,
-      'x-provider-name': provider_config_key,
+      'x-customer-id': connection_id, // This relies on customer-id mapping 1:1 to connection_id
+      'x-provider-name': provider_config_key, // This relies on provider_config_key mapping 1:1 to provider-name
     },
   })
 

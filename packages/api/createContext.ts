@@ -14,13 +14,8 @@ const providerByName = {
   salesforce: salesforceProvider,
 }
 
-export function createContext(opts: {
-  headers: Headers
-  nangoSecretKey: string
-}): RouterContext {
-  return {
-    headers: opts.headers,
-    nangoSecretKey: opts.nangoSecretKey,
-    providerByName,
-  }
+export function createContext(
+  opts: Omit<RouterContext, 'providerByName'>,
+): RouterContext {
+  return {...opts, providerByName}
 }

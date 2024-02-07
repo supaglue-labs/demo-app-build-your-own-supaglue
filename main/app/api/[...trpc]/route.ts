@@ -14,6 +14,7 @@ const handler = (req: Request) =>
       createContext({
         headers: req.headers,
         nangoSecretKey: env.NANGO_SECRET_KEY,
+        supaglueApiKey: env.SUPAGLUE_API_KEY,
       }),
   })
 

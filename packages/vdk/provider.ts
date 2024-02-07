@@ -38,6 +38,11 @@ export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
  */
 export const PLACEHOLDER_BASE_URL = 'http://placeholder'
 
+export const featureFlags = {
+  // Switch this over after credentials migration
+  mode: 'supaglue' as 'supaglue' | 'nango',
+}
+
 export async function proxyCallProvider({
   input,
   ctx,
@@ -46,19 +51,22 @@ export async function proxyCallProvider({
   ctx: RemoteProcedureContext
 }) {
   const instance = ctx.provider.__init__({
-    proxyLinks: [
-      (req, next) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        const baseUrl = (instance as any)?.clientOptions?.baseUrl as
-          | string
-          | undefined
-        if (baseUrl && baseUrl !== PLACEHOLDER_BASE_URL) {
-          req.headers.set(nangoProxyLink.kBaseUrlOverride, baseUrl)
-        }
-        return next(req)
-      },
-      ctx.nangoLink,
-    ],
+    proxyLinks:
+      featureFlags.mode === 'nango'
+        ? [
+            (req, next) => {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+              const baseUrl = (instance as any)?.clientOptions?.baseUrl as
+                | string
+                | undefined
+              if (baseUrl && baseUrl !== PLACEHOLDER_BASE_URL) {
+                req.headers.set(nangoProxyLink.kBaseUrlOverride, baseUrl)
+              }
+              return next(req)
+            },
+            ctx.nangoLink,
+          ]
+        : [ctx.supaglueLink],
   })
 
   // verticals.salesEngagement.listContacts -> listContacts
