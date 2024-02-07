@@ -6,7 +6,7 @@
   "scripts": {
     "gen": "run-s gen:*",
     "gen:oas": "npx tsx -e \"console.log(JSON.stringify(require('@supaglue/api').getOpenAPISpec(), null, 2))\" > ./openapi.json",
-    "gen:types": "npx @opensdks/cli ./openapi.json --meta-dir ./ --types-dir ./ "
+    "gen:types": "npx @opensdks/cli@0.0.17 ./openapi.json --meta-dir ./ --types-dir ./ "
   },
   "dependencies": {
     "@opensdks/runtime": "0.0.17"

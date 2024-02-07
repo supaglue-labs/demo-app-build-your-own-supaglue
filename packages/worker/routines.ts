@@ -104,9 +104,10 @@ export async function syncConnection({
     const max_updated_at = state[entity]?.max_updated_at
     let cursor = null as null | string | undefined
     do {
+      console.log('TODO: Impl updated after', {max_updated_at})
       cursor = await step.run(`${entity}-sync-page-${cursor}`, async () => {
         const res = await supaglue.GET(`/${vertical}/v2/${entity}`, {
-          params: {query: {cursor, updated_after: max_updated_at}},
+          params: {query: {cursor /*updated_after: max_updated_at */}},
         })
         console.log(
           `Syncing ${vertical} ${entity} count=`,

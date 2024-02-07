@@ -17,8 +17,23 @@ export interface paths {
   '/engagement/v2/sequences': {
     get: operations['salesEngagement-listSequences']
   }
+  '/engagement/v2/sequenceStates': {
+    get: operations['salesEngagement-listSequenceStates']
+  }
+  '/engagement/v2/users': {
+    get: operations['salesEngagement-listUsers']
+  }
+  '/engagement/v2/accounts': {
+    get: operations['salesEngagement-listAccounts']
+  }
+  '/engagement/v2/mailboxes': {
+    get: operations['salesEngagement-listMailboxes']
+  }
   '/engagement/v2/accounts/_upsert': {
     post: operations['salesEngagement-upsertAccount']
+  }
+  '/engagement/v2/contacts/_upsert': {
+    post: operations['salesEngagement-upsertContact']
   }
   '/engagement/v2/sequenceState': {
     post: operations['salesEngagement-insertSequenceState']
@@ -70,10 +85,42 @@ export interface components {
       id: string
       first_name: string
       last_name: string
+      owner_id: string
+      account_id?: string
+      job_title: string
+      address: components['schemas']['sales-engagement.address']
+      email_addresses: components['schemas']['sales-engagement.email_addresses']
+      phone_numbers: components['schemas']['sales-engagement.phone_numbers']
+      open_count: number
+      click_count: number
+      reply_count: number
+      bounced_count: number
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
       raw_data?: {
         [key: string]: unknown
       }
     }
+    'sales-engagement.address': {
+      city: string
+      country: string
+      postal_code: string
+      state: string
+      street_1: string
+      street_2: string
+    }
+    'sales-engagement.email_addresses': {
+      email_address: string
+      /** @enum {string} */
+      email_address_type: 'primary' | 'personal' | 'work'
+    }[]
+    'sales-engagement.phone_numbers': {
+      phone_number: string
+      /** @enum {string} */
+      phone_number_type: 'primary' | 'work' | 'home' | 'mobile' | 'other'
+    }[]
     /**
      * Error
      * @description The error information
@@ -133,6 +180,70 @@ export interface components {
     'sales-engagement.sequence': {
       id: string
       name?: string
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      owner_id: string
+      tags: string[]
+      num_steps: number
+      metrics?: {
+        [key: string]: unknown
+      }
+      is_enabled: boolean
+      raw_data?: {
+        [key: string]: unknown
+      }
+    }
+    'sales-engagement.sequenceState': {
+      id: string
+      state: string
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      sequence_id: string
+      contact_id: string
+      mailbox_id: string
+      user_id: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+    }
+    'sales-engagement.user': {
+      id: string
+      first_name: string
+      last_name: string
+      email: string
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+    }
+    'sales-engagement.account': {
+      id: string
+      name: string
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      domain: string
+      owner_id: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+    }
+    'sales-engagement.mailbox': {
+      id: string
+      email: string
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      user_id: string
       raw_data?: {
         [key: string]: unknown
       }
@@ -195,9 +306,7 @@ export interface operations {
   'salesEngagement-listContacts': {
     parameters: {
       query?: {
-        limit?: number
-        offset?: number
-        updated_after?: string
+        cursor?: string | null
       }
     }
     responses: {
@@ -266,6 +375,150 @@ export interface operations {
       }
     }
   }
+  'salesEngagement-listSequenceStates': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            nextPageCursor?: string | null
+            items: components['schemas']['sales-engagement.sequenceState'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-listUsers': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            nextPageCursor?: string | null
+            items: components['schemas']['sales-engagement.user'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-listAccounts': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            nextPageCursor?: string | null
+            items: components['schemas']['sales-engagement.account'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-listMailboxes': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            nextPageCursor?: string | null
+            items: components['schemas']['sales-engagement.mailbox'][]
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
   'salesEngagement-upsertAccount': {
     requestBody: {
       content: {
@@ -288,6 +541,106 @@ export interface operations {
             name?: string
             /** @description The domain of the account to upsert on. Only supported for Outreach and Salesloft. */
             domain?: string
+          }
+        }
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record?: {
+              id: string
+            }
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'salesEngagement-upsertContact': {
+    requestBody: {
+      content: {
+        'application/json': {
+          record: {
+            /** @example James */
+            first_name?: string | null
+            /** @example Smith */
+            last_name?: string | null
+            /** @example CEO */
+            job_title?: string | null
+            /**
+             * @example {
+             *   "city": "San Francisco",
+             *   "country": "US",
+             *   "postal_code": "94107",
+             *   "state": "CA",
+             *   "street_1": "525 Brannan",
+             *   "street_2": null
+             * }
+             */
+            address: {
+              city?: string | null
+              country?: string | null
+              postal_code?: string | null
+              state?: string | null
+              street_1?: string | null
+              street_2?: string | null
+            }
+            /**
+             * @example [
+             *   {
+             *     "email_address": "hello@revtron.ai",
+             *     "email_address_type": "work"
+             *   }
+             * ]
+             */
+            email_addresses: {
+              email_address: string
+              /** @enum {string|null} */
+              email_address_type?: 'primary' | 'personal' | 'work'
+            }[]
+            /**
+             * @example [
+             *   {
+             *     "phone_number": "+14151234567",
+             *     "phone_number_type": "work"
+             *   }
+             * ]
+             */
+            phone_numbers: {
+              phone_number: string
+              /** @enum {string} */
+              phone_number_type:
+                | 'primary'
+                | 'work'
+                | 'home'
+                | 'mobile'
+                | 'other'
+            }[]
+            /** @example 9f3e97fd-4d5d-4efc-959d-bbebfac079f5 */
+            owner_id?: string | null
+            /** @example ae4be028-9078-4850-a0bf-d2112b7c4d11 */
+            account_id?: string | null
+            custom_fields?: {
+              [key: string]: unknown
+            } | null
+          }
+          upsert_on: {
+            /** @description Contact email to upsert on. Supported for Outreach, Salesloft, and Apollo. */
+            email?: string
           }
         }
       }
