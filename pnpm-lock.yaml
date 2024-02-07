@@ -219,6 +219,12 @@ importers:
       '@lilyrose2798/trpc-openapi':
         specifier: 1.3.10
         version: 1.3.10(@trpc/server@10.40.0)(zod@3.22.4)
+      '@opensdks/runtime':
+        specifier: 0.0.17
+        version: 0.0.17
+      '@opensdks/sdk-outreach':
+        specifier: 0.0.16
+        version: 0.0.16
 
   packages/worker:
     dependencies:
@@ -2731,7 +2737,6 @@ packages:
 
   /@opensdks/fetch-links@0.0.18:
     resolution: {integrity: sha512-EhBj92wLXoj3pF4ERxzoEhAlwlefIzQ31At0zaksSbA9zqMlod9DyfypQRX/6J8w4iZzraV33BtFEk7l98nsLA==}
-    dev: false
 
   /@opensdks/runtime@0.0.17:
     resolution: {integrity: sha512-H4Fl5++daJhM6ILxpBOT8FDTdEGP6JCdVeGN5ZN/pyxnhsFjBW8ddPCMOZbe6IGilrMKQZf6AF0Tm9f7Pdwn0A==}
@@ -2740,7 +2745,6 @@ packages:
       openapi-fetch: 0.8.1
       openapi-typescript-helpers: 0.0.4
       openapi3-ts: 4.1.2
-    dev: false
 
   /@opensdks/sdk-apollo@0.0.21:
     resolution: {integrity: sha512-2vysmbvPH7lncmOoxqy870Pv3ZMeMK9bSxzyrJgWsUAFNn7Q6MjNHz+C2igDVnbaKnR5ow7eSl6lOr1/bI5P9g==}
@@ -2756,7 +2760,6 @@ packages:
 
   /@opensdks/sdk-outreach@0.0.16:
     resolution: {integrity: sha512-i2p4JSNWpzz/BbSTvcOyOziiB88SWUOVOl1OrwDG3fVLhzRPFkg+icZDXL7nWa9w0L4HEavPm/2Wl4uIYZLYeA==}
-    dev: false
 
   /@opensdks/sdk-salesforce@0.0.2:
     resolution: {integrity: sha512-gjHwKwfAwtqMgCFrFlWkYfYWlwRm0mYx2Wv3efhgryvpaKGboVZ3519vQlkC1cPGUD1g+WqAzbhb0crlhPSMow==}
@@ -8829,17 +8832,14 @@ packages:
     resolution: {integrity: sha512-xmzMaBCydPTMd0TKy4P2DYx/JOe9yjXtPIky1n1GV7nJJdZ3IZgSHvAWVbe06WsPD8EreR7E97IAiskPr6sa2g==}
     dependencies:
       openapi-typescript-helpers: 0.0.4
-    dev: false
 
   /openapi-typescript-helpers@0.0.4:
     resolution: {integrity: sha512-Q0MTapapFAG993+dx8lNw33X6P/6EbFr31yNymJHq56fNc6dODyRm8tWyRnGxuC74lyl1iCRMV6nQCGQsfVNKg==}
-    dev: false
 
   /openapi3-ts@4.1.2:
     resolution: {integrity: sha512-B7gOkwsYMZO7BZXwJzXCuVagym2xhqsrilVvV0dnq2Di4+iLUXKVX9gOK23ZqaAHZOwABXN0QTdW8QnkUTX6DA==}
     dependencies:
       yaml: 2.3.4
-    dev: false
 
   /openapi3-ts@4.2.1:
     resolution: {integrity: sha512-KL1mKwkZii5ce+tb24KCUmQHyWB/oanG5fzUY35UB+wenWJv4Kr/IWBntpn5R8ODiJcxx13ZDophcpHnLGeIOw==}
