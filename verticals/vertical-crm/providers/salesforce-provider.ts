@@ -3,6 +3,7 @@ import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {initSalesforceSDK, type SalesforceSDK} from '@opensdks/sdk-salesforce'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
+import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
 
 export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
 
@@ -71,4 +72,6 @@ export const salesforceProvider = {
       raw: res.data,
     }
   },
+  metadataListStandardObjects: () =>
+    SALESFORCE_STANDARD_OBJECTS.map((name) => ({name})),
 } satisfies CRMProvider<SalesforceSDK>

@@ -7,6 +7,23 @@ import {commonModels} from '../router'
 export type SimplePublicObject =
   Oas_CRM_Contacts['components']['schemas']['SimplePublicObject']
 
+export const HUBSPOT_STANDARD_OBJECTS = [
+  'company',
+  'contact',
+  'deal',
+  'line_item',
+  'product',
+  'ticket',
+  'quote',
+  'call',
+  'communication',
+  'email',
+  'meeting',
+  'note',
+  'postal_mail',
+  'task',
+] as const
+
 const HSContact = z.object({
   id: z.string(),
   properties: z.object({
@@ -48,4 +65,6 @@ export const hubspotProvider = {
   getCompany: async ({}) => {
     throw new Error('Not implemented yet')
   },
+  metadataListStandardObjects: () =>
+    HUBSPOT_STANDARD_OBJECTS.map((name) => ({name})),
 } satisfies CRMProvider<HubspotSDK>
