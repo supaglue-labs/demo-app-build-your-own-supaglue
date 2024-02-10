@@ -4,7 +4,7 @@ import {initSDK, logLink} from '@opensdks/runtime'
 import outreachSdkDef from '@opensdks/sdk-outreach'
 import {nangoProxyLink} from './nangoProxyLink'
 
-const maybeTest = process.env['NANGO_SECRET_KEY'] ? test : test.skip
+const maybeTest = process.env['_NANGO_SECRET_KEY'] ? test : test.skip
 
 maybeTest('get outreach accounts', async () => {
   const client = initSDK(outreachSdkDef, {
@@ -23,7 +23,7 @@ maybeTest('get outreach accounts', async () => {
         return next(req)
       },
       nangoProxyLink({
-        secretKey: process.env['NANGO_SECRET_KEY']!,
+        secretKey: process.env['_NANGO_SECRET_KEY']!,
         connectionId: process.env['_CONNECTION_ID']!,
         providerConfigKey: process.env['_PROVIDER_CONFIG_KEY']!,
       }),

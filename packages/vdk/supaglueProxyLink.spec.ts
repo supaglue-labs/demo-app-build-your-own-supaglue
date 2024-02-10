@@ -8,7 +8,7 @@ import {supaglueProxyLink} from './supaglueProxyLink'
 
 jest.setTimeout(30 * 1000)
 
-const maybeTest = process.env['NANGO_SECRET_KEY'] ? test : test.skip
+const maybeTest = process.env['_SUPAGLUE_API_KEY'] ? test : test.skip
 
 maybeTest('get outreach accounts', async () => {
   const client = initSDK(outreachSdkDef, {
@@ -17,9 +17,9 @@ maybeTest('get outreach accounts', async () => {
     links: (defaultLinks) => [
       logLink(),
       supaglueProxyLink({
-        apiKey: process.env['SUPAGLUE_API_KEY']!,
-        customerId: process.env['CUSTOMER_ID']!,
-        providerName: process.env['PROVIDER_NAME']!,
+        apiKey: process.env['_SUPAGLUE_API_KEY']!,
+        customerId: process.env['_CUSTOMER_ID']!,
+        providerName: 'outreach',
       }),
       ...defaultLinks,
     ],
@@ -37,8 +37,8 @@ maybeTest('get apollo accounts', async () => {
       ...defaultLinks.slice(0, -1),
       // Suapglue proxy link should be the final link before terminating link
       supaglueProxyLink({
-        apiKey: process.env['SUPAGLUE_API_KEY']!,
-        customerId: process.env['CUSTOMER_ID']!,
+        apiKey: process.env['_SUPAGLUE_API_KEY']!,
+        customerId: process.env['_CUSTOMER_ID']!,
         providerName: 'apollo',
       }),
       // Only want the final terminating link here

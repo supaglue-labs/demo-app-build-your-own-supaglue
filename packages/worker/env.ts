@@ -6,7 +6,7 @@ import {initNangoSDK} from '@opensdks/sdk-nango'
 export const env = createEnv({
   server: {
     NANGO_SECRET_KEY: z.string(),
-    SUPAGLUE_API_KEY: z.string(),
+    SUPAGLUE_API_KEY: z.string().optional(),
     POSTGRES_URL: z.string(),
   },
   runtimeEnv: process.env,

@@ -4,7 +4,7 @@ import {z} from 'zod'
 export const env = createEnv({
   server: {
     NANGO_SECRET_KEY: z.string(),
-    SUPAGLUE_API_KEY: z.string(),
+    SUPAGLUE_API_KEY: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_NANGO_PUBLIC_KEY: z.string(),
