@@ -45,7 +45,7 @@ export const hubspotProvider = {
     }
   },
   // eslint-disable-next-line @typescript-eslint/require-await
-  getCompanies: async ({}) => {
+  getCompany: async ({}) => {
     throw new Error('Not implemented yet')
   },
 } satisfies CRMProvider<HubspotSDK>

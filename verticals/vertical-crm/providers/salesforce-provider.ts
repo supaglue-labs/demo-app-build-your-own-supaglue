@@ -62,7 +62,7 @@ export const salesforceProvider = {
       raw: res.data,
     }
   },
-  getCompanies: async ({instance, input}) => {
+  getCompany: async ({instance, input}) => {
     const res = await instance.GET('/sobjects/Account/{id}', {
       params: {path: {id: input.id}},
     })
