@@ -1,11 +1,11 @@
 import {mapper, z} from '@supaglue/vdk'
-import type {Oas_CRM_Contacts} from '@opensdks/sdk-hubspot'
+import type {Oas_crm_contacts} from '@opensdks/sdk-hubspot'
 import {initHubspotSDK, type HubspotSDK} from '@opensdks/sdk-hubspot'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 
 export type SimplePublicObject =
-  Oas_CRM_Contacts['components']['schemas']['SimplePublicObject']
+  Oas_crm_contacts['components']['schemas']['SimplePublicObject']
 
 export const HUBSPOT_STANDARD_OBJECTS = [
   'company',
