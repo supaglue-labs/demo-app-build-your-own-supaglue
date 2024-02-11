@@ -74,4 +74,10 @@ export const salesforceProvider = {
   },
   metadataListStandardObjects: () =>
     SALESFORCE_STANDARD_OBJECTS.map((name) => ({name})),
+  metadataListCustomObjects: async ({instance}) => {
+    const res = await instance.GET('/sobjects')
+    return (res.data.sobjects ?? [])
+      .filter((s) => s.custom)
+      .map((s) => ({id: s.name!, name: s.name!}))
+  },
 } satisfies CRMProvider<SalesforceSDK>
