@@ -228,6 +228,9 @@ importers:
       '@opensdks/sdk-outreach':
         specifier: 0.0.16
         version: 0.0.16
+      openapi-typescript-helpers:
+        specifier: ^0.0.6
+        version: 0.0.6
 
   packages/worker:
     dependencies:
@@ -262,6 +265,9 @@ importers:
       '@opensdks/sdk-hubspot':
         specifier: 0.0.5
         version: 0.0.5
+      '@opensdks/sdk-pipedrive':
+        specifier: 0.0.1
+        version: 0.0.1
       '@opensdks/sdk-salesforce':
         specifier: 0.0.2
         version: 0.0.2
@@ -2762,6 +2768,10 @@ packages:
 
   /@opensdks/sdk-outreach@0.0.16:
     resolution: {integrity: sha512-i2p4JSNWpzz/BbSTvcOyOziiB88SWUOVOl1OrwDG3fVLhzRPFkg+icZDXL7nWa9w0L4HEavPm/2Wl4uIYZLYeA==}
+
+  /@opensdks/sdk-pipedrive@0.0.1:
+    resolution: {integrity: sha512-cNZsDdpQY0CUeM4Bs0UACFeYDRuxKyDlEpC7bpeDVFH5a87D5dqyNJcA4Do9SACbrpXgp7tyzZbdkq4KSKC81g==}
+    dev: false
 
   /@opensdks/sdk-salesforce@0.0.2:
     resolution: {integrity: sha512-gjHwKwfAwtqMgCFrFlWkYfYWlwRm0mYx2Wv3efhgryvpaKGboVZ3519vQlkC1cPGUD1g+WqAzbhb0crlhPSMow==}
@@ -8837,6 +8847,10 @@ packages:
 
   /openapi-typescript-helpers@0.0.4:
     resolution: {integrity: sha512-Q0MTapapFAG993+dx8lNw33X6P/6EbFr31yNymJHq56fNc6dODyRm8tWyRnGxuC74lyl1iCRMV6nQCGQsfVNKg==}
+
+  /openapi-typescript-helpers@0.0.6:
+    resolution: {integrity: sha512-2d0qCzTcD8aADUMHjG/XOgti8/m857Z0q/Ix4y2jTGIpq5OLcE/KfTagcik8qkKDTowbvNo91XVxeZcni1twuQ==}
+    dev: true
 
   /openapi3-ts@4.1.2:
     resolution: {integrity: sha512-B7gOkwsYMZO7BZXwJzXCuVagym2xhqsrilVvV0dnq2Di4+iLUXKVX9gOK23ZqaAHZOwABXN0QTdW8QnkUTX6DA==}

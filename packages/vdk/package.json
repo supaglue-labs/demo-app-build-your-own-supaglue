@@ -10,7 +10,8 @@
   "devDependencies": {
     "@lilyrose2798/trpc-openapi": "1.3.10",
     "@opensdks/runtime": "0.0.17",
+    "@opensdks/sdk-apollo": "0.0.21",
     "@opensdks/sdk-outreach": "0.0.16",
-    "@opensdks/sdk-apollo": "0.0.21"
+    "openapi-typescript-helpers": "^0.0.6"
   }
 }

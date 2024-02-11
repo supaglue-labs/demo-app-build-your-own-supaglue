@@ -1,5 +1,9 @@
 import type {RouterContext} from '@supaglue/vdk'
-import {hubspotProvider, salesforceProvider} from '@supaglue/vertical-crm'
+import {
+  hubspotProvider,
+  pipedriveProvider,
+  salesforceProvider,
+} from '@supaglue/vertical-crm'
 import {
   apolloProvider,
   outreachProvider,
@@ -12,6 +16,7 @@ const providerByName = {
   outreach: outreachProvider,
   hubspot: hubspotProvider,
   salesforce: salesforceProvider,
+  pipedrive: pipedriveProvider,
 }
 
 export function createContext(
