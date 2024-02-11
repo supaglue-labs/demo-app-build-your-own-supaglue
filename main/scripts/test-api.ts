@@ -2,8 +2,9 @@ import {initBYOSupaglueSDK} from '@supaglue/sdk'
 
 const supaglue = initBYOSupaglueSDK({
   headers: {
-    'x-customer-id': 'outreach1',
-    'x-provider-name': 'outreach',
+    'x-api-key': process.env['SUPAGLUE_API_KEY']!,
+    'x-customer-id': process.env['_CUSTOMER_ID']!, // '64a350c383ea68001832fd8a',
+    'x-provider-name': process.env['_PROVIDER_NAME']!, // 'hubspot',
     // 'x-customer-id': 'test-connection-id',
     // 'x-provider-name': 'salesforce',
   },
@@ -36,15 +37,16 @@ async function main() {
   // const res = await supaglue.GET('/crm/v2/companies/{id}', {
   //   params: {path: {id: '0033x00003D6SBOAA3'}},
   // })
-  const res = await supaglue.POST('/engagement/v2/sequenceState', {
-    body: {
-      record: {
-        contact_id: '41834',
-        mailbox_id: '1',
-        sequence_id: '38',
-      },
-    },
-  })
+  // const res = await supaglue.POST('/engagement/v2/sequenceState', {
+  //   body: {
+  //     record: {
+  //       contact_id: '41834',
+  //       mailbox_id: '1',
+  //       sequence_id: '38',
+  //     },
+  //   },
+  // })
+  const res = await supaglue.GET('/crm/v2/metadata/objects/custom', {})
   console.log('Success', res.data)
   // res.data.record.name
 }

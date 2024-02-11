@@ -45,7 +45,16 @@ export interface paths {
     get: operations['crm-getContact']
   }
   '/crm/v2/companies/{id}': {
-    get: operations['crm-getCompanies']
+    get: operations['crm-getCompany']
+  }
+  '/crm/v2/metadata/objects/standard': {
+    get: operations['crm-metadataListStandardObjects']
+  }
+  '/crm/v2/metadata/objects/custom': {
+    get: operations['crm-metadataListCustomObjects']
+  }
+  '/crm/v2/metadata/properties': {
+    get: operations['crm-metadataListProperties']
   }
 }
 
@@ -256,6 +265,37 @@ export interface components {
     'crm.company': {
       id: string
       name?: string | null
+    }
+    'crm.metaStandardObject': {
+      name: string
+    }
+    'crm.metaCustomObject': {
+      id: string
+      name: string
+    }
+    'crm.metaProperty': {
+      /**
+       * @description The machine name of the property as it appears in the third-party Provider
+       * @example FirstName
+       */
+      id: string
+      /**
+       * @description The human-readable name of the property as provided by the third-party Provider.
+       * @example First Name
+       */
+      label: string
+      /**
+       * @description The type of the property as provided by the third-party Provider. These types are not unified by Supaglue. For Intercom, this is string, integer, boolean, or object. For Outreach, this is integer, boolean, number, array, or string.
+       * @example string
+       */
+      type?: string
+      /**
+       * @description The raw details of the property as provided by the third-party Provider, if available.
+       * @example {}
+       */
+      raw_details?: {
+        [key: string]: unknown
+      }
     }
   }
   responses: never
@@ -786,7 +826,7 @@ export interface operations {
       }
     }
   }
-  'crm-getCompanies': {
+  'crm-getCompany': {
     parameters: {
       path: {
         id: string
@@ -800,6 +840,72 @@ export interface operations {
             record: components['schemas']['crm.company']
             raw?: unknown
           }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-metadataListStandardObjects': {
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['crm.metaStandardObject'][]
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-metadataListCustomObjects': {
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['crm.metaCustomObject'][]
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-metadataListProperties': {
+    parameters: {
+      query: {
+        type: 'standard' | 'custom'
+        name: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['crm.metaProperty'][]
         }
       }
       /** @description Invalid input data */
