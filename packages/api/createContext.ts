@@ -1,6 +1,7 @@
 import type {RouterContext} from '@supaglue/vdk'
 import {
   hubspotProvider,
+  msDynamics365SalesProvider,
   pipedriveProvider,
   salesforceProvider,
 } from '@supaglue/vertical-crm'
@@ -17,6 +18,7 @@ const providerByName = {
   hubspot: hubspotProvider,
   salesforce: salesforceProvider,
   pipedrive: pipedriveProvider,
+  ms_dynamics_365_sales: msDynamics365SalesProvider,
 }
 
 export function createContext(

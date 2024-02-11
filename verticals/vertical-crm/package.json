@@ -2,8 +2,8 @@
   "name": "@supaglue/vertical-crm",
   "dependencies": {
     "@opensdks/sdk-hubspot": "0.0.5",
-    "@opensdks/sdk-salesforce": "0.0.2",
     "@opensdks/sdk-pipedrive": "0.0.1",
+    "@opensdks/sdk-salesforce": "0.0.2",
     "@supaglue/vdk": "workspace:*"
   },
   "devDependencies": {}
