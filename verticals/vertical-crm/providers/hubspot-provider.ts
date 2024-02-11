@@ -55,7 +55,7 @@ export const hubspotProvider = {
       links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
-    const res = await instance.contacts.GET('/crm/v3/objects/contacts', {})
+    const res = await instance.crm_contacts.GET('/crm/v3/objects/contacts', {})
     return {
       hasNextPage: true,
       items: res.data.results.map(mappers.contact.parse),
@@ -67,4 +67,8 @@ export const hubspotProvider = {
   },
   metadataListStandardObjects: () =>
     HUBSPOT_STANDARD_OBJECTS.map((name) => ({name})),
+  metadataListCustomObjects: async ({instance}) => {
+    const res = await instance.crm_schemas.GET('/crm/v3/schemas')
+    return res.data.results.map((obj) => ({id: obj.id, name: obj.name}))
+  },
 } satisfies CRMProvider<HubspotSDK>

@@ -260,8 +260,8 @@ importers:
   verticals/vertical-crm:
     dependencies:
       '@opensdks/sdk-hubspot':
-        specifier: 0.0.4
-        version: 0.0.4
+        specifier: 0.0.5
+        version: 0.0.5
       '@opensdks/sdk-salesforce':
         specifier: 0.0.2
         version: 0.0.2
@@ -2752,8 +2752,8 @@ packages:
   /@opensdks/sdk-apollo@0.0.21:
     resolution: {integrity: sha512-2vysmbvPH7lncmOoxqy870Pv3ZMeMK9bSxzyrJgWsUAFNn7Q6MjNHz+C2igDVnbaKnR5ow7eSl6lOr1/bI5P9g==}
 
-  /@opensdks/sdk-hubspot@0.0.4:
-    resolution: {integrity: sha512-WID1sP/wl5YLjLShy8vTcqg60C+Hb0oqL0XpPGPLPrGe3ahO2grLBSbla9E2mJZv7mAhAS9IwEmSaKB4U6s6Ug==}
+  /@opensdks/sdk-hubspot@0.0.5:
+    resolution: {integrity: sha512-r2uHA8W81SkDGWKpEOYeyoKYQCJLraAY4jr/c8/Sr9c6OEcLFN+ki3Y812/lyfwJWQUfJR9v3mjqry/BMuTuvA==}
     dev: false
 
   /@opensdks/sdk-nango@0.0.2:
