@@ -6,7 +6,7 @@ import {supaglueProxyLink} from './supaglueProxyLink'
 
 export type RouterContext = {
   nangoSecretKey: string
-  supaglueApiKey: string
+  supaglueApiKey?: string
   headers: Headers
   providerByName: Record<string, Provider>
 }
@@ -55,7 +55,8 @@ export const remoteProcedure = publicProcedure.use(
     })
 
     const supaglueLink = supaglueProxyLink({
-      apiKey: ctx.headers.get('x-api-key') ?? ctx.supaglueApiKey,
+      // TODO: Should this be required?
+      apiKey: ctx.headers.get('x-api-key') ?? ctx.supaglueApiKey ?? '',
       customerId,
       providerName,
     })
