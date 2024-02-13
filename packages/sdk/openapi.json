@@ -1323,9 +1323,20 @@
   },
   "components": {
     "securitySchemes": {
-      "Authorization": {
-        "type": "http",
-        "scheme": "bearer"
+      "apiKey": {
+        "name": "x-api-key",
+        "type": "apiKey",
+        "in": "header"
+      },
+      "customerId": {
+        "name": "x-customer-id",
+        "type": "apiKey",
+        "in": "header"
+      },
+      "providerName": {
+        "name": "x-provider-name",
+        "type": "apiKey",
+        "in": "header"
       }
     },
     "schemas": {

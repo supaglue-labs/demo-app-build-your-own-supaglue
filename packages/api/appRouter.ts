@@ -34,6 +34,12 @@ export function getOpenAPISpec() {
     title: 'Bulid your own Supaglue',
     version: '0.0.0',
     baseUrl: 'http://localhost:3000/api',
+    // TODO: add the security field to specify what methods are required.
+    securitySchemes: {
+      apiKey: {name: 'x-api-key', type: 'apiKey', in: 'header'},
+      customerId: {name: 'x-customer-id', type: 'apiKey', in: 'header'},
+      providerName: {name: 'x-provider-name', type: 'apiKey', in: 'header'},
+    },
   })
   return oas
 }
