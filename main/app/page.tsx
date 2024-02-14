@@ -2,11 +2,10 @@ import {initNangoSDK} from '@opensdks/sdk-nango'
 import {env} from '@/env'
 import {NewConnection} from './NewConnection'
 
-const nango = initNangoSDK({
-  headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
-})
-
 export default async function Home() {
+  const nango = initNangoSDK({
+    headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
+  })
   const res = await nango.GET('/connection')
 
   return (

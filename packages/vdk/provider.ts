@@ -39,7 +39,7 @@ export type ProviderFromRouter<TRouter extends AnyRouter, TInstance = {}> = {
 export const PLACEHOLDER_BASE_URL = 'http://placeholder'
 
 export const featureFlags = {
-  // Switch this over after credentials migration
+  // Switch this over after credentials migration and adding the nango credentials
   mode: 'supaglue' as 'supaglue' | 'nango',
 }
 
@@ -52,7 +52,7 @@ export async function proxyCallProvider({
 }) {
   const instance = ctx.provider.__init__({
     proxyLinks:
-      featureFlags.mode === 'nango'
+      featureFlags.mode === 'nango' && ctx.nangoLink
         ? [
             (req, next) => {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

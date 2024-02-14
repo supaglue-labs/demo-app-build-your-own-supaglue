@@ -3,11 +3,11 @@ import {z} from 'zod'
 
 export const env = createEnv({
   server: {
-    NANGO_SECRET_KEY: z.string(),
+    NANGO_SECRET_KEY: z.string().optional(),
     SUPAGLUE_API_KEY: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_NANGO_PUBLIC_KEY: z.string(),
+    NEXT_PUBLIC_NANGO_PUBLIC_KEY: z.string().optional(),
   },
   runtimeEnv: {
     NANGO_SECRET_KEY: process.env.NANGO_SECRET_KEY,

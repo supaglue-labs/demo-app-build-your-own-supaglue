@@ -4,9 +4,15 @@ import Nango from '@nangohq/frontend'
 import React from 'react'
 import {env} from '@/env'
 
-const nango = new Nango({publicKey: env.NEXT_PUBLIC_NANGO_PUBLIC_KEY})
-
 export function NewConnection() {
+  if (!env.NEXT_PUBLIC_NANGO_PUBLIC_KEY) {
+    throw new Error(
+      'NEXT_PUBLIC_NANGO_PUBLIC_KEY is required for NewConnection component',
+    )
+  }
+
+  const nango = new Nango({publicKey: env.NEXT_PUBLIC_NANGO_PUBLIC_KEY})
+
   const [connectionId, setConnectionId] = React.useState<string>('')
   return (
     <>
