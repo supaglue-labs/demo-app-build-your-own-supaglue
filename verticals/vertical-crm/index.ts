@@ -1,5 +1,0 @@
-export * from './router'
-export * from './providers/hubspot-provider'
-export * from './providers/salesforce-provider'
-export * from './providers/pipedrive-provider'
-export * from './providers/ms-dynamics-365-sales-provider'
