@@ -24,7 +24,7 @@ async function listConnections() {
   //     // customer_id: c.customer_id,
   //   }))
   // }
-  if (env.NANGO_SECRET_KEY && featureFlags.mode === 'nango') {
+  // if (env.NANGO_SECRET_KEY && featureFlags.mode === 'nango') {
     const nango = initNangoSDK({
       headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
     })
@@ -35,8 +35,8 @@ async function listConnections() {
       connection_id: c.connection_id,
       // CustomerId does not exist in nango...
     }))
-  }
-  throw new Error('Neither Supaglue nor nango is initialized')
+  // }
+  // throw new Error('Neither Supaglue nor nango is initialized')
 }
 
 export default async function Home() {
