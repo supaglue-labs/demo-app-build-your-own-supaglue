@@ -4,9 +4,11 @@
   "private": true,
   "module": "./index.ts",
   "scripts": {
+    "db:clean": "rm -rf ./drizzle",
+    "db:generate-from-db": "pnpm db:clean && pnpm db:pull && drizzle-kit generate:pg --schema ./postgres/schema.ts",
+    "db:generate-from-meta": "drizzle-kit generate:pg --schema ./postgres/schema.ts --out ./postgres/migrations",
     "db:pull": "drizzle-kit introspect:pg --connectionString $POSTGRES_URL --driver pg",
-    "db:push": "drizzle-kit push:pg --connectionString $POSTGRES_URL --driver pg --schema ./postgres/schema.ts --verbose",
-    "db:generate": "drizzle-kit generate:pg --schema ./postgres/schema.ts --out ./postgres/migrations"
+    "db:push": "drizzle-kit push:pg --connectionString $POSTGRES_URL --driver pg --schema ./postgres/schema.ts --verbose"
   },
   "dependencies": {
     "@opensdks/sdk-nango": "0.0.2",

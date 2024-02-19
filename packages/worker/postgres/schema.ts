@@ -51,6 +51,7 @@ export const sync_state = pgTable('sync_state', {
 // We would also need to parse the output of db:generate and store those in the db / put back onto disk from db if we want it to work properly
 // So bottom line is hacking around migrations is probably the best way to go esp considering production Supaglue never handled migration
 // beyond initial creation anyways...
+// TODO: Check out the --custom flag 
 
 export const engagement_users = getCommonObjectTable('engagement_users')
 export const engagement_sequences = getCommonObjectTable('engagement_sequences')
@@ -59,3 +60,4 @@ export const engagement_contacts = getCommonObjectTable('engagement_contacts')
 export const salesforce_account = getProviderObjectTable('salesforce_account')
 export const salesforce_contact = getProviderObjectTable('salesforce_contact')
 export const salesforce_opportunity = getProviderObjectTable('salesforce_opportunity')
+export const salesforce_lead = getProviderObjectTable('salesforce_lead')
