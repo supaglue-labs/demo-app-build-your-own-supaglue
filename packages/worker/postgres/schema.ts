@@ -49,3 +49,4 @@ export const engagement_contacts = getCommonObjectTable('engagement_contacts')
 
 export const salesforce_account = getProviderObjectTable('salesforce_account')
 export const salesforce_contact = getProviderObjectTable('salesforce_contact')
+export const salesforce_opportunity = getProviderObjectTable('salesforce_opportunity')
