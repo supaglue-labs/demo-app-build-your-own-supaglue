@@ -11,8 +11,10 @@
   "dependencies": {
     "@nangohq/frontend": "0.36.89",
     "@opensdks/sdk-nango": "0.0.2",
+    "@opensdks/sdk-supaglue": "0.0.2",
     "@supaglue/api": "workspace:*",
     "@supaglue/sdk": "workspace:*",
+    "@supaglue/vdk": "workspace:*",
     "@supaglue/worker": "workspace:*",
     "@t3-oss/env-nextjs": "0.7.3",
     "next": "14.0.3",
