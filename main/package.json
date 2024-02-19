@@ -10,8 +10,9 @@
   },
   "dependencies": {
     "@nangohq/frontend": "0.36.89",
+    "@opensdks/runtime": "0.0.17",
     "@opensdks/sdk-nango": "0.0.2",
-    "@opensdks/sdk-supaglue": "0.0.2",
+    "@opensdks/sdk-supaglue": "0.0.3",
     "@supaglue/api": "workspace:*",
     "@supaglue/sdk": "workspace:*",
     "@supaglue/vdk": "workspace:*",

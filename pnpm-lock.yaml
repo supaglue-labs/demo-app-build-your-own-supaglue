@@ -116,12 +116,15 @@ importers:
       '@nangohq/frontend':
         specifier: 0.36.89
         version: 0.36.89
+      '@opensdks/runtime':
+        specifier: 0.0.17
+        version: 0.0.17
       '@opensdks/sdk-nango':
         specifier: 0.0.2
         version: 0.0.2
       '@opensdks/sdk-supaglue':
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: 0.0.3
+        version: 0.0.3
       '@supaglue/api':
         specifier: workspace:*
         version: link:../packages/api
@@ -2787,8 +2790,8 @@ packages:
     resolution: {integrity: sha512-y7RRpk/f2FgXzYqjvx7lL8pMMG48v6UV+qGwPfGhSqi8mhWZFF67kV++vH9G4ter1chn2ZVn2Oianas3ZHunQQ==}
     dev: false
 
-  /@opensdks/sdk-supaglue@0.0.2:
-    resolution: {integrity: sha512-A1l0x7WdlAWlTxG95+mNnwAe8gwco/pnTPXgQKVjf6AiBYE4atML3p6Cg51CjVj8p1GFHB3+zL+0H1KZRnNm2A==}
+  /@opensdks/sdk-supaglue@0.0.3:
+    resolution: {integrity: sha512-SS9hQXC7ABvcps2kkEa7C7ocNlgJiUrdYDH+49MEwoIrOrESvMrvak1wJA+d7TNKR3eIW12ocxYqfO+fa41D5A==}
     dev: false
 
   /@opensdks/util-zod@0.0.15:
