@@ -1,3 +1,4 @@
+import {sql} from 'drizzle-orm'
 import {
   boolean,
   jsonb,
@@ -11,7 +12,7 @@ import {
 
 /** e.g. crm_accounts */
 export function getCommonObjectTable<TName extends string>(tableName: TName) {
-  return pgTable(
+  const table = pgTable(
     tableName,
     {
       _supaglue_application_id: text('_supaglue_application_id').notNull(),
@@ -44,6 +45,29 @@ export function getCommonObjectTable<TName extends string>(tableName: TName) {
       }),
     }),
   )
+  // Workaround for https://github.com/drizzle-team/drizzle-orm/discussions/1901
+  // To get this statement use pnpm db:generate-from-meta result and copy paste output to here... then replace...
+  const _table = sql.raw(tableName)
+  const extension = {
+    createIfNotExistsSql: () => sql`
+      CREATE TABLE IF NOT EXISTS "${_table}" (
+        "_supaglue_application_id" text NOT NULL,
+        "_supaglue_provider_name" text NOT NULL,
+        "_supaglue_customer_id" text NOT NULL,
+        "_supaglue_emitted_at" timestamp(3) NOT NULL,
+        "id" text NOT NULL,
+        "created_at" timestamp(3),
+        "updated_at" timestamp(3),
+        "is_deleted" boolean DEFAULT false NOT NULL,
+        "last_modified_at" timestamp(3) NOT NULL,
+        "raw_data" jsonb,
+        "_supaglue_unified_data" jsonb,
+        CONSTRAINT "${_table}_pkey" PRIMARY KEY("_supaglue_application_id","_supaglue_provider_name","_supaglue_customer_id","id")
+      );
+    `,
+  }
+  Object.assign(table, extension)
+  return table as typeof table & typeof extension
 }
 
 /** e.g. salesforce_contact */

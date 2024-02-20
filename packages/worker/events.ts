@@ -11,6 +11,7 @@ export const eventsMap = {
     data: z.object({
       customer_id: z.string(),
       provider_name: z.string(),
+      vertical: z.enum(['crm', 'engagement']),
       standard_objects: z.array(z.string()).optional(),
       common_objects: z.array(z.string()).optional(),
     }),

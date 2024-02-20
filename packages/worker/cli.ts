@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {pgClient} from './postgres'
 import * as routines from './routines'
 
@@ -11,12 +12,20 @@ const step: routines.RoutineInput<never>['step'] = {
 }
 
 // void routines
-//   .syncConnection({
-//     event: {data: {customer_id: 'outreach1', provider_name: 'outreach'}},
-//     step,
-//   })
+//   .scheduleSyncs({event: {data: {} as never}, step})
 //   .finally(() => pgClient.end())
 
 void routines
-  .scheduleSyncs({event: {data: {} as never}, step})
+  .syncConnection({
+    event: {
+      data: {
+        // customer_id: 'outreach1', provider_name: 'outreach'
+        customer_id: process.env['CUSTOMER_ID']!,
+        provider_name: process.env['PROVIDER_NAME']!,
+        vertical: process.env['VERTICAL']! as 'crm',
+        common_objects: ['contacts'],
+      },
+    },
+    step,
+  })
   .finally(() => pgClient.end())

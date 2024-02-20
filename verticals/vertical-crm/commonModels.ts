@@ -5,6 +5,7 @@ export const contact = z
     id: z.string(),
     first_name: z.string().nullish(),
     last_name: z.string().nullish(),
+    raw_data: z.record(z.unknown()).optional(),
   })
   .openapi({ref: 'crm.contact'})
 

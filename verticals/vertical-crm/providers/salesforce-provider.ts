@@ -12,6 +12,7 @@ const mappers = {
     id: 'Id',
     first_name: 'FirstName',
     last_name: 'LastName',
+    raw_data: (c) => c,
   }),
 }
 
