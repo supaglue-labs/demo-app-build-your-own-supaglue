@@ -5,7 +5,7 @@ import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
 import {env} from './env'
 import type {Events} from './events'
 import {db, schema} from './postgres'
-import {getCommonObjectTable} from './postgres/schema-factory'
+import {getCommonObjectTable} from './postgres/schema-dynamic'
 import {dbUpsert} from './postgres/upsert'
 
 /**
