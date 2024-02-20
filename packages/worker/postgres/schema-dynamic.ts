@@ -124,4 +124,5 @@ export function getProviderObjectTable<TName extends string>(
 // beyond initial creation anyways...
 
 export const crm_account = getCommonObjectTable('crm_account')
+export const engagement_sequences = getCommonObjectTable('engagement_sequences')
 export const salesforce_account = getProviderObjectTable('salesforce_account')

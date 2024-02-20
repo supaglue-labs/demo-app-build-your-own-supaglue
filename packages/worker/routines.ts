@@ -170,22 +170,24 @@ export async function syncConnection({
         console.log(
           `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
         )
-        await dbUpsert(
-          db,
-          table,
-          res.data.items.map(({raw_data, ...item}) => ({
-            _supaglue_application_id: '$YOUR_APPLICATION_ID',
-            _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
-            _supaglue_provider_name: provider_name,
-            _supaglue_emitted_at: sql`now()`,
-            id: item.id,
-            last_modified_at: sql`now()`, // TODO: Fix me...
-            is_deleted: false,
-            // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-            raw_data: sql`${raw_data ?? ''}::jsonb`,
-            _supaglue_unified_data: sql`${item}::jsonb`,
-          })),
-        )
+        if (res.data.items.length) {
+          await dbUpsert(
+            db,
+            table,
+            res.data.items.map(({raw_data, ...item}) => ({
+              _supaglue_application_id: '$YOUR_APPLICATION_ID',
+              _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
+              _supaglue_provider_name: provider_name,
+              _supaglue_emitted_at: sql`now()`,
+              id: item.id,
+              last_modified_at: sql`now()`, // TODO: Fix me...
+              is_deleted: false,
+              // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+              raw_data: sql`${raw_data ?? ''}::jsonb`,
+              _supaglue_unified_data: sql`${item}::jsonb`,
+            })),
+          )
+        }
 
         return {cursor: res.data.nextCursor, hasNext: res.data.items.length > 0}
       })

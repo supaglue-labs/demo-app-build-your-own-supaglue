@@ -45,6 +45,7 @@ const mappers = {
     id: 'id',
     first_name: 'properties.firstname',
     last_name: 'properties.lastname',
+    updated_at: 'updatedAt',
   }),
 }
 

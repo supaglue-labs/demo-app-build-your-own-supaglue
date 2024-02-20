@@ -2,7 +2,7 @@ import {sql} from 'drizzle-orm'
 import prettier from 'prettier'
 import prettierSql from 'prettier-plugin-sql'
 import {db} from '.'
-import {engagement_sequences} from './schema'
+import {engagement_sequences} from './schema-dynamic'
 import {dbUpsert} from './upsert'
 
 async function formatSql(sqlString: string) {
