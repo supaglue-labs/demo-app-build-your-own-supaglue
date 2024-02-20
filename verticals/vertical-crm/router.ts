@@ -15,13 +15,18 @@ function oapi(meta: NonNullable<RouterMeta['openapi']>): RouterMeta {
 }
 
 export const crmRouter = trpc.router({
+  countEntity: remoteProcedure
+    .meta(oapi({method: 'GET', path: '/{entity}/_count'}))
+    .input(z.object({entity: z.string()}))
+    .output(z.object({count: z.number()}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   listContacts: remoteProcedure
     .meta(oapi({method: 'GET', path: '/contacts'}))
     .input(zPaginationParams.nullish())
     .output(
       z.object({
-        hasNextPage: z.boolean(),
         items: z.array(commonModels.contact),
+        nextCursor: z.string().nullish(),
       }),
     )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),

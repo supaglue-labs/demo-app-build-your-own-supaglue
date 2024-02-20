@@ -38,6 +38,9 @@ export interface paths {
   '/engagement/v2/sequenceState': {
     post: operations['salesEngagement-insertSequenceState']
   }
+  '/crm/v2/{entity}/_count': {
+    get: operations['crm-countEntity']
+  }
   '/crm/v2/contacts': {
     get: operations['crm-listContacts']
   }
@@ -261,6 +264,9 @@ export interface components {
       id: string
       first_name?: string | null
       last_name?: string | null
+      raw_data?: {
+        [key: string]: unknown
+      }
     }
     'crm.company': {
       id: string
@@ -752,11 +758,46 @@ export interface operations {
       }
     }
   }
+  'crm-countEntity': {
+    parameters: {
+      path: {
+        entity: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            count: number
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
   'crm-listContacts': {
     parameters: {
       query?: {
-        limit?: number
-        offset?: number
+        cursor?: string | null
+        page_size?: number
         updated_after?: string
       }
     }
@@ -765,8 +806,8 @@ export interface operations {
       200: {
         content: {
           'application/json': {
-            hasNextPage: boolean
             items: components['schemas']['crm.contact'][]
+            nextCursor?: string | null
           }
         }
       }

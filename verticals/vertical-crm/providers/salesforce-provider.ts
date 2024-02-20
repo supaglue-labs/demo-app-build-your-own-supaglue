@@ -1,4 +1,11 @@
-import {mapper, modifyRequest, PLACEHOLDER_BASE_URL, zCast} from '@supaglue/vdk'
+import {
+  LimitOffset,
+  mapper,
+  modifyRequest,
+  PLACEHOLDER_BASE_URL,
+  z,
+  zCast,
+} from '@supaglue/vdk'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {initSalesforceSDK, type SalesforceSDK} from '@opensdks/sdk-salesforce'
 import type {CRMProvider} from '../router'
@@ -44,15 +51,24 @@ export const salesforceProvider = {
         ...defaultLinks,
       ],
     }),
+  countEntity: async ({instance, input}) => {
+    const res = await instance.query(`SELECT COUNT() FROM ${input.entity}`)
+    return {count: res.totalSize}
+  },
   listContacts: async ({instance, input}) => {
-    const res = await instance.query<SFDC['ContactSObject']>(
-      `SELECT Id, FirstName, LastName FROM Contact ORDER BY SystemModstamp ASC LIMIT ${
-        input?.limit ?? 10
-      }`,
-    )
+    const limit = input?.page_size ?? 100
+    const {offset = 0} = LimitOffset.fromCursor(input?.cursor)
+    const res = await instance.query<SFDC['ContactSObject']>(`
+      SELECT Id, FirstName, LastName 
+      FROM Contact 
+      ORDER BY SystemModstamp ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `)
     return {
-      hasNextPage: true,
       items: res.records.map(mappers.contact.parse),
+      nextCursor: res.records.length
+        ? LimitOffset.toCursor({offset: offset + limit})
+        : null,
     }
   },
   getContact: async ({instance, input}) => {

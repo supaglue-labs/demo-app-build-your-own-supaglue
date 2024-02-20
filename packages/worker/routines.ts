@@ -159,16 +159,16 @@ export async function syncConnection({
       console.log('TODO: Impl updated after', {max_updated_at})
       cursor = await step.run(`${entity}-sync-page-${cursor}`, async () => {
         const res = await byos.GET(
-          `/${vertical}/v2/${entity}` as '/engagement/v2/sequences',
-          {params: {query: {cursor /*updated_after: max_updated_at */}}},
+          `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
+          {
+            params: {
+              query: {cursor /*updated_after: max_updated_at */, page_size: 10},
+            },
+          },
         )
         console.log(
           `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
         )
-
-        // TODO: Do migration for our table...
-        // migrate(db, {migrationsTable: []})
-
         await dbUpsert(
           db,
           table,
@@ -185,7 +185,8 @@ export async function syncConnection({
             _supaglue_unified_data: sql`${item}::jsonb`,
           })),
         )
-        return res.data.nextPageCursor
+
+        return res.data.nextCursor
       })
       // break
     } while (cursor)

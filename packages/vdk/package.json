@@ -2,6 +2,7 @@
   "name": "@supaglue/vdk",
   "description": "Vertical Development Kit",
   "dependencies": {
+    "@jsonurl/jsonurl": "^1.1.7",
     "@opensdks/fetch-links": "0.0.18",
     "@opensdks/util-zod": "0.0.15",
     "@trpc/server": "10.40.0",

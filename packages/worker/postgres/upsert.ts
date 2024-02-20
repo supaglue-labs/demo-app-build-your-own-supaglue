@@ -36,6 +36,10 @@ export function dbUpsert<
     }
     return col
   }
+  if (!values.length) {
+    console.log('No values to upsert, returning early')
+    return
+  }
 
   const keyColumns =
     options.keyColumns?.map(getColumn) ?? tbCfg.primaryKeys[0]?.columns

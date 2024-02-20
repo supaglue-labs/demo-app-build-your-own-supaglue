@@ -970,20 +970,88 @@
         }
       }
     },
+    "/crm/v2/{entity}/_count": {
+      "get": {
+        "operationId": "crm-countEntity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "count"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.NOT_FOUND"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/crm/v2/contacts": {
       "get": {
         "operationId": "crm-listContacts",
         "parameters": [
           {
             "in": "query",
-            "name": "limit",
+            "name": "cursor",
             "schema": {
-              "type": "number"
+              "type": [
+                "string",
+                "null"
+              ]
             }
           },
           {
             "in": "query",
-            "name": "offset",
+            "name": "page_size",
             "schema": {
               "type": "number"
             }
@@ -1005,18 +1073,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "hasNextPage": {
-                      "type": "boolean"
-                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.contact"
                       }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
-                    "hasNextPage",
                     "items"
                   ]
                 }
@@ -1880,6 +1950,10 @@
               "string",
               "null"
             ]
+          },
+          "raw_data": {
+            "type": "object",
+            "additionalProperties": {}
           }
         },
         "required": [

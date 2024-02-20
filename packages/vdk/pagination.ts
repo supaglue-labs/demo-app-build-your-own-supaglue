@@ -1,8 +1,9 @@
+import JsonURL from '@jsonurl/jsonurl'
 import {z} from '@opensdks/util-zod'
 
 export const zPaginationParams = z.object({
-  limit: z.number().optional(),
-  offset: z.number().optional(),
+  cursor: z.string().nullish(),
+  page_size: z.number().optional(),
 
   updated_after: z
     .string()
@@ -22,4 +23,24 @@ export function paginatedOutput<ItemType extends z.AnyZodObject>(
     hasNextPage: z.boolean(),
     items: z.array(itemSchema.extend({_original: z.unknown()})),
   })
+}
+
+const zLimitOffset = z.object({
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+})
+
+export const LimitOffset = {
+  fromCursor: (cursor?: string | null) => {
+    if (!cursor) {
+      return {}
+    }
+    return zLimitOffset.parse(JsonURL.parse(cursor))
+  },
+  toCursor: (params?: z.infer<typeof zLimitOffset>) => {
+    if (!params) {
+      return undefined
+    }
+    return JsonURL.stringify(params)
+  },
 }
