@@ -10,9 +10,13 @@ const step: routines.RoutineInput<never>['step'] = {
   },
 }
 
+// void routines
+//   .syncConnection({
+//     event: {data: {customer_id: 'outreach1', provider_name: 'outreach'}},
+//     step,
+//   })
+//   .finally(() => pgClient.end())
+
 void routines
-  .syncConnection({
-    event: {data: {connection_id: 'outreach1', provider_config_key: 'outreach'}},
-    step,
-  })
+  .scheduleSyncs({event: {data: {} as never}, step})
   .finally(() => pgClient.end())

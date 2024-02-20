@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@opensdks/sdk-nango": "0.0.2",
+    "@opensdks/sdk-supaglue": "0.0.3",
     "@supaglue/sdk": "workspace:*",
     "@t3-oss/env-core": "0.7.3",
     "drizzle-orm": "^0.29.3",

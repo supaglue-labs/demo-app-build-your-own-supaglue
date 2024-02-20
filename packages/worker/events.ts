@@ -9,8 +9,10 @@ import {z} from 'zod'
 export const eventsMap = {
   'connection/sync': {
     data: z.object({
-      connection_id: z.string(),
-      provider_config_key: z.string(),
+      customer_id: z.string(),
+      provider_name: z.string(),
+      standard_objects: z.array(z.string()).optional(),
+      common_objects: z.array(z.string()).optional(),
     }),
   },
 }

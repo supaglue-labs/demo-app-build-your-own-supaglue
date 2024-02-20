@@ -246,6 +246,9 @@ importers:
       '@opensdks/sdk-nango':
         specifier: 0.0.2
         version: 0.0.2
+      '@opensdks/sdk-supaglue':
+        specifier: 0.0.3
+        version: 0.0.3
       '@supaglue/sdk':
         specifier: workspace:*
         version: link:../sdk

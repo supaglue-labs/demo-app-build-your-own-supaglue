@@ -11,9 +11,10 @@ export type BYOSupaglueSDKTypes = SDKTypes<
   oasTypes,
   Omit<ClientOptions, 'headers'> & {
     headers: {
+      'x-api-key'?: string
       'x-customer-id': string
       'x-provider-name': string
-      [k: string]: string
+      [k: string]: string | undefined
     }
   }
 >

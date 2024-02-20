@@ -1,7 +1,8 @@
 import {initBYOSupaglueSDK} from '@supaglue/sdk'
 import {and, eq, sql} from 'drizzle-orm'
 import type {SendEventPayload} from 'inngest/helpers/types'
-import {nango} from './env'
+import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
+import {env} from './env'
 import type {Events} from './events'
 import {db, schema} from './postgres'
 import {getCommonObjectTable} from './postgres/schema-factory'
@@ -23,21 +24,59 @@ export type RoutineInput<T extends keyof Events> = {
   }
 }
 
+// export async function nangoScheduleSyncs({step}: RoutineInput<never>) {
+//   const {
+//     data: {connections},
+//   } = await nango.GET('/connection')
+//   // console.log(connections)
+
+//   await step.sendEvent(
+//     'emit-connection-sync-events',
+//     connections
+//       .filter((c) => c.provider === 'outreach')
+//       .map((c) => ({
+//         name: 'connection/sync',
+//         // c.provider is the providerConfigKey, very confusing of nango
+//         data: {connection_id: c.connection_id, provider_config_key: c.provider},
+//       })),
+//   )
+// }
+
 export async function scheduleSyncs({step}: RoutineInput<never>) {
-  const {
-    data: {connections},
-  } = await nango.GET('/connection')
-  // console.log(connections)
+  const supaglue = initSupaglueSDK({
+    headers: {'x-api-key': env.SUPAGLUE_API_KEY!},
+  })
+
+  const [syncConfigs, customers] = await Promise.all([
+    supaglue.mgmt.GET('/sync_configs').then((r) => r.data),
+    supaglue.mgmt.GET('/customers').then((r) => r.data),
+  ])
+  const connections = await Promise.all(
+    customers.slice(0, 2).map((c) =>
+      supaglue.mgmt
+        .GET('/customers/{customer_id}/connections', {
+          params: {path: {customer_id: c.customer_id}},
+        })
+        .then((r) => r.data),
+    ),
+  ).then((nestedArr) => nestedArr.flat())
 
   await step.sendEvent(
     'emit-connection-sync-events',
-    connections
-      .filter((c) => c.provider === 'outreach')
-      .map((c) => ({
+    connections.map((c) => {
+      const syncConfig = syncConfigs.find(
+        (c) => c.provider_name === c.provider_name,
+      )?.config
+      return {
         name: 'connection/sync',
-        // c.provider is the providerConfigKey, very confusing of nango
-        data: {connection_id: c.connection_id, provider_config_key: c.provider},
-      })),
+        data: {
+          customer_id: c.customer_id,
+          provider_name: c.provider_name,
+          common_objects: syncConfig?.common_objects?.map((o) => o.object),
+          standard_objects: syncConfig?.standard_objects?.map((o) => o.object),
+        },
+      }
+    }),
   )
 }
 
@@ -46,19 +85,19 @@ export async function syncConnection({
   step,
 }: RoutineInput<'connection/sync'>) {
   const {
-    data: {connection_id, provider_config_key},
+    data: {customer_id, provider_name},
   } = event
   console.log('[syncConnection] Start', {
-    connectionId: connection_id,
-    providerConfigKey: provider_config_key,
+    customer_id,
+    provider_name,
     eventId: event.id,
   })
 
   const syncRunId = await db
     .insert(schema.sync_run)
     .values({
-      connection_id,
-      provider_config_key,
+      connection_id: customer_id,
+      provider_config_key: provider_name,
       status: 'STARTED',
       started_at: new Date().toISOString(),
     })
@@ -68,8 +107,8 @@ export async function syncConnection({
   const syncState = await db.query.sync_state
     .findFirst({
       where: and(
-        eq(schema.sync_state.connection_id, connection_id),
-        eq(schema.sync_state.provider_config_key, provider_config_key),
+        eq(schema.sync_state.connection_id, customer_id),
+        eq(schema.sync_state.provider_config_key, provider_name),
       ),
     })
     .then(
@@ -78,8 +117,8 @@ export async function syncConnection({
         db
           .insert(schema.sync_state)
           .values({
-            connection_id,
-            provider_config_key,
+            connection_id: customer_id,
+            provider_config_key: provider_name,
             state: sql`${{}}::jsonb`,
           })
           .returning()
@@ -88,8 +127,9 @@ export async function syncConnection({
 
   const supaglue = initBYOSupaglueSDK({
     headers: {
-      'x-customer-id': connection_id, // This relies on customer-id mapping 1:1 to connection_id
-      'x-provider-name': provider_config_key, // This relies on provider_config_key mapping 1:1 to provider-name
+      'x-api-key': env.SUPAGLUE_API_KEY,
+      'x-customer-id': customer_id, // This relies on customer-id mapping 1:1 to connection_id
+      'x-provider-name': provider_name, // This relies on provider_config_key mapping 1:1 to provider-name
     },
   })
 
@@ -124,8 +164,8 @@ export async function syncConnection({
           table,
           res.data.items.map(({raw_data, ...item}) => ({
             _supaglue_application_id: '$YOUR_APPLICATION_ID',
-            _supaglue_customer_id: connection_id, //  '$YOUR_CUSTOMER_ID',
-            _supaglue_provider_name: provider_config_key,
+            _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
+            _supaglue_provider_name: provider_name,
             id: item.id,
             last_modified_at: new Date().toISOString(),
             _supaglue_emitted_at: new Date().toISOString(),
@@ -147,8 +187,8 @@ export async function syncConnection({
     .where(eq(schema.sync_run.id, syncRunId))
 
   console.log('[syncConnection] Complete', {
-    connectionId: connection_id,
-    providerConfigKey: provider_config_key,
+    connectionId: customer_id,
+    providerConfigKey: provider_name,
     eventId: event.id,
   })
 }

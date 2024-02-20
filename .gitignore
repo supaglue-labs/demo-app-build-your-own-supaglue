@@ -140,3 +140,4 @@ types
 
 .vercel
 
+.env.*
