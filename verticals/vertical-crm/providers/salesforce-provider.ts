@@ -1,9 +1,8 @@
 import {
-  LimitOffset,
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
-  z,
+  UpdatedSinceLastId,
   zCast,
 } from '@supaglue/vdk'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
@@ -19,6 +18,7 @@ const mappers = {
     id: 'Id',
     first_name: 'FirstName',
     last_name: 'LastName',
+    updated_at: 'SystemModstamp',
     raw_data: (c) => c,
   }),
 }
@@ -57,18 +57,27 @@ export const salesforceProvider = {
   },
   listContacts: async ({instance, input}) => {
     const limit = input?.page_size ?? 100
-    const {offset = 0} = LimitOffset.fromCursor(input?.cursor)
+    const cursor = UpdatedSinceLastId.fromCursor(input?.cursor)
+    const whereStatement = cursor
+      ? `WHERE SystemModstamp >= ${cursor.updated_since} AND Id > '${cursor.last_seen_id}'`
+      : ''
     const res = await instance.query<SFDC['ContactSObject']>(`
-      SELECT Id, FirstName, LastName 
+      SELECT Id, FirstName, LastName, SystemModstamp
       FROM Contact 
-      ORDER BY SystemModstamp ASC
-      LIMIT ${limit} OFFSET ${offset}
+      ${whereStatement}
+      ORDER BY SystemModstamp ASC, Id ASC
+      LIMIT ${limit} 
     `)
+    const items = res.records.map(mappers.contact.parse)
+    const lastItem = items[items.length - 1]
     return {
       items: res.records.map(mappers.contact.parse),
-      nextCursor: res.records.length
-        ? LimitOffset.toCursor({offset: offset + limit})
-        : null,
+      nextCursor: lastItem
+        ? UpdatedSinceLastId.toCursor({
+            last_seen_id: lastItem.id,
+            updated_since: lastItem.updated_at,
+          })
+        : input?.cursor,
     }
   },
   getContact: async ({instance, input}) => {

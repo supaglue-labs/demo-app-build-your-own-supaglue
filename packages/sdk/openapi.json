@@ -1939,6 +1939,14 @@
           "id": {
             "type": "string"
           },
+          "updated_at": {
+            "type": "string",
+            "description": "ISO8601 date string"
+          },
+          "raw_data": {
+            "type": "object",
+            "additionalProperties": {}
+          },
           "first_name": {
             "type": [
               "string",
@@ -1950,14 +1958,11 @@
               "string",
               "null"
             ]
-          },
-          "raw_data": {
-            "type": "object",
-            "additionalProperties": {}
           }
         },
         "required": [
-          "id"
+          "id",
+          "updated_at"
         ]
       },
       "crm.company": {

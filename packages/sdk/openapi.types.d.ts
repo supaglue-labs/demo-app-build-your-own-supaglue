@@ -262,11 +262,13 @@ export interface components {
     }
     'crm.contact': {
       id: string
-      first_name?: string | null
-      last_name?: string | null
+      /** @description ISO8601 date string */
+      updated_at: string
       raw_data?: {
         [key: string]: unknown
       }
+      first_name?: string | null
+      last_name?: string | null
     }
     'crm.company': {
       id: string

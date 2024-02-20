@@ -4,12 +4,6 @@ import {z} from '@opensdks/util-zod'
 export const zPaginationParams = z.object({
   cursor: z.string().nullish(),
   page_size: z.number().optional(),
-
-  updated_after: z
-    .string()
-    .datetime()
-    .optional()
-    .describe('Used for incremental syncs, inclusive of the date'),
 })
 export type Pagination = z.infer<typeof zPaginationParams>
 
@@ -25,22 +19,34 @@ export function paginatedOutput<ItemType extends z.AnyZodObject>(
   })
 }
 
-const zLimitOffset = z.object({
-  limit: z.number().optional(),
-  offset: z.number().optional(),
+const zUpdatedSinceLastId = z.object({
+  updated_since: z.string(),
+  last_seen_id: z.string(),
 })
 
-export const LimitOffset = {
+export const UpdatedSinceLastId = {
   fromCursor: (cursor?: string | null) => {
     if (!cursor) {
-      return {}
+      return undefined
     }
-    return zLimitOffset.parse(JsonURL.parse(cursor))
+    return zUpdatedSinceLastId.parse(JsonURL.parse(cursor))
   },
-  toCursor: (params?: z.infer<typeof zLimitOffset>) => {
+  toCursor: (params?: z.infer<typeof zUpdatedSinceLastId>) => {
     if (!params) {
       return undefined
     }
     return JsonURL.stringify(params)
   },
 }
+
+// cursor pagination
+// offset increment pagination
+// updated_since + id ideally
+// page increment pagination
+
+export const zBaseRecord = z.object({
+  id: z.string(),
+  /** z.string().datetime() does not work for simple things like `2023-07-19T23:46:48.000+0000`  */
+  updated_at: z.string().describe('ISO8601 date string'),
+  raw_data: z.record(z.unknown()).optional(),
+})

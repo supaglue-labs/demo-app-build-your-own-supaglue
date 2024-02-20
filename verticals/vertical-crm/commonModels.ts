@@ -1,11 +1,9 @@
-import {z} from '@supaglue/vdk'
+import {z, zBaseRecord} from '@supaglue/vdk'
 
-export const contact = z
-  .object({
-    id: z.string(),
+export const contact = zBaseRecord
+  .extend({
     first_name: z.string().nullish(),
     last_name: z.string().nullish(),
-    raw_data: z.record(z.unknown()).optional(),
   })
   .openapi({ref: 'crm.contact'})
 

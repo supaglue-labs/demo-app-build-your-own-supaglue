@@ -155,9 +155,10 @@ export async function syncConnection({
     // TODO: Update this
     const max_updated_at = state[entity]?.max_updated_at
     let cursor = null as null | string | undefined
+    let hasNext = true
     do {
       console.log('TODO: Impl updated after', {max_updated_at})
-      cursor = await step.run(`${entity}-sync-page-${cursor}`, async () => {
+      const ret = await step.run(`${entity}-sync-page-${cursor}`, async () => {
         const res = await byos.GET(
           `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
           {
@@ -186,10 +187,12 @@ export async function syncConnection({
           })),
         )
 
-        return res.data.nextCursor
+        return {cursor: res.data.nextCursor, hasNext: res.data.items.length > 0}
       })
+      cursor = ret.cursor
+      hasNext = ret.hasNext
       // break
-    } while (cursor)
+    } while (hasNext)
   }
 
   await db
