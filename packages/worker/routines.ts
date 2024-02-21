@@ -5,6 +5,7 @@ import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
 import {env} from './env'
 import type {Events} from './events'
 import {db, schema} from './postgres'
+import {sync_state} from './postgres/schema'
 import {getCommonObjectTable} from './postgres/schema-dynamic'
 import {dbUpsert} from './postgres/upsert'
 
@@ -147,25 +148,20 @@ export async function syncConnection({
 
   // Load this from a config please...
 
-  const state = syncState.state as Record<string, {max_updated_at?: string}>
+  const fullState = syncState.state as Record<string, {cursor?: string | null}>
 
   for (const entity of common_objects) {
     const table = getCommonObjectTable(`${vertical}_${entity}`)
     await db.execute(table.createIfNotExistsSql())
-    // TODO: Update this
-    const max_updated_at = state[entity]?.max_updated_at
-    let cursor = null as null | string | undefined
-    let hasNext = true
-    do {
-      console.log('TODO: Impl updated after', {max_updated_at})
-      const ret = await step.run(`${entity}-sync-page-${cursor}`, async () => {
+
+    const state = fullState[entity] ?? {}
+    fullState[entity] = state
+
+    while (true) {
+      const ret = await step.run(`${entity}-sync-${state.cursor}`, async () => {
         const res = await byos.GET(
           `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
-          {
-            params: {
-              query: {cursor /*updated_after: max_updated_at */, page_size: 10},
-            },
-          },
+          {params: {query: {cursor: state.cursor, page_size: 10}}},
         )
         console.log(
           `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
@@ -188,13 +184,21 @@ export async function syncConnection({
             })),
           )
         }
-
         return {cursor: res.data.nextCursor, hasNext: res.data.items.length > 0}
       })
-      cursor = ret.cursor
-      hasNext = ret.hasNext
-      // break
-    } while (hasNext)
+      state.cursor = ret.cursor
+      // Persist state. TODO: Figure out how to make this work with step function
+      await dbUpsert(
+        db,
+        sync_state,
+        [{...syncState, state: sql`${fullState}::jsonb`}],
+        {shallowMergeJsonbColumns: ['state']},
+      )
+
+      if (!ret.hasNext) {
+        break
+      }
+    }
   }
 
   await db
