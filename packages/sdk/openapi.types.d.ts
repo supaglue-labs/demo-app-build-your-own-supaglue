@@ -41,13 +41,13 @@ export interface paths {
   '/crm/v2/{entity}/_count': {
     get: operations['crm-countEntity']
   }
-  '/crm/v2/contacts': {
+  '/crm/v2/contact': {
     get: operations['crm-listContacts']
   }
-  '/crm/v2/contacts/{id}': {
+  '/crm/v2/contact/{id}': {
     get: operations['crm-getContact']
   }
-  '/crm/v2/companies/{id}': {
+  '/crm/v2/company/{id}': {
     get: operations['crm-getCompany']
   }
   '/crm/v2/metadata/objects/standard': {
@@ -800,7 +800,6 @@ export interface operations {
       query?: {
         cursor?: string | null
         page_size?: number
-        updated_after?: string
       }
     }
     responses: {

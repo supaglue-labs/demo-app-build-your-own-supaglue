@@ -21,7 +21,7 @@ export const crmRouter = trpc.router({
     .output(z.object({count: z.number()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   listContacts: remoteProcedure
-    .meta(oapi({method: 'GET', path: '/contacts'}))
+    .meta(oapi({method: 'GET', path: '/contact'}))
     .input(zPaginationParams.nullish())
     .output(
       z.object({
@@ -31,12 +31,12 @@ export const crmRouter = trpc.router({
     )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getContact: remoteProcedure
-    .meta(oapi({method: 'GET', path: '/contacts/{id}'}))
+    .meta(oapi({method: 'GET', path: '/contact/{id}'}))
     .input(z.object({id: z.string()}))
     .output(z.object({record: commonModels.contact, raw: z.unknown()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getCompany: remoteProcedure
-    .meta(oapi({method: 'GET', path: '/companies/{id}'}))
+    .meta(oapi({method: 'GET', path: '/company/{id}'}))
     .input(z.object({id: z.string()}))
     .output(z.object({record: commonModels.company, raw: z.unknown()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
