@@ -141,8 +141,7 @@ export async function syncConnection({
   const syncRunId = await db
     .insert(schema.sync_run)
     .values({
-      customer_id,
-      provider_name,
+      input_event: sql`${event}::jsonb`,
       initial_state: sql`${syncState.state}::jsonb`,
       started_at: nowFn,
     })
@@ -153,9 +152,13 @@ export async function syncConnection({
     sync_mode === 'full' ? {} : syncState.state ?? {}
   ) as Record<string, {cursor?: string | null}>
   let error: Error | undefined
-  const metrics: Record<string, number> = {}
+  const metrics: Record<string, number | string> = {}
   function incrementMetric(name: string, amount = 1) {
-    metrics[name] = (metrics[name] ?? 0) + amount
+    const metric = metrics[name]
+    metrics[name] = (typeof metric === 'number' ? metric : 0) + amount
+  }
+  function setMetric(name: string, value: string | number) {
+    metrics[name] = value
   }
 
   try {
@@ -176,6 +179,8 @@ export async function syncConnection({
 
       const state = overallState[stream] ?? {}
       overallState[stream] = state
+      const syncMode = state.cursor ? 'incremental' : 'full'
+      setMetric(`${stream}_sync_mode`, syncMode)
 
       while (true) {
         const ret = await step.run(

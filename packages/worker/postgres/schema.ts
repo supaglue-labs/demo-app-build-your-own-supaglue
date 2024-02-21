@@ -50,8 +50,7 @@ export const sync_run = pgTable('sync_run', {
     mode: 'string',
   }).defaultNow(),
   // Identifying cols
-  customer_id: text('customer_id').notNull(),
-  provider_name: text('provider_name').notNull(),
+  input_event: jsonb('input_event').notNull(),
   // Data columns
   started_at: timestamp('started_at', {precision: 3, mode: 'string'}),
   completed_at: timestamp('completed_at', {

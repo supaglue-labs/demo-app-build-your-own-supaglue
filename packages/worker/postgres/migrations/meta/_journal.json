@@ -15,6 +15,13 @@
       "when": 1708481819072,
       "tag": "0001_cheerful_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1708484397902,
+      "tag": "0002_wealthy_scarecrow",
+      "breakpoints": true
     }
   ]
 }
