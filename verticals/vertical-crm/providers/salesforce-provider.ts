@@ -1,8 +1,8 @@
 import {
+  LastUpdatedAtId,
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
-  UpdatedSinceLastId,
   zCast,
 } from '@supaglue/vdk'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
@@ -52,14 +52,16 @@ export const salesforceProvider = {
       ],
     }),
   countEntity: async ({instance, input}) => {
+    // NOTE: extract this into a helper function inside sdk-salesforce
     const res = await instance.query(`SELECT COUNT() FROM ${input.entity}`)
     return {count: res.totalSize}
   },
   listContacts: async ({instance, input}) => {
     const limit = input?.page_size ?? 100
-    const cursor = UpdatedSinceLastId.fromCursor(input?.cursor)
+    const cursor = LastUpdatedAtId.fromCursor(input?.cursor)
+    // NOTE: extract this into a helper function inside sdk-salesforce
     const whereStatement = cursor
-      ? `WHERE SystemModstamp > ${cursor.updated_since} OR (SystemModstamp = ${cursor.updated_since} AND Id > '${cursor.last_seen_id}')`
+      ? `WHERE SystemModstamp > ${cursor.last_updated_at} OR (SystemModstamp = ${cursor.last_updated_at} AND Id > '${cursor.last_id}')`
       : ''
     const res = await instance.query<SFDC['ContactSObject']>(`
       SELECT Id, FirstName, LastName, SystemModstamp
@@ -73,9 +75,9 @@ export const salesforceProvider = {
     return {
       items: res.records.map(mappers.contact.parse),
       nextCursor: lastItem
-        ? UpdatedSinceLastId.toCursor({
-            last_seen_id: lastItem.id,
-            updated_since: lastItem.updated_at,
+        ? LastUpdatedAtId.toCursor({
+            last_id: lastItem.id,
+            last_updated_at: lastItem.updated_at,
           })
         : input?.cursor,
     }

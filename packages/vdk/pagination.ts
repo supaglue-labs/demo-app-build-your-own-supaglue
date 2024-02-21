@@ -19,19 +19,26 @@ export function paginatedOutput<ItemType extends z.AnyZodObject>(
   })
 }
 
-const zUpdatedSinceLastId = z.object({
-  updated_since: z.string(),
-  last_seen_id: z.string(),
+const zLastUpdatedAtId = z.object({
+  last_updated_at: z.string(),
+  last_id: z.string(),
 })
 
-export const UpdatedSinceLastId = {
+export const LastUpdatedAtId = {
   fromCursor: (cursor?: string | null) => {
     if (!cursor) {
       return undefined
     }
-    return zUpdatedSinceLastId.parse(JsonURL.parse(cursor))
+    const ret = zLastUpdatedAtId.safeParse(JsonURL.parse(cursor))
+    // TODO: Return indication to caller that the cursor is invalid so that they can dynamically
+    // switch to a full sync rather than incremental sync
+    if (!ret.success) {
+      console.warn('Failed to parse LastUpdatedAtId cursor', cursor, ret.error)
+      return undefined
+    }
+    return ret.data
   },
-  toCursor: (params?: z.infer<typeof zUpdatedSinceLastId>) => {
+  toCursor: (params?: z.infer<typeof zLastUpdatedAtId>) => {
     if (!params) {
       return undefined
     }
