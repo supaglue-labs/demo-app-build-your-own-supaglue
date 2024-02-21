@@ -150,7 +150,10 @@ export async function syncConnection({
 
   // Load this from a config please...
 
-  const fullState = syncState.state as Record<string, {cursor?: string | null}>
+  const fullState = (syncState.state ?? {}) as Record<
+    string,
+    {cursor?: string | null}
+  >
 
   const metrics: Record<string, number> = {}
   function incrementMetric(name: string, amount = 1) {

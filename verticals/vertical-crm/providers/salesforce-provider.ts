@@ -59,7 +59,7 @@ export const salesforceProvider = {
     const limit = input?.page_size ?? 100
     const cursor = UpdatedSinceLastId.fromCursor(input?.cursor)
     const whereStatement = cursor
-      ? `WHERE SystemModstamp >= ${cursor.updated_since} AND Id > '${cursor.last_seen_id}'`
+      ? `WHERE SystemModstamp > ${cursor.updated_since} OR (SystemModstamp = ${cursor.updated_since} AND Id > '${cursor.last_seen_id}')`
       : ''
     const res = await instance.query<SFDC['ContactSObject']>(`
       SELECT Id, FirstName, LastName, SystemModstamp
