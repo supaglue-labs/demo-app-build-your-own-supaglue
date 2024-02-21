@@ -98,12 +98,21 @@ export async function syncConnection({
   step,
 }: RoutineInput<'connection/sync'>) {
   const {
-    data: {customer_id, provider_name, vertical, common_objects = []},
+    data: {
+      customer_id,
+      provider_name,
+      vertical,
+      common_objects = [],
+      sync_mode = 'incremental',
+    },
   } = event
   console.log('[syncConnection] Start', {
     customer_id,
     provider_name,
     eventId: event.id,
+    sync_mode,
+    vertical,
+    common_objects,
   })
 
   const syncState = await db.query.sync_state
@@ -140,10 +149,9 @@ export async function syncConnection({
     .returning()
     .then((rows) => rows[0]!.id)
 
-  const fullState = (syncState.state ?? {}) as Record<
-    string,
-    {cursor?: string | null}
-  >
+  const overallState = (
+    sync_mode === 'full' ? {} : syncState.state ?? {}
+  ) as Record<string, {cursor?: string | null}>
   let error: Error | undefined
   const metrics: Record<string, number> = {}
   function incrementMetric(name: string, amount = 1) {
@@ -161,27 +169,27 @@ export async function syncConnection({
 
     // Load this from a config please...
 
-    for (const entity of common_objects) {
-      const fullEntity = `${vertical}_${entity}`
+    for (const stream of common_objects) {
+      const fullEntity = `${vertical}_${stream}`
       const table = getCommonObjectTable(fullEntity)
       await db.execute(table.createIfNotExistsSql())
 
-      const state = fullState[entity] ?? {}
-      fullState[entity] = state
+      const state = overallState[stream] ?? {}
+      overallState[stream] = state
 
       while (true) {
         const ret = await step.run(
-          `${entity}-sync-${state.cursor}`,
+          `${stream}-sync-${state.cursor}`,
           async () => {
             const res = await byos.GET(
-              `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
+              `/${vertical}/v2/${stream}` as '/crm/v2/contacts',
               {params: {query: {cursor: state.cursor, page_size: 10}}},
             )
             console.log(
-              `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
+              `Syncing ${vertical} ${stream} count=${res.data.items.length}`,
             )
-            incrementMetric(`${entity}_page_count`)
-            incrementMetric(`${entity}_object_count`, res.data.items.length)
+            incrementMetric(`${stream}_count`, res.data.items.length)
+            incrementMetric(`${stream}_page_count`)
             if (res.data.items.length) {
               await dbUpsert(
                 db,
@@ -193,6 +201,8 @@ export async function syncConnection({
                   _supaglue_provider_name: provider_name,
                   id: item.id,
                   // Other columns
+                  created_at: nowFn,
+                  updated_at: nowFn,
                   _supaglue_emitted_at: nowFn,
                   last_modified_at: nowFn, // TODO: Fix me...
                   is_deleted: false,
@@ -200,7 +210,14 @@ export async function syncConnection({
                   raw_data: sql`${raw_data ?? ''}::jsonb`,
                   _supaglue_unified_data: sql`${item}::jsonb`,
                 })),
-                {noDiffColumns: ['_supaglue_emitted_at', 'last_modified_at']},
+                {
+                  insertOnlyColumns: ['created_at'],
+                  noDiffColumns: [
+                    '_supaglue_emitted_at',
+                    'last_modified_at',
+                    'updated_at',
+                  ],
+                },
               )
             }
             return {
@@ -214,9 +231,15 @@ export async function syncConnection({
         await dbUpsert(
           db,
           sync_state,
-          [{...syncState, state: sql`${fullState}::jsonb`, updated_at: nowFn}],
+          [
+            {
+              ...syncState,
+              state: sql`${overallState}::jsonb`,
+              updated_at: nowFn,
+            },
+          ],
           {
-            shallowMergeJsonbColumns: ['state'],
+            shallowMergeJsonbColumns: ['state'], // For race condition / concurrent sync of multiple streams
             noDiffColumns: ['created_at', 'updated_at'],
           },
         )
@@ -232,7 +255,7 @@ export async function syncConnection({
       .update(schema.sync_run)
       .set({
         completed_at: nowFn,
-        final_state: sql`${fullState}::jsonb`,
+        final_state: sql`${overallState}::jsonb`,
         metrics: sql`${metrics}::jsonb`,
         ...(error ? {error: `${error}`} : {}),
       })
@@ -245,7 +268,7 @@ export async function syncConnection({
     eventId: event.id,
     metrics,
     error,
-    final_state: fullState,
+    final_state: overallState,
   })
 }
 

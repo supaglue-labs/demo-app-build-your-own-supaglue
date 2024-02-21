@@ -14,6 +14,11 @@ export const eventsMap = {
       vertical: z.enum(['crm', 'engagement']),
       standard_objects: z.array(z.string()).optional(),
       common_objects: z.array(z.string()).optional(),
+      /** How data will be replicated from source to destination. */
+      sync_mode: z
+        .enum(['full', 'incremental'])
+        .optional()
+        .describe('Incremental by default'),
     }),
   },
 }

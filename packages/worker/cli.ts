@@ -24,6 +24,7 @@ void routines
         provider_name: process.env['PROVIDER_NAME']!,
         vertical: process.env['VERTICAL']! as 'crm',
         common_objects: ['contacts'],
+        sync_mode: process.env['SYNC_MODE']! as 'incremental',
       },
     },
     step,
