@@ -56,7 +56,34 @@ export const hubspotProvider = {
       links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance}) => {
-    const res = await instance.crm_contacts.GET('/crm/v3/objects/contacts', {})
+    // We may want to consider using the list rather than search endpoint for this stuff...
+    // WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP 
+    const res = await instance.crm_contacts.POST(
+      '/crm/v3/objects/contacts/search',
+      {
+        body: {
+          properties: [
+            'hs_object_id',
+            'hs_lastmodifieddate',
+            'createdate',
+            'lastmodifieddate',
+          ],
+          filterGroups: [],
+          after: '',
+          sorts: [
+            {
+              propertyName: 'hs_lastmodifieddate',
+              direction: 'ASCENDING',
+            },
+            {
+              propertyName: 'hs_object_id',
+              direction: 'ASCENDING',
+            },
+          ] as unknown as string[],
+          limit: 10,
+        },
+      },
+    )
     return {
       hasNextPage: true,
       items: res.data.results.map(mappers.contact.parse),

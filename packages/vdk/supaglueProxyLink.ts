@@ -23,8 +23,10 @@ export function supaglueProxyLink(opts: {
 
   return async (req, next) => {
     const url = new URL(req.url)
-    // Can be JSON object or text
-    const body = await req.text()
+    // Can be JSON object or text, Supaglue will accept either
+    // prefer to send as JSON to make the underlying network request easier to debug compare to
+    // stringfied JSON escaped into another string
+    const body = await req.text().then(safeJsonParse)
 
     const res = await next(
       modifyRequest(req, {
@@ -37,7 +39,7 @@ export function supaglueProxyLink(opts: {
           headers: Object.fromEntries(req.headers.entries()),
           query: Object.fromEntries(url.searchParams.entries()),
           // Sending body for get / head requests results in failure
-          ...(body && {body}),
+          ...((body as string) && {body}),
         }),
       }),
     )
@@ -62,5 +64,13 @@ export function supaglueProxyLink(opts: {
         statusText: `From ${resJson.url}`,
       },
     )
+  }
+}
+
+function safeJsonParse(s: string): unknown {
+  try {
+    return JSON.parse(s)
+  } catch {
+    return s
   }
 }
