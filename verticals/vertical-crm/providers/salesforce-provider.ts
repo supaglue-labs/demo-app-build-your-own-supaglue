@@ -26,6 +26,25 @@ const mappers = {
     updated_at: 'SystemModstamp',
     name: 'Name',
   }),
+  opportunity: mapper(
+    zCast<SFDC['OpportunitySObject']>(),
+    commonModels.opportunity,
+    {
+      id: 'Id',
+      updated_at: 'SystemModstamp',
+      name: 'Name',
+    },
+  ),
+  lead: mapper(zCast<SFDC['LeadSObject']>(), commonModels.lead, {
+    id: 'Id',
+    updated_at: 'SystemModstamp',
+    name: 'Name',
+  }),
+  user: mapper(zCast<SFDC['UserSObject']>(), commonModels.user, {
+    id: 'Id',
+    updated_at: 'SystemModstamp',
+    name: 'Name',
+  }),
 }
 
 /**
@@ -123,14 +142,7 @@ export const salesforceProvider = {
     const res = await instance.query(`SELECT COUNT() FROM ${input.entity}`)
     return {count: res.totalSize}
   },
-  listContacts: async ({instance, input}) =>
-    sdkExt(instance)._listEntityThenMap({
-      entity: 'Contact',
-      fields: ['FirstName', 'LastName'],
-      mapper: mappers.contact,
-      cursor: input?.cursor,
-      page_size: input?.page_size,
-    }),
+  // MARK: - Account
   listAccounts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Account',
@@ -139,16 +151,6 @@ export const salesforceProvider = {
       cursor: input?.cursor,
       page_size: input?.page_size,
     }),
-
-  getContact: async ({instance, input}) => {
-    const res = await instance.GET('/sobjects/Contact/{id}', {
-      params: {path: {id: input.id}},
-    })
-    return {
-      record: mappers.contact.parse(res.data),
-      raw: res.data,
-    }
-  },
   getAccount: async ({instance, input}) => {
     const res = await instance.GET('/sobjects/Account/{id}', {
       params: {path: {id: input.id}},
@@ -158,6 +160,61 @@ export const salesforceProvider = {
       raw: res.data,
     }
   },
+
+  // MARK: - Contact
+
+  listContacts: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'Contact',
+      fields: ['FirstName', 'LastName'],
+      mapper: mappers.contact,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+  getContact: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/Contact/{id}', {
+      params: {path: {id: input.id}},
+    })
+    return {
+      record: mappers.contact.parse(res.data),
+      raw: res.data,
+    }
+  },
+
+  // MARK: - Opportunity
+
+  listOpportunities: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'Opportunity',
+      fields: ['Name'],
+      mapper: mappers.opportunity,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
+  // MARK: - Lead
+
+  listLeads: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'Lead',
+      fields: ['Name'],
+      mapper: mappers.lead,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
+  // MARK: - User
+
+  listUsers: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'User',
+      fields: ['Name'],
+      mapper: mappers.user,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
+  // MARK: - Metadata
   metadataListStandardObjects: () =>
     SALESFORCE_STANDARD_OBJECTS.map((name) => ({name})),
   metadataListCustomObjects: async ({instance}) => {

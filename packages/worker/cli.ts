@@ -34,7 +34,9 @@ switch (cmd) {
             customer_id: process.env['CUSTOMER_ID']!,
             provider_name: process.env['PROVIDER_NAME']!,
             vertical: process.env['VERTICAL']! as 'crm',
-            common_objects: [process.env['COMMON_OBJECT'] ?? 'contact'],
+            common_objects: process.env['COMMON_OBJECT']
+              ? [process.env['COMMON_OBJECT']]
+              : ['account', 'contact', 'opportunity', 'lead', 'user'],
             sync_mode: process.env['SYNC_MODE']! as 'incremental',
             destination_schema: process.env['DESTINATION_SCHEMA'],
           },
