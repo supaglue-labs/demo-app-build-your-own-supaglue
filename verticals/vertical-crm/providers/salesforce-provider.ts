@@ -45,6 +45,14 @@ const mappers = {
     updated_at: 'SystemModstamp',
     name: 'Name',
   }),
+  objectProperty: mapper(
+    zCast<SFDC['DescribeSObjectResult']>(),
+    commonModels.metaProperty,
+    {
+      id: 'name',
+      label: 'label',
+    },
+  ),
 }
 
 /**
@@ -223,5 +231,12 @@ export const salesforceProvider = {
     return (res.data.sobjects ?? [])
       .filter((s) => s.custom)
       .map((s) => ({id: s.name!, name: s.name!}))
+  },
+
+  metadataListProperties: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/{name}/describe', {
+      params: {path: {name: input.name}},
+    })
+    return (res.data.fields ?? []).map((s) => mappers.objectProperty.parse(s))
   },
 } satisfies CRMProvider<SalesforceSDK>
