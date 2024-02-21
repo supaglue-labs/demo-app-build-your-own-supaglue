@@ -140,98 +140,112 @@ export async function syncConnection({
     .returning()
     .then((rows) => rows[0]!.id)
 
-  const byos = initBYOSupaglueSDK({
-    headers: {
-      'x-api-key': env.SUPAGLUE_API_KEY,
-      'x-customer-id': customer_id, // This relies on customer-id mapping 1:1 to connection_id
-      'x-provider-name': provider_name, // This relies on provider_config_key mapping 1:1 to provider-name
-    },
-  })
-
-  // Load this from a config please...
-
   const fullState = (syncState.state ?? {}) as Record<
     string,
     {cursor?: string | null}
   >
-
+  let error: Error | undefined
   const metrics: Record<string, number> = {}
   function incrementMetric(name: string, amount = 1) {
     metrics[name] = (metrics[name] ?? 0) + amount
   }
 
-  for (const entity of common_objects) {
-    const fullEntity = `${vertical}_${entity}`
-    const table = getCommonObjectTable(fullEntity)
-    await db.execute(table.createIfNotExistsSql())
+  try {
+    const byos = initBYOSupaglueSDK({
+      headers: {
+        'x-api-key': env.SUPAGLUE_API_KEY,
+        'x-customer-id': customer_id, // This relies on customer-id mapping 1:1 to connection_id
+        'x-provider-name': provider_name, // This relies on provider_config_key mapping 1:1 to provider-name
+      },
+    })
 
-    const state = fullState[entity] ?? {}
-    fullState[entity] = state
+    // Load this from a config please...
 
-    while (true) {
-      const ret = await step.run(`${entity}-sync-${state.cursor}`, async () => {
-        const res = await byos.GET(
-          `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
-          {params: {query: {cursor: state.cursor, page_size: 10}}},
+    for (const entity of common_objects) {
+      const fullEntity = `${vertical}_${entity}`
+      const table = getCommonObjectTable(fullEntity)
+      await db.execute(table.createIfNotExistsSql())
+
+      const state = fullState[entity] ?? {}
+      fullState[entity] = state
+
+      while (true) {
+        const ret = await step.run(
+          `${entity}-sync-${state.cursor}`,
+          async () => {
+            const res = await byos.GET(
+              `/${vertical}/v2/${entity}` as '/crm/v2/contacts',
+              {params: {query: {cursor: state.cursor, page_size: 10}}},
+            )
+            console.log(
+              `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
+            )
+            incrementMetric(`${entity}_page_count`)
+            incrementMetric(`${entity}_object_count`, res.data.items.length)
+            if (res.data.items.length) {
+              await dbUpsert(
+                db,
+                table,
+                res.data.items.map(({raw_data, ...item}) => ({
+                  // Primary keys
+                  _supaglue_application_id: '$YOUR_APPLICATION_ID',
+                  _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
+                  _supaglue_provider_name: provider_name,
+                  id: item.id,
+                  // Other columns
+                  _supaglue_emitted_at: nowFn,
+                  last_modified_at: nowFn, // TODO: Fix me...
+                  is_deleted: false,
+                  // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
+                  raw_data: sql`${raw_data ?? ''}::jsonb`,
+                  _supaglue_unified_data: sql`${item}::jsonb`,
+                })),
+                {noDiffColumns: ['_supaglue_emitted_at', 'last_modified_at']},
+              )
+            }
+            return {
+              cursor: res.data.nextCursor,
+              hasNext: res.data.items.length > 0,
+            }
+          },
         )
-        console.log(
-          `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
+        state.cursor = ret.cursor
+        // Persist state. TODO: Figure out how to make this work with step function
+        await dbUpsert(
+          db,
+          sync_state,
+          [{...syncState, state: sql`${fullState}::jsonb`, updated_at: nowFn}],
+          {
+            shallowMergeJsonbColumns: ['state'],
+            noDiffColumns: ['created_at', 'updated_at'],
+          },
         )
-        incrementMetric(`${entity}_page_count`)
-        incrementMetric(`${entity}_object_count`, res.data.items.length)
-        if (res.data.items.length) {
-          await dbUpsert(
-            db,
-            table,
-            res.data.items.map(({raw_data, ...item}) => ({
-              // Primary keys
-              _supaglue_application_id: '$YOUR_APPLICATION_ID',
-              _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
-              _supaglue_provider_name: provider_name,
-              id: item.id,
-              // Other columns
-              _supaglue_emitted_at: nowFn,
-              last_modified_at: nowFn, // TODO: Fix me...
-              is_deleted: false,
-              // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
-              raw_data: sql`${raw_data ?? ''}::jsonb`,
-              _supaglue_unified_data: sql`${item}::jsonb`,
-            })),
-            {noDiffColumns: ['_supaglue_emitted_at', 'last_modified_at']},
-          )
+        if (!ret.hasNext) {
+          break
         }
-        return {cursor: res.data.nextCursor, hasNext: res.data.items.length > 0}
-      })
-      state.cursor = ret.cursor
-      // Persist state. TODO: Figure out how to make this work with step function
-      await dbUpsert(
-        db,
-        sync_state,
-        [{...syncState, state: sql`${fullState}::jsonb`, updated_at: nowFn}],
-        {
-          shallowMergeJsonbColumns: ['state'],
-          noDiffColumns: ['created_at', 'updated_at'],
-        },
-      )
-      if (!ret.hasNext) {
-        break
       }
     }
+  } catch (err) {
+    error = err as Error
+  } finally {
+    await db
+      .update(schema.sync_run)
+      .set({
+        completed_at: nowFn,
+        final_state: sql`${fullState}::jsonb`,
+        metrics: sql`${metrics}::jsonb`,
+        ...(error ? {error: `${error}`} : {}),
+      })
+      .where(eq(schema.sync_run.id, syncRunId))
   }
 
-  await db
-    .update(schema.sync_run)
-    .set({
-      completed_at: nowFn,
-      final_state: sql`${fullState}::jsonb`,
-      metrics: sql`${metrics}::jsonb`,
-    })
-    .where(eq(schema.sync_run.id, syncRunId))
-
   console.log('[syncConnection] Complete', {
-    connectionId: customer_id,
-    providerConfigKey: provider_name,
+    customer_id,
+    provider_name,
     eventId: event.id,
+    metrics,
+    error,
+    final_state: fullState,
   })
 }
 

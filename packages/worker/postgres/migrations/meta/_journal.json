@@ -8,6 +8,13 @@
       "when": 1708479172557,
       "tag": "0000_careless_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1708481819072,
+      "tag": "0001_cheerful_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

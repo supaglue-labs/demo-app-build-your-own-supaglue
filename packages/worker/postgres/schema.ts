@@ -11,9 +11,13 @@ import {
 /**
  * WARNING: expression is not escaped and not safe for dynamic table construction from user input!
  */
-const generated = (name: string, dataType: string, expr: string) =>
+const generated = <T = undefined>(
+  name: string,
+  dataType: string,
+  expr: string,
+) =>
   customType<{
-    data: undefined
+    data: T
     driverData: undefined
     default: true
     notNull: true
@@ -50,20 +54,21 @@ export const sync_run = pgTable('sync_run', {
   provider_name: text('provider_name').notNull(),
   // Data columns
   started_at: timestamp('started_at', {precision: 3, mode: 'string'}),
-  initial_state: jsonb('initial_state'),
-
-  metrics: jsonb('metrics'),
   completed_at: timestamp('completed_at', {
     precision: 3,
     mode: 'string',
   }),
+  duration: generated('duration', 'interval', 'completed_at - started_at'),
+
+  initial_state: jsonb('initial_state'),
   final_state: jsonb('final_state'),
-  status: generated(
+  metrics: jsonb('metrics'),
+  status: generated<'PENDING' | 'SUCCESS' | 'ERROR'>(
     'status',
     'varchar',
-    "CASE WHEN completed_at IS NOT NULL THEN 'COMPLETED' ELSE 'STARTED' END",
+    "CASE WHEN error IS NOT NULL THEN 'ERROR' WHEN completed_at IS NOT NULL THEN 'SUCCESS' ELSE 'PENDING' END",
   ),
-  duration: generated('duration', 'interval', 'completed_at - started_at'),
+  error: text('error'),
 })
 
 export const sync_state = pgTable(
