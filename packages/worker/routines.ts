@@ -56,7 +56,7 @@ export async function scheduleSyncs({step}: RoutineInput<never>) {
   ])
   const connections = await Promise.all(
     customers
-      .slice(0, 2) // comment me out in production
+      .slice(0, 10) // comment me out in production
       .map((c) =>
         supaglue.mgmt
           .GET('/customers/{customer_id}/connections', {
@@ -74,7 +74,7 @@ export async function scheduleSyncs({step}: RoutineInput<never>) {
           return null
         }
         const syncConfig = syncConfigs.find(
-          (c) => c.provider_name === c.provider_name,
+          (sc) => sc.provider_name === c.provider_name,
         )?.config
         return {
           name: 'connection/sync',
@@ -174,7 +174,9 @@ export async function syncConnection({
     // Load this from a config please...
 
     if (destination_schema) {
-      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(destination_schema)};`)
+      await db.execute(
+        sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(destination_schema)};`,
+      )
     }
 
     for (const stream of common_objects) {
