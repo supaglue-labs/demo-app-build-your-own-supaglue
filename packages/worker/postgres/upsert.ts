@@ -24,8 +24,9 @@ export function dbUpsert<
     keyColumns?: Array<ColumnKeyOf<TTable>>
     /** Shallow jsonb merge as via sql`COALESCE(${fullId}, '{}'::jsonb) || excluded.${colId}` */
     shallowMergeJsonbColumns?: Array<ColumnKeyOf<TTable>>
-    /** Changes to these columns will be ignored in the WHERE clause. TODO: This param can use a better name... */
-    ignoredColumns?: Array<ColumnKeyOf<TTable>>
+    /** Changes to these columns will be ignored in the WHERE clause of ON CONFLICT UPDATE */
+    noDiffColumns?: Array<ColumnKeyOf<TTable>>
+    // TODO: Add onlyDiffColumns to be symmetrical with noDiffColumns
   } = {},
 ) {
   const tbCfg = getTableConfig(table)
@@ -41,7 +42,7 @@ export function dbUpsert<
     options.keyColumns?.map(getColumn) ?? tbCfg.primaryKeys[0]?.columns
   const shallowMergeJsonbColumns =
     options.shallowMergeJsonbColumns?.map(getColumn)
-  const ignoredColumns = options.ignoredColumns?.map(getColumn)
+  const noDiffColumns = options.noDiffColumns?.map(getColumn)
 
   if (!keyColumns) {
     throw new Error(
@@ -49,7 +50,7 @@ export function dbUpsert<
     )
   }
   const keyColumnNames = new Set(keyColumns.map((k) => k.name))
-  const upsertCols = Object.fromEntries(
+  const nonKeyColumns = Object.fromEntries(
     Object.keys(values[0] ?? {})
       .map((k) => [k, getColumn(k)] as const)
       .filter(([, c]) => !keyColumnNames.has(c.name)),
@@ -60,7 +61,7 @@ export function dbUpsert<
     .onConflictDoUpdate({
       target: keyColumns,
       set: Object.fromEntries(
-        Object.entries(upsertCols).map(([k, c]) => [
+        Object.entries(nonKeyColumns).map(([k, c]) => [
           k,
           sql.join([
             shallowMergeJsonbColumns?.find((jc) => jc.name === c.name)
@@ -71,8 +72,8 @@ export function dbUpsert<
         ]),
       ) as PgUpdateSetSource<TTable>,
       where: or(
-        ...Object.values(upsertCols)
-          .filter((c) => !ignoredColumns?.find((ic) => ic.name === c.name))
+        ...Object.values(nonKeyColumns)
+          .filter((c) => !noDiffColumns?.find((ic) => ic.name === c.name))
           .map(
             // In PostgreSQL, the "IS DISTINCT FROM" operator is used to compare two values and determine
             // if they are different, even if they are both NULL. On the other hand, the "!=" operator

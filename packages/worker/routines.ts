@@ -150,6 +150,8 @@ export async function syncConnection({
 
   const fullState = syncState.state as Record<string, {cursor?: string | null}>
 
+  const nowFn = sql`now()`
+
   for (const entity of common_objects) {
     const table = getCommonObjectTable(`${vertical}_${entity}`)
     await db.execute(table.createIfNotExistsSql())
@@ -174,14 +176,15 @@ export async function syncConnection({
               _supaglue_application_id: '$YOUR_APPLICATION_ID',
               _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
               _supaglue_provider_name: provider_name,
-              _supaglue_emitted_at: sql`now()`,
+              _supaglue_emitted_at: nowFn,
               id: item.id,
-              last_modified_at: sql`now()`, // TODO: Fix me...
+              last_modified_at: nowFn, // TODO: Fix me...
               is_deleted: false,
               // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
               raw_data: sql`${raw_data ?? ''}::jsonb`,
               _supaglue_unified_data: sql`${item}::jsonb`,
             })),
+            {noDiffColumns: ['_supaglue_emitted_at', 'last_modified_at']},
           )
         }
         return {cursor: res.data.nextCursor, hasNext: res.data.items.length > 0}
@@ -191,10 +194,12 @@ export async function syncConnection({
       await dbUpsert(
         db,
         sync_state,
-        [{...syncState, state: sql`${fullState}::jsonb`}],
-        {shallowMergeJsonbColumns: ['state']},
+        [{...syncState, state: sql`${fullState}::jsonb`, updated_at: nowFn}],
+        {
+          shallowMergeJsonbColumns: ['state'],
+          noDiffColumns: ['created_at', 'updated_at'],
+        },
       )
-
       if (!ret.hasNext) {
         break
       }

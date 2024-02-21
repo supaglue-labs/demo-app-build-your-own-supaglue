@@ -36,7 +36,7 @@ test('upsert query', async () => {
     ],
     {
       shallowMergeJsonbColumns: ['raw_data'],
-      ignoredColumns: ['_supaglue_emitted_at'],
+      noDiffColumns: ['_supaglue_emitted_at'],
     },
   )
   expect(await formatSql(query.toSQL().sql)).toMatchInlineSnapshot(`
