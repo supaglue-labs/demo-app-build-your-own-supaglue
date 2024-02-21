@@ -14,6 +14,9 @@ export const sync_run = pgTable('sync_run', {
     precision: 3,
     mode: 'string',
   }),
+  metrics: jsonb('metrics'),
+  initial_state: jsonb('initial_state'),
+  final_state: jsonb('final_state'),
   completed_at: timestamp('completed_at', {
     precision: 3,
     mode: 'string',

@@ -106,17 +106,6 @@ export async function syncConnection({
     eventId: event.id,
   })
 
-  const syncRunId = await db
-    .insert(schema.sync_run)
-    .values({
-      customer_id,
-      provider_name,
-      status: 'STARTED',
-      started_at: new Date().toISOString(),
-    })
-    .returning()
-    .then((rows) => rows[0]!.id)
-
   const syncState = await db.query.sync_state
     .findFirst({
       where: and(
@@ -138,6 +127,18 @@ export async function syncConnection({
           .then((rows) => rows[0]!),
     )
 
+  const syncRunId = await db
+    .insert(schema.sync_run)
+    .values({
+      customer_id,
+      provider_name,
+      status: 'STARTED',
+      initial_state: sql`${syncState.state}::jsonb`,
+      started_at: new Date().toISOString(),
+    })
+    .returning()
+    .then((rows) => rows[0]!.id)
+
   const byos = initBYOSupaglueSDK({
     headers: {
       'x-api-key': env.SUPAGLUE_API_KEY,
@@ -152,8 +153,14 @@ export async function syncConnection({
 
   const nowFn = sql`now()`
 
+  const metrics: Record<string, number> = {}
+  function incrementMetric(name: string, amount = 1) {
+    metrics[name] = (metrics[name] ?? 0) + amount
+  }
+
   for (const entity of common_objects) {
-    const table = getCommonObjectTable(`${vertical}_${entity}`)
+    const fullEntity = `${vertical}_${entity}`
+    const table = getCommonObjectTable(fullEntity)
     await db.execute(table.createIfNotExistsSql())
 
     const state = fullState[entity] ?? {}
@@ -168,6 +175,8 @@ export async function syncConnection({
         console.log(
           `Syncing ${vertical} ${entity} count=${res.data.items.length}`,
         )
+        incrementMetric(`${entity}_page_count`)
+        incrementMetric(`${entity}_object_count`, res.data.items.length)
         if (res.data.items.length) {
           await dbUpsert(
             db,
@@ -208,7 +217,12 @@ export async function syncConnection({
 
   await db
     .update(schema.sync_run)
-    .set({completed_at: new Date().toISOString(), status: 'COMPLETED'})
+    .set({
+      completed_at: new Date().toISOString(),
+      status: 'COMPLETED',
+      final_state: sql`${fullState}::jsonb`,
+      metrics: sql`${metrics}::jsonb`,
+    })
     .where(eq(schema.sync_run.id, syncRunId))
 
   console.log('[syncConnection] Complete', {
