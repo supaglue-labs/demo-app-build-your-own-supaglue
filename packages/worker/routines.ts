@@ -196,7 +196,7 @@ export async function syncConnection({
           `${stream}-sync-${state.cursor}`,
           async () => {
             const res = await byos.GET(
-              `/${vertical}/v2/${stream}` as '/crm/v2/contacts',
+              `/${vertical}/v2/${stream}` as '/crm/v2/contact',
               {params: {query: {cursor: state.cursor, page_size: 10}}},
             )
             console.log(

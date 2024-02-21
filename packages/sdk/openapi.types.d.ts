@@ -41,14 +41,35 @@ export interface paths {
   '/crm/v2/{entity}/_count': {
     get: operations['crm-countEntity']
   }
+  '/crm/v2/account': {
+    get: operations['crm-listAccounts']
+  }
+  '/crm/v2/account/{id}': {
+    get: operations['crm-getAccount']
+  }
   '/crm/v2/contact': {
     get: operations['crm-listContacts']
   }
   '/crm/v2/contact/{id}': {
     get: operations['crm-getContact']
   }
-  '/crm/v2/company/{id}': {
-    get: operations['crm-getCompany']
+  '/crm/v2/lead': {
+    get: operations['crm-listLeads']
+  }
+  '/crm/v2/lead/{id}': {
+    get: operations['crm-getLead']
+  }
+  '/crm/v2/opportunity': {
+    get: operations['crm-listOpportunities']
+  }
+  '/crm/v2/opportunity/{id}': {
+    get: operations['crm-getOpportunity']
+  }
+  '/crm/v2/user': {
+    get: operations['crm-listUsers']
+  }
+  '/crm/v2/user/{id}': {
+    get: operations['crm-getUser']
   }
   '/crm/v2/metadata/objects/standard': {
     get: operations['crm-metadataListStandardObjects']
@@ -260,6 +281,15 @@ export interface components {
         [key: string]: unknown
       }
     }
+    'crm.account': {
+      id: string
+      /** @description ISO8601 date string */
+      updated_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+      name?: string | null
+    }
     'crm.contact': {
       id: string
       /** @description ISO8601 date string */
@@ -270,8 +300,31 @@ export interface components {
       first_name?: string | null
       last_name?: string | null
     }
-    'crm.company': {
+    'crm.lead': {
       id: string
+      /** @description ISO8601 date string */
+      updated_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+      name?: string | null
+    }
+    'crm.opportunity': {
+      id: string
+      /** @description ISO8601 date string */
+      updated_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+      name?: string | null
+    }
+    'crm.user': {
+      id: string
+      /** @description ISO8601 date string */
+      updated_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
       name?: string | null
     }
     'crm.metaStandardObject': {
@@ -795,6 +848,79 @@ export interface operations {
       }
     }
   }
+  'crm-listAccounts': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+        page_size?: number
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            items: components['schemas']['crm.account'][]
+            nextCursor?: string | null
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getAccount': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['crm.account']
+            raw?: unknown
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
   'crm-listContacts': {
     parameters: {
       query?: {
@@ -868,7 +994,44 @@ export interface operations {
       }
     }
   }
-  'crm-getCompany': {
+  'crm-listLeads': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+        page_size?: number
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            items: components['schemas']['crm.lead'][]
+            nextCursor?: string | null
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getLead': {
     parameters: {
       path: {
         id: string
@@ -879,7 +1042,153 @@ export interface operations {
       200: {
         content: {
           'application/json': {
-            record: components['schemas']['crm.company']
+            record: components['schemas']['crm.lead']
+            raw?: unknown
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-listOpportunities': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+        page_size?: number
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            items: components['schemas']['crm.opportunity'][]
+            nextCursor?: string | null
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getOpportunity': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['crm.opportunity']
+            raw?: unknown
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-listUsers': {
+    parameters: {
+      query?: {
+        cursor?: string | null
+        page_size?: number
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            items: components['schemas']['crm.user'][]
+            nextCursor?: string | null
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'crm-getUser': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['crm.user']
             raw?: unknown
           }
         }
