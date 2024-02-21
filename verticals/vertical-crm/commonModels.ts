@@ -1,5 +1,11 @@
 import {z, zBaseRecord} from '@supaglue/vdk'
 
+export const account = zBaseRecord
+  .extend({
+    name: z.string().nullish(),
+  })
+  .openapi({ref: 'crm.account'})
+
 export const contact = zBaseRecord
   .extend({
     first_name: z.string().nullish(),
@@ -7,12 +13,23 @@ export const contact = zBaseRecord
   })
   .openapi({ref: 'crm.contact'})
 
-export const company = z
-  .object({
-    id: z.string(),
+export const lead = zBaseRecord
+  .extend({
     name: z.string().nullish(),
   })
-  .openapi({ref: 'crm.company'})
+  .openapi({ref: 'crm.lead'})
+
+  export const opportunity = zBaseRecord
+  .extend({
+    name: z.string().nullish(),
+  })
+  .openapi({ref: 'crm.opportunity'})
+
+  export const user = zBaseRecord
+  .extend({
+    name: z.string().nullish(),
+  })
+  .openapi({ref: 'crm.user'})
 
 export const metaStandardObject = z
   .object({

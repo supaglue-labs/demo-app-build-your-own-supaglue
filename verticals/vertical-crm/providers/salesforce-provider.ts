@@ -1,3 +1,4 @@
+import type {BaseRecord} from '@supaglue/vdk'
 import {
   LastUpdatedAtId,
   mapper,
@@ -16,10 +17,14 @@ export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
 const mappers = {
   contact: mapper(zCast<SFDC['ContactSObject']>(), commonModels.contact, {
     id: 'Id',
+    updated_at: 'SystemModstamp',
     first_name: 'FirstName',
     last_name: 'LastName',
+  }),
+  account: mapper(zCast<SFDC['AccountSObject']>(), commonModels.account, {
+    id: 'Id',
     updated_at: 'SystemModstamp',
-    raw_data: (c) => c,
+    name: 'Name',
   }),
 }
 
@@ -32,6 +37,68 @@ const mappers = {
  * Simpler but we would be forcing the consumer to have to worry about it.
  */
 const apiVersion = 'v59.0'
+
+function sdkExt(instance: SalesforceSDK) {
+  /** NOTE: extract these into a helper functions inside sdk-salesforce */
+  const countEntity = async (entity: string) =>
+    instance.query(`SELECT COUNT() FROM ${entity}`).then((r) => r.totalSize)
+  const listEntity = async <T>({
+    cursor,
+    ...opts
+  }: {
+    // to-do: Make entity and fields type safe
+    entity: string
+    fields: string[]
+    cursor?: {
+      last_updated_at: string
+      last_id: string
+    }
+    limit?: number
+  }) => {
+    const whereStatement = cursor
+      ? `WHERE SystemModstamp > ${cursor.last_updated_at} OR (SystemModstamp = ${cursor.last_updated_at} AND Id > '${cursor.last_id}')`
+      : ''
+    const limitStatement = opts.limit != null ? `LIMIT ${opts.limit}` : ''
+    return instance.query<T>(`
+        SELECT Id, SystemModstamp, ${opts.fields.join(', ')}
+        FROM ${opts.entity}
+        ${whereStatement}
+        ORDER BY SystemModstamp ASC, Id ASC
+        ${limitStatement} 
+      `)
+  }
+
+  return {
+    countEntity,
+    listEntity,
+    _listEntityThenMap: async <TIn, TOut extends BaseRecord>({
+      entity,
+      fields,
+      ...opts
+    }: {
+      entity: string
+      fields: Array<Extract<keyof TIn, string>>
+      mapper: {parse: (rawData: unknown) => TOut; _in: TIn}
+      page_size?: number
+      cursor?: string | null
+    }) => {
+      const limit = opts?.page_size ?? 100
+      const cursor = LastUpdatedAtId.fromCursor(opts?.cursor)
+      const res = await listEntity<TIn>({entity, fields, cursor, limit})
+      const items = res.records.map(opts.mapper.parse)
+      const lastItem = items[items.length - 1]
+      return {
+        items,
+        nextCursor: lastItem
+          ? LastUpdatedAtId.toCursor({
+              last_id: lastItem.id,
+              last_updated_at: lastItem.updated_at,
+            })
+          : opts?.cursor,
+      }
+    },
+  }
+}
 
 export const salesforceProvider = {
   __init__: ({proxyLinks}) =>
@@ -56,32 +123,23 @@ export const salesforceProvider = {
     const res = await instance.query(`SELECT COUNT() FROM ${input.entity}`)
     return {count: res.totalSize}
   },
-  listContacts: async ({instance, input}) => {
-    const limit = input?.page_size ?? 100
-    const cursor = LastUpdatedAtId.fromCursor(input?.cursor)
-    // NOTE: extract this into a helper function inside sdk-salesforce
-    const whereStatement = cursor
-      ? `WHERE SystemModstamp > ${cursor.last_updated_at} OR (SystemModstamp = ${cursor.last_updated_at} AND Id > '${cursor.last_id}')`
-      : ''
-    const res = await instance.query<SFDC['ContactSObject']>(`
-      SELECT Id, FirstName, LastName, SystemModstamp
-      FROM Contact 
-      ${whereStatement}
-      ORDER BY SystemModstamp ASC, Id ASC
-      LIMIT ${limit} 
-    `)
-    const items = res.records.map(mappers.contact.parse)
-    const lastItem = items[items.length - 1]
-    return {
-      items: res.records.map(mappers.contact.parse),
-      nextCursor: lastItem
-        ? LastUpdatedAtId.toCursor({
-            last_id: lastItem.id,
-            last_updated_at: lastItem.updated_at,
-          })
-        : input?.cursor,
-    }
-  },
+  listContacts: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'Contact',
+      fields: ['FirstName', 'LastName'],
+      mapper: mappers.contact,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+  listAccounts: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: 'Account',
+      fields: ['Name'],
+      mapper: mappers.account,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
   getContact: async ({instance, input}) => {
     const res = await instance.GET('/sobjects/Contact/{id}', {
       params: {path: {id: input.id}},
@@ -91,7 +149,7 @@ export const salesforceProvider = {
       raw: res.data,
     }
   },
-  getCompany: async ({instance, input}) => {
+  getAccount: async ({instance, input}) => {
     const res = await instance.GET('/sobjects/Account/{id}', {
       params: {path: {id: input.id}},
     })

@@ -18,7 +18,7 @@ export const msDynamics365SalesProvider = {
     }
   },
   // eslint-disable-next-line @typescript-eslint/require-await
-  getCompany: async ({}) => {
+  getAccount: async ({}) => {
     throw new Error('Not implemented yet')
   },
   metadataListStandardObjects: () =>

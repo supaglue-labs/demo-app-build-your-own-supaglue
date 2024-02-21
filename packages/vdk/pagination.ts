@@ -57,3 +57,5 @@ export const zBaseRecord = z.object({
   updated_at: z.string().describe('ISO8601 date string'),
   raw_data: z.record(z.unknown()).optional(),
 })
+
+export type BaseRecord = z.infer<typeof zBaseRecord>
