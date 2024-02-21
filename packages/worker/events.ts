@@ -19,6 +19,8 @@ export const eventsMap = {
         .enum(['full', 'incremental'])
         .optional()
         .describe('Incremental by default'),
+      /** e.g. postgres schema, created on demand */
+      destination_schema: z.string().optional(),
     }),
   },
 }

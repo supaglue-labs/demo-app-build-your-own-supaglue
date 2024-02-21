@@ -25,6 +25,7 @@ void routines
         vertical: process.env['VERTICAL']! as 'crm',
         common_objects: ['contacts'],
         sync_mode: process.env['SYNC_MODE']! as 'incremental',
+        destination_schema: process.env['DESTINATION_SCHEMA'],
       },
     },
     step,

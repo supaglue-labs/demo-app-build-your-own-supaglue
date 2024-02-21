@@ -1,18 +1,24 @@
 import {sql} from 'drizzle-orm'
+// NOTE: Introduce schema name also?
 import {
   boolean,
   jsonb,
+  pgSchema,
   pgTable,
   primaryKey,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
 
-// NOTE: Introduce schema name also?
+export const mySchema = pgSchema('my_schema')
 
 /** e.g. crm_accounts */
-export function getCommonObjectTable<TName extends string>(tableName: TName) {
-  const table = pgTable(
+export function getCommonObjectTable<TName extends string>(
+  tableName: TName,
+  opts: {schema?: string} = {},
+) {
+  const schema = opts.schema ? pgSchema(opts.schema) : undefined
+  const table = (schema ? schema.table : pgTable)(
     tableName,
     {
       _supaglue_application_id: text('_supaglue_application_id').notNull(),
@@ -47,10 +53,11 @@ export function getCommonObjectTable<TName extends string>(tableName: TName) {
   )
   // Workaround for https://github.com/drizzle-team/drizzle-orm/discussions/1901
   // To get this statement use pnpm db:generate-from-meta result and copy paste output to here... then replace...
+  const _schema = opts.schema ? sql.raw(`"${opts.schema}".`) : sql.raw('')
   const _table = sql.raw(tableName)
   const extension = {
     createIfNotExistsSql: () => sql`
-      CREATE TABLE IF NOT EXISTS "${_table}" (
+      CREATE TABLE IF NOT EXISTS ${_schema}"${_table}" (
         "_supaglue_application_id" text NOT NULL,
         "_supaglue_provider_name" text NOT NULL,
         "_supaglue_customer_id" text NOT NULL,
@@ -73,9 +80,10 @@ export function getCommonObjectTable<TName extends string>(tableName: TName) {
 /** e.g. salesforce_contact */
 export function getProviderObjectTable<TName extends string>(
   tableName: TName,
-  opts?: {custom?: boolean},
+  opts: {custom?: boolean; schema?: string} = {},
 ) {
-  return pgTable(
+  const schema = opts.schema ? pgSchema(opts.schema) : undefined
+  const table = (schema ? schema.table : pgTable)(
     tableName,
     {
       _supaglue_application_id: text('_supaglue_application_id').notNull(),
@@ -112,6 +120,7 @@ export function getProviderObjectTable<TName extends string>(
       }),
     }),
   )
+  return table
 }
 
 // NOTE: the following tables are dynamically generated and depends on the incoming data, and in this case they are only used as sample fo copy & pasting

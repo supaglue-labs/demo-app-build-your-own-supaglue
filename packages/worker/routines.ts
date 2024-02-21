@@ -104,6 +104,7 @@ export async function syncConnection({
       vertical,
       common_objects = [],
       sync_mode = 'incremental',
+      destination_schema,
     },
   } = event
   console.log('[syncConnection] Start', {
@@ -172,9 +173,15 @@ export async function syncConnection({
 
     // Load this from a config please...
 
+    if (destination_schema) {
+      await db.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(destination_schema)};`)
+    }
+
     for (const stream of common_objects) {
       const fullEntity = `${vertical}_${stream}`
-      const table = getCommonObjectTable(fullEntity)
+      const table = getCommonObjectTable(fullEntity, {
+        schema: destination_schema,
+      })
       await db.execute(table.createIfNotExistsSql())
 
       const state = overallState[stream] ?? {}
