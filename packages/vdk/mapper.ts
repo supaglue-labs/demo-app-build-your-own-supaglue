@@ -54,7 +54,7 @@ export function applyMapper<
   >,
 >(mapper: T, input: T['_in']): T['_out'] {
   // This can probably be extracted into its own function without needint TIn and TOut even
-  return R.mapValues(mapper.mapping, (m, key) => {
+  const output = R.mapValues(mapper.mapping, (m, key) => {
     if (typeof m === 'function') {
       return m(input) as unknown
     } else if (typeof m === 'object' && 'literal' in m) {
@@ -64,6 +64,9 @@ export function applyMapper<
     }
     throw new Error(`Invalid mapping ${m as unknown} at ${key as string}`)
   })
+  // TODO: Does this belong here?
+  Object.assign(output, {raw_data: input})
+  return output
 }
 
 /**

@@ -20,7 +20,7 @@ const mappers = {
     id: (p) => `${p.id}`,
     first_name: (p) => p.first_name ?? '',
     last_name: (p) => p.last_name ?? '',
-    updated_at: (p) => p.update_time ?? '',
+    updated_at: 'update_time',
   }),
 }
 
