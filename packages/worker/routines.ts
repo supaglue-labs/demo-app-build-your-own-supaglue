@@ -127,14 +127,15 @@ export async function syncConnection({
           .then((rows) => rows[0]!),
     )
 
+  const nowFn = sql`now()`
+
   const syncRunId = await db
     .insert(schema.sync_run)
     .values({
       customer_id,
       provider_name,
-      status: 'STARTED',
       initial_state: sql`${syncState.state}::jsonb`,
-      started_at: new Date().toISOString(),
+      started_at: nowFn,
     })
     .returning()
     .then((rows) => rows[0]!.id)
@@ -150,8 +151,6 @@ export async function syncConnection({
   // Load this from a config please...
 
   const fullState = syncState.state as Record<string, {cursor?: string | null}>
-
-  const nowFn = sql`now()`
 
   const metrics: Record<string, number> = {}
   function incrementMetric(name: string, amount = 1) {
@@ -182,11 +181,13 @@ export async function syncConnection({
             db,
             table,
             res.data.items.map(({raw_data, ...item}) => ({
+              // Primary keys
               _supaglue_application_id: '$YOUR_APPLICATION_ID',
               _supaglue_customer_id: customer_id, //  '$YOUR_CUSTOMER_ID',
               _supaglue_provider_name: provider_name,
-              _supaglue_emitted_at: nowFn,
               id: item.id,
+              // Other columns
+              _supaglue_emitted_at: nowFn,
               last_modified_at: nowFn, // TODO: Fix me...
               is_deleted: false,
               // Workaround jsonb support issue... https://github.com/drizzle-team/drizzle-orm/issues/724
@@ -218,8 +219,7 @@ export async function syncConnection({
   await db
     .update(schema.sync_run)
     .set({
-      completed_at: new Date().toISOString(),
-      status: 'COMPLETED',
+      completed_at: nowFn,
       final_state: sql`${fullState}::jsonb`,
       metrics: sql`${metrics}::jsonb`,
     })
