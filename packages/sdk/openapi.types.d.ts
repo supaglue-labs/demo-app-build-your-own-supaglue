@@ -860,8 +860,9 @@ export interface operations {
       200: {
         content: {
           'application/json': {
+            next_cursor?: string | null
+            has_next_page: boolean
             items: components['schemas']['crm.account'][]
-            nextCursor?: string | null
           }
         }
       }
@@ -933,8 +934,9 @@ export interface operations {
       200: {
         content: {
           'application/json': {
+            next_cursor?: string | null
+            has_next_page: boolean
             items: components['schemas']['crm.contact'][]
-            nextCursor?: string | null
           }
         }
       }
@@ -1006,8 +1008,9 @@ export interface operations {
       200: {
         content: {
           'application/json': {
+            next_cursor?: string | null
+            has_next_page: boolean
             items: components['schemas']['crm.lead'][]
-            nextCursor?: string | null
           }
         }
       }
@@ -1079,8 +1082,9 @@ export interface operations {
       200: {
         content: {
           'application/json': {
+            next_cursor?: string | null
+            has_next_page: boolean
             items: components['schemas']['crm.opportunity'][]
-            nextCursor?: string | null
           }
         }
       }
@@ -1152,8 +1156,9 @@ export interface operations {
       200: {
         content: {
           'application/json': {
+            next_cursor?: string | null
+            has_next_page: boolean
             items: components['schemas']['crm.user'][]
-            nextCursor?: string | null
           }
         }
       }

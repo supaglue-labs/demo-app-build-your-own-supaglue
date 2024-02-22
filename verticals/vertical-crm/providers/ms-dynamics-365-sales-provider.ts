@@ -13,7 +13,7 @@ export const msDynamics365SalesProvider = {
   listContacts: async ({instance}) => {
     await instance.request('GET', '/contacts')
     return {
-      hasNextPage: true,
+      has_next_page: true,
       items: [],
     }
   },

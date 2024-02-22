@@ -4,6 +4,7 @@ import {
   remoteProcedure,
   trpc,
   z,
+  zPaginatedResult,
   zPaginationParams,
 } from '@supaglue/vdk'
 import * as commonModels from './commonModels'
@@ -24,12 +25,7 @@ export const crmRouter = trpc.router({
   listAccounts: remoteProcedure
     .meta(oapi({method: 'GET', path: '/account'}))
     .input(zPaginationParams.nullish())
-    .output(
-      z.object({
-        items: z.array(commonModels.account),
-        nextCursor: z.string().nullish(),
-      }),
-    )
+    .output(zPaginatedResult.extend({items: z.array(commonModels.account)}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getAccount: remoteProcedure
     .meta(oapi({method: 'GET', path: '/account/{id}'}))
@@ -41,12 +37,7 @@ export const crmRouter = trpc.router({
   listContacts: remoteProcedure
     .meta(oapi({method: 'GET', path: '/contact'}))
     .input(zPaginationParams.nullish())
-    .output(
-      z.object({
-        items: z.array(commonModels.contact),
-        nextCursor: z.string().nullish(),
-      }),
-    )
+    .output(zPaginatedResult.extend({items: z.array(commonModels.contact)}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getContact: remoteProcedure
     .meta(oapi({method: 'GET', path: '/contact/{id}'}))
@@ -58,12 +49,7 @@ export const crmRouter = trpc.router({
   listLeads: remoteProcedure
     .meta(oapi({method: 'GET', path: '/lead'}))
     .input(zPaginationParams.nullish())
-    .output(
-      z.object({
-        items: z.array(commonModels.lead),
-        nextCursor: z.string().nullish(),
-      }),
-    )
+    .output(zPaginatedResult.extend({items: z.array(commonModels.lead)}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getLead: remoteProcedure
     .meta(oapi({method: 'GET', path: '/lead/{id}'}))
@@ -75,12 +61,7 @@ export const crmRouter = trpc.router({
   listOpportunities: remoteProcedure
     .meta(oapi({method: 'GET', path: '/opportunity'}))
     .input(zPaginationParams.nullish())
-    .output(
-      z.object({
-        items: z.array(commonModels.opportunity),
-        nextCursor: z.string().nullish(),
-      }),
-    )
+    .output(zPaginatedResult.extend({items: z.array(commonModels.opportunity)}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getOpportunity: remoteProcedure
     .meta(oapi({method: 'GET', path: '/opportunity/{id}'}))
@@ -92,12 +73,7 @@ export const crmRouter = trpc.router({
   listUsers: remoteProcedure
     .meta(oapi({method: 'GET', path: '/user'}))
     .input(zPaginationParams.nullish())
-    .output(
-      z.object({
-        items: z.array(commonModels.user),
-        nextCursor: z.string().nullish(),
-      }),
-    )
+    .output(zPaginatedResult.extend({items: z.array(commonModels.user)}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
   getUser: remoteProcedure
     .meta(oapi({method: 'GET', path: '/user/{id}'}))

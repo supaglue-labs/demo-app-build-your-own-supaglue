@@ -1065,20 +1065,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_next_page": {
+                      "type": "boolean"
+                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.account"
                       }
-                    },
-                    "nextCursor": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
+                    "has_next_page",
                     "items"
                   ]
                 }
@@ -1214,20 +1218,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_next_page": {
+                      "type": "boolean"
+                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.contact"
                       }
-                    },
-                    "nextCursor": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
+                    "has_next_page",
                     "items"
                   ]
                 }
@@ -1363,20 +1371,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_next_page": {
+                      "type": "boolean"
+                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.lead"
                       }
-                    },
-                    "nextCursor": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
+                    "has_next_page",
                     "items"
                   ]
                 }
@@ -1512,20 +1524,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_next_page": {
+                      "type": "boolean"
+                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.opportunity"
                       }
-                    },
-                    "nextCursor": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
+                    "has_next_page",
                     "items"
                   ]
                 }
@@ -1661,20 +1677,24 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "has_next_page": {
+                      "type": "boolean"
+                    },
                     "items": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/crm.user"
                       }
-                    },
-                    "nextCursor": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
+                    "has_next_page",
                     "items"
                   ]
                 }

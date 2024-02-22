@@ -25,14 +25,14 @@ export const apolloProvider = {
       api_key: '', // This will be populated by Nango, or you can populate your own
       links: (defaultLinks) => [
         ...defaultLinks.slice(0, -1),
-        ...proxyLinks, // proxy links shoudl be in the middle... 
+        ...proxyLinks, // proxy links shoudl be in the middle...
         ...defaultLinks.slice(-1),
       ],
     }),
   listContacts: async ({instance}) => {
     const res = await instance.POST('/v1/contacts/search', {})
     return {
-      hasNextPage: true,
+      has_next_page: true,
       items: res.data.contacts.map(mappers.contact),
     }
   },

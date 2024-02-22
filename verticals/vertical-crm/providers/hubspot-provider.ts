@@ -1,4 +1,4 @@
-import {mapper, z} from '@supaglue/vdk'
+import {LastUpdatedAtNextOffset, mapper, z} from '@supaglue/vdk'
 import type {Oas_crm_contacts} from '@opensdks/sdk-hubspot'
 import {initHubspotSDK, type HubspotSDK} from '@opensdks/sdk-hubspot'
 import type {CRMProvider} from '../router'
@@ -55,9 +55,11 @@ export const hubspotProvider = {
       headers: {authorization: 'Bearer ...'}, // This will be populated by Nango, or you can populate your own...
       links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
-  listContacts: async ({instance}) => {
+  listContacts: async ({instance, input: opts}) => {
+    const limit = opts?.page_size ?? 100
+    const cursor = LastUpdatedAtNextOffset.fromCursor(opts?.cursor)
+    const kLastModifiedAt = 'lastmodifieddate'
     // We may want to consider using the list rather than search endpoint for this stuff...
-    // WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP WIP 
     const res = await instance.crm_contacts.POST(
       '/crm/v3/objects/contacts/search',
       {
@@ -68,25 +70,54 @@ export const hubspotProvider = {
             'createdate',
             'lastmodifieddate',
           ],
-          filterGroups: [],
-          after: '',
+          filterGroups: cursor?.last_updated_at
+            ? [
+                {
+                  filters: [
+                    {
+                      propertyName: kLastModifiedAt,
+                      operator: 'GTE',
+                      value: cursor?.last_updated_at,
+                    },
+                  ],
+                },
+              ]
+            : [],
+          after: cursor?.next_offset ?? '',
           sorts: [
             {
-              propertyName: 'hs_lastmodifieddate',
+              propertyName: 'lastmodifieddate',
               direction: 'ASCENDING',
             },
-            {
-              propertyName: 'hs_object_id',
-              direction: 'ASCENDING',
-            },
+            // Cannot sort by multiple values unfortunately...
+            // {
+            //   propertyName: 'hs_object_id',
+            //   direction: 'ASCENDING',
+            // },
           ] as unknown as string[],
-          limit: 10,
+          limit,
         },
       },
     )
+    const items = res.data.results.map(mappers.contact.parse)
+    const lastItem = items[items.length - 1]
     return {
-      hasNextPage: true,
       items: res.data.results.map(mappers.contact.parse),
+      // Not the same as simply items.length === 0
+      has_next_page: !!res.data.paging?.next?.after,
+      next_cursor:
+        (lastItem
+          ? LastUpdatedAtNextOffset.toCursor({
+              last_updated_at: lastItem.updated_at,
+              next_offset:
+                // offset / offset-like cursor is only usable if the filtering criteria doesn't change, notably the last_updated_at timestamp
+                // in practice this means that we only care about `after` offset when we have more than `limit` number of items modified at the exact
+                // same timestamp
+                lastItem.updated_at === cursor?.last_updated_at
+                  ? res.data.paging?.next?.after
+                  : undefined,
+            })
+          : opts?.cursor) ?? null,
     }
   },
   // eslint-disable-next-line @typescript-eslint/require-await

@@ -32,6 +32,6 @@ export const salesloftProvider = {
     }),
   listContacts: async ({instance}) => {
     const res = await instance.GET('/v2/people.json', {})
-    return {hasNextPage: true, items: res.data.data.map(mappers.contact)}
+    return {has_next_page: true, items: res.data.data.map(mappers.contact)}
   },
 } satisfies SalesEngagementProvider<SalesloftSDK>

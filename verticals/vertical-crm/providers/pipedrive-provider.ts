@@ -33,7 +33,7 @@ export const pipedriveProvider = {
   listContacts: async ({instance}) => {
     const res = await instance.GET('/persons')
     return {
-      hasNextPage: true,
+      has_next_page: true,
       items: (res.data.data ?? []).map(mappers.contact.parse),
     }
   },

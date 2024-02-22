@@ -108,7 +108,8 @@ function sdkExt(instance: SalesforceSDK) {
       const lastItem = items[items.length - 1]
       return {
         items,
-        nextCursor: lastItem
+        has_next_page: items.length > 0,
+        next_cursor: lastItem
           ? LastUpdatedAtId.toCursor({
               last_id: lastItem.id,
               last_updated_at: lastItem.updated_at,

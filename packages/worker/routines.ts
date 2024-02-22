@@ -197,7 +197,7 @@ export async function syncConnection({
           async () => {
             const res = await byos.GET(
               `/${vertical}/v2/${stream}` as '/crm/v2/contact',
-              {params: {query: {cursor: state.cursor, page_size: 10}}},
+              {params: {query: {cursor: state.cursor, page_size: 100}}},
             )
             console.log(
               `Syncing ${vertical} ${stream} count=${res.data.items.length}`,
@@ -235,12 +235,13 @@ export async function syncConnection({
               )
             }
             return {
-              cursor: res.data.nextCursor,
-              hasNext: res.data.items.length > 0,
+              next_cursor: res.data.next_cursor,
+              hast_next_page: res.data.has_next_page,
             }
           },
         )
-        state.cursor = ret.cursor
+        console.log('[sync progress]', {completed_cursor: state.cursor, ...ret})
+        state.cursor = ret.next_cursor
         // Persist state. TODO: Figure out how to make this work with step function
         await dbUpsert(
           db,
@@ -257,7 +258,7 @@ export async function syncConnection({
             noDiffColumns: ['created_at', 'updated_at'],
           },
         )
-        if (!ret.hasNext) {
+        if (!ret.hast_next_page) {
           break
         }
       }

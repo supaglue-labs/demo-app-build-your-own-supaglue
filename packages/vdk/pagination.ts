@@ -7,6 +7,11 @@ export const zPaginationParams = z.object({
 })
 export type Pagination = z.infer<typeof zPaginationParams>
 
+export const zPaginatedResult = z.object({
+  next_cursor: z.string().nullish(),
+  has_next_page: z.boolean(),
+})
+
 export type PaginatedOutput<T extends {}> = z.infer<
   ReturnType<typeof paginatedOutput<z.ZodObject<any, any, any, T>>>
 >
@@ -14,7 +19,7 @@ export function paginatedOutput<ItemType extends z.AnyZodObject>(
   itemSchema: ItemType,
 ) {
   return z.object({
-    hasNextPage: z.boolean(),
+    has_next_page: z.boolean(),
     items: z.array(itemSchema.extend({_original: z.unknown()})),
   })
 }
@@ -40,7 +45,34 @@ export const LastUpdatedAtId = {
   },
   toCursor: (params?: z.infer<typeof zLastUpdatedAtId>) => {
     if (!params) {
+      return null
+    }
+    return JsonURL.stringify(params)
+  },
+}
+
+const zLastUpdatedAtNextOffset = z.object({
+  last_updated_at: z.string(),
+  next_offset: z.string().nullish(),
+})
+
+export const LastUpdatedAtNextOffset = {
+  fromCursor: (cursor?: string | null) => {
+    if (!cursor) {
       return undefined
+    }
+    const ret = zLastUpdatedAtNextOffset.safeParse(JsonURL.parse(cursor))
+    // TODO: Return indication to caller that the cursor is invalid so that they can dynamically
+    // switch to a full sync rather than incremental sync
+    if (!ret.success) {
+      console.warn('Failed to parse LastUpdatedAtId cursor', cursor, ret.error)
+      return undefined
+    }
+    return ret.data
+  },
+  toCursor: (params?: z.infer<typeof zLastUpdatedAtNextOffset>) => {
+    if (!params) {
+      return null
     }
     return JsonURL.stringify(params)
   },
