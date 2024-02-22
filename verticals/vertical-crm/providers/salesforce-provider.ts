@@ -224,8 +224,10 @@ export const salesforceProvider = {
     }),
 
   // MARK: - Metadata
-  metadataListStandardObjects: () =>
-    SALESFORCE_STANDARD_OBJECTS.map((name) => ({name})),
+  metadataListStandardObjects: () => {
+    console.log('standard objects called')
+    return SALESFORCE_STANDARD_OBJECTS.map((name) => ({name}))
+  },
   metadataListCustomObjects: async ({instance}) => {
     const res = await instance.GET('/sobjects')
     return (res.data.sobjects ?? [])
@@ -234,8 +236,8 @@ export const salesforceProvider = {
   },
 
   metadataListProperties: async ({instance, input}) => {
-    const res = await instance.GET('/sobjects/{name}/describe', {
-      params: {path: {name: input.name}},
+    const res = await instance.GET('/sobjects/{sObject}/describe', {
+      params: {path: {sObject: input.name}},
     })
     return (res.data.fields ?? []).map((s) => mappers.objectProperty.parse(s))
   },
