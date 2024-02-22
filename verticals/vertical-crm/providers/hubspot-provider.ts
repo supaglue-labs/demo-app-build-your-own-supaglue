@@ -94,7 +94,8 @@ const _listEntityThenMap = async <TIn, TOut extends BaseRecord>(
 ) => {
   const limit = opts?.page_size ?? 100
   const cursor = LastUpdatedAtNextOffset.fromCursor(opts?.cursor)
-  const kLastModifiedAt = entity === 'contacts' ?  'lastmodifieddate' : 'hs_lastmodifieddate'
+  const kLastModifiedAt =
+    entity === 'contacts' ? 'lastmodifieddate' : 'hs_lastmodifieddate'
   // We may want to consider using the list rather than search endpoint for this stuff...
   const res = await instance[`crm_${entity as 'contacts'}`].POST(
     `/crm/v3/objects/${entity as 'contacts'}/search`,
@@ -181,21 +182,23 @@ export const hubspotProvider = {
   listOpportunities: async ({instance, input}) =>
     _listEntityThenMap(instance, {
       ...input,
-      entity: 'opportunities',
+      entity: 'deals',
       mapper: mappers.opportunity,
       fields: [],
     }),
-  listLeads: async ({instance, input}) =>
-    _listEntityThenMap(instance, {
-      ...input,
-      entity: 'leads',
-      mapper: mappers.lead,
-      fields: [],
-    }),
+  // Original supaglue never implemented this, TODO: handle me...
+  // listLeads: async ({instance, input}) =>
+  //   _listEntityThenMap(instance, {
+  //     ...input,
+  //     entity: 'leads',
+  //     mapper: mappers.lead,
+  //     fields: [],
+  //   }),
+  // TODO: Users is not subject to the search API...
   listUsers: async ({instance, input}) =>
     _listEntityThenMap(instance, {
       ...input,
-      entity: 'users',
+      entity: 'owners',
       mapper: mappers.user,
       fields: [],
     }),
