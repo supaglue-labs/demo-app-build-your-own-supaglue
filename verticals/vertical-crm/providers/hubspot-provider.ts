@@ -80,7 +80,7 @@ const mappers = {
     name: (o) => [o.firstName, o.lastName].filter((n) => !!n?.trim()).join(' '),
   }),
 }
-const _listEntityThenMap = async <TIn, TOut extends BaseRecord>(
+const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
   instance: HubspotSDK,
   {
     entity,
@@ -161,6 +161,38 @@ const _listEntityThenMap = async <TIn, TOut extends BaseRecord>(
   }
 }
 
+const _listEntityFullThenMap = async <TIn, TOut extends BaseRecord>(
+  instance: HubspotSDK,
+  {
+    entity,
+    ...opts
+  }: {
+    entity: string
+    mapper: {parse: (rawData: unknown) => TOut; _in: TIn}
+    page_size?: number
+    cursor?: string | null
+  },
+) => {
+  const res = await instance[`crm_${entity as 'owners'}`].GET(
+    `/crm/v3/${entity as 'owners'}/`,
+    {
+      params: {
+        query: {
+          after: opts?.cursor ?? undefined,
+          limit: opts?.page_size ?? 100,
+        },
+      },
+    },
+  )
+  return {
+    items: res.data.results.map(mappers.user.parse),
+    has_next_page: !!res.data.paging?.next?.after,
+    // This would reset the sync and loop back from the beginning, except
+    // the has_next_page check prevents that
+    next_cursor: res.data.paging?.next?.after,
+  }
+}
+
 export const hubspotProvider = {
   __init__: ({proxyLinks}) =>
     initHubspotSDK({
@@ -168,21 +200,21 @@ export const hubspotProvider = {
       links: (defaultLinks) => [...proxyLinks, ...defaultLinks],
     }),
   listContacts: async ({instance, input}) =>
-    _listEntityThenMap(instance, {
+    _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'contacts',
       mapper: mappers.contact,
       fields: [],
     }),
   listAccounts: async ({instance, input}) =>
-    _listEntityThenMap(instance, {
+    _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'companies',
       mapper: mappers.account,
       fields: [],
     }),
   listOpportunities: async ({instance, input}) =>
-    _listEntityThenMap(instance, {
+    _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'deals',
       mapper: mappers.opportunity,
@@ -197,23 +229,13 @@ export const hubspotProvider = {
   //     fields: [],
   //   }),
   // Owners does not have a search API... so we have to do a full sync every time
-  listUsers: async ({instance, input}) => {
-    const res = await instance.crm_owners.GET('/crm/v3/owners/', {
-      params: {
-        query: {
-          after: input?.cursor ?? undefined,
-          limit: input?.page_size ?? 100,
-        },
-      },
-    })
-    return {
-      items: res.data.results.map(mappers.user.parse),
-      has_next_page: !!res.data.paging?.next?.after,
-      // This would reset the sync and loop back from the beginning, except
-      // the has_next_page check prevents that
-      next_cursor: res.data.paging?.next?.after,
-    }
-  },
+  listUsers: async ({instance, input}) =>
+    _listEntityFullThenMap(instance, {
+      entity: 'owners',
+      mapper: mappers.user,
+      page_size: input?.page_size,
+      cursor: input?.cursor,
+    }),
   // eslint-disable-next-line @typescript-eslint/require-await
   getAccount: async ({}) => {
     throw new Error('Not implemented yet')
