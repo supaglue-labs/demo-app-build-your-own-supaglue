@@ -1,12 +1,13 @@
 import type {BaseRecord} from '@supaglue/vdk'
-import {LastUpdatedAtNextOffset, mapper, z} from '@supaglue/vdk'
-import type {Oas_crm_contacts} from '@opensdks/sdk-hubspot'
+import {LastUpdatedAtNextOffset, mapper, z, zCast} from '@supaglue/vdk'
+import type {Oas_crm_contacts, Oas_crm_owners} from '@opensdks/sdk-hubspot'
 import {initHubspotSDK, type HubspotSDK} from '@opensdks/sdk-hubspot'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 
 export type SimplePublicObject =
   Oas_crm_contacts['components']['schemas']['SimplePublicObject']
+export type Owner = Oas_crm_owners['components']['schemas']['PublicOwner']
 
 export const HUBSPOT_STANDARD_OBJECTS = [
   'company',
@@ -73,9 +74,10 @@ const mappers = {
     id: 'id',
     updated_at: 'updatedAt',
   }),
-  user: mapper(HSBase, commonModels.user, {
+  user: mapper(zCast<Owner>(), commonModels.user, {
     id: 'id',
     updated_at: 'updatedAt',
+    name: (o) => [o.firstName, o.lastName].filter((n) => !!n?.trim()).join(' '),
   }),
 }
 const _listEntityThenMap = async <TIn, TOut extends BaseRecord>(
@@ -194,14 +196,24 @@ export const hubspotProvider = {
   //     mapper: mappers.lead,
   //     fields: [],
   //   }),
-  // TODO: Users is not subject to the search API...
-  listUsers: async ({instance, input}) =>
-    _listEntityThenMap(instance, {
-      ...input,
-      entity: 'owners',
-      mapper: mappers.user,
-      fields: [],
-    }),
+  // Owners does not have a search API... so we have to do a full sync every time
+  listUsers: async ({instance, input}) => {
+    const res = await instance.crm_owners.GET('/crm/v3/owners/', {
+      params: {
+        query: {
+          after: input?.cursor ?? undefined,
+          limit: input?.page_size ?? 100,
+        },
+      },
+    })
+    return {
+      items: res.data.results.map(mappers.user.parse),
+      has_next_page: !!res.data.paging?.next?.after,
+      // This would reset the sync and loop back from the beginning, except
+      // the has_next_page check prevents that
+      next_cursor: res.data.paging?.next?.after,
+    }
+  },
   // eslint-disable-next-line @typescript-eslint/require-await
   getAccount: async ({}) => {
     throw new Error('Not implemented yet')
