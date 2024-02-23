@@ -53,6 +53,7 @@ export const LastUpdatedAtId = {
 
 const zLastUpdatedAtNextOffset = z.object({
   last_updated_at: z.string(),
+  // TODO: Rename to next_cursor from next_offset
   next_offset: z.string().nullish(),
 })
 
