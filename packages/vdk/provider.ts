@@ -70,7 +70,10 @@ export async function proxyCallProvider({
   })
 
   // verticals.salesEngagement.listContacts -> listContacts
+  console.log('ctx.path:', ctx.path)
   const methodName = ctx.path.split('.').pop() ?? ''
+  console.log('methodName:', methodName)
+  console.log('instance:', instance)
   const implementation = ctx.provider?.[methodName] as Function
 
   if (typeof implementation !== 'function') {

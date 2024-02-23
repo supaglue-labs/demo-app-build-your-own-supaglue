@@ -54,6 +54,43 @@ const HSContact = z.object({
   archived: z.boolean(),
 })
 
+const HSAccount = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    hs_lastmodifieddate: z.string(),
+    // properties specific to accounts below...
+    domain: z.string().nullish(),
+    name: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+
+const HSOpportunity = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    hs_lastmodifieddate: z.string(),
+    // properties specific to opportunities below...
+    amount: z.string().nullish(),
+    closedate: z.string().nullish(),
+    dealname: z.string().nullish(),
+    dealstage: z.string().nullish(),
+    pipeline: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+
+const HSMetaProperty = z.object({
+  id: z.string(),
+})
+
 const mappers = {
   account: mapper(HSBase, commonModels.account, {
     id: 'id',
@@ -240,10 +277,75 @@ export const hubspotProvider = {
   getAccount: async ({}) => {
     throw new Error('Not implemented yet')
   },
+
+  getOpportunity: async ({instance, input}) => {
+    const res = await instance.crm_deals.GET('/crm/v3/objects/deals/{dealId}', {
+      params: {path: {dealId: input.id}},
+    })
+    return {
+      record: mappers.opportunity.parse(res.data),
+      raw: res.data,
+    }
+  },
+
   metadataListStandardObjects: () =>
     HUBSPOT_STANDARD_OBJECTS.map((name) => ({name})),
   metadataListCustomObjects: async ({instance}) => {
     const res = await instance.crm_schemas.GET('/crm/v3/schemas')
     return res.data.results.map((obj) => ({id: obj.id, name: obj.name}))
   },
+
+  // metadataCreateObjectsSchema: async ({instance, input}) => {
+  //   const res = await instance.crm_schemas.POST('/crm/v3/schemas', {
+  //     body: {
+  //       name: input.name,
+  //       labels: input.labels,
+  //       description: input.description || '',
+  //       properties: input.properties.map((p) => ({
+  //         type: p.type || 'string',
+  //         label: p.label,
+  //         name: p.label,
+  //         fieldType: p.type || 'string',
+  //       })),
+  //       primaryFieldId: input.primaryFieldId,
+  //     },
+  //   })
+  //   console.log('input:', input)
+  //   // console.log('res:', res)
+  //   return [{id: '123', name: input.name}]
+  // },
+
+  metadataListProperties: async ({instance, input}) => {
+    const res = await instance.crm_properties.GET(
+      '/crm/v3/properties/{objectType}',
+      {
+        params: {path: {objectType: input.name}},
+      },
+    )
+    return res.data.results.map((obj) => ({id: obj.name, label: obj.label}))
+  },
+
+  // metadataUpsertAssociation: async ({instance, input}) => {
+  //   const res = await instance.crm_associations.POST(
+  //     '/crm/v3/associations/{fromObjectType}/{toObjectType}/batch/create',
+  //     {
+  //       params: {
+  //         path: {
+  //           fromObjectType: input.fromObjectType,
+  //           toObjectType: input.toObjectType,
+  //         },
+  //       },
+  //       body: {
+  //         inputs: [
+  //           {
+  //             from: {id: input.fromObject},
+  //             to: {id: input.toObject},
+  //             type: 'deal_to_company',
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   )
+  //   return res.data
+  // },
 } satisfies CRMProvider<HubspotSDK>

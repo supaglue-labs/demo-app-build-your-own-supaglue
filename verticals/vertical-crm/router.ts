@@ -102,6 +102,34 @@ export const crmRouter = trpc.router({
     )
     .output(z.array(commonModels.metaProperty))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataCreateObjectsSchema: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/objects/custom'}))
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().nullish(),
+        label: z.object({
+          singular: z.string(),
+          plural: z.string(),
+        }),
+        primaryFieldId: z.string(),
+        properties: z.array(commonModels.metaProperty),
+      }),
+    )
+    .output(z.array(commonModels.metaCustomObject))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataUpsertAssociation: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/association'}))
+    .input(
+      z.object({
+        fromObjectType: z.string(),
+        toObjectType: z.string(),
+        fromObject: z.string(),
+        toObject: z.string(),
+      }),
+    )
+    .output(z.array(commonModels.metaCustomObject))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
 export type CRMProvider<TInstance> = ProviderFromRouter<

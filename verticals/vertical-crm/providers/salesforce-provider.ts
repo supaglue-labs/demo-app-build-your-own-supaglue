@@ -200,6 +200,15 @@ export const salesforceProvider = {
       cursor: input?.cursor,
       page_size: input?.page_size,
     }),
+  getOpportunity: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/Opportunity/{id}', {
+      params: {path: {id: input.id}},
+    })
+    return {
+      record: mappers.opportunity.parse(res.data),
+      raw: res.data,
+    }
+  },
 
   // MARK: - Lead
 
@@ -211,6 +220,15 @@ export const salesforceProvider = {
       cursor: input?.cursor,
       page_size: input?.page_size,
     }),
+  getLead: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/Lead/{id}', {
+      params: {path: {id: input.id}},
+    })
+    return {
+      record: mappers.lead.parse(res.data),
+      raw: res.data,
+    }
+  },
 
   // MARK: - User
 
@@ -222,18 +240,63 @@ export const salesforceProvider = {
       cursor: input?.cursor,
       page_size: input?.page_size,
     }),
+  getUser: async ({instance, input}) => {
+    const res = await instance.GET('/sobjects/User/{id}', {
+      params: {path: {id: input.id}},
+    })
+    return {
+      record: mappers.user.parse(res.data),
+      raw: res.data,
+    }
+  },
 
   // MARK: - Metadata
-  metadataListStandardObjects: () => {
-    console.log('standard objects called')
-    return SALESFORCE_STANDARD_OBJECTS.map((name) => ({name}))
-  },
+  // metadataListStandardObjects: () => {
+  //   return SALESFORCE_STANDARD_OBJECTS.map((name) => ({name}))
+  // },
   metadataListCustomObjects: async ({instance}) => {
     const res = await instance.GET('/sobjects')
     return (res.data.sobjects ?? [])
       .filter((s) => s.custom)
       .map((s) => ({id: s.name!, name: s.name!}))
   },
+
+  // metadataCreateObjectsSchema: async ({instance, input}) => {
+  //   // const res = await instance.POST('/crm/v3/schemas', {
+  //   //   body: {
+  //   //     name: input.name,
+  //   //     labels: input.labels,
+  //   //     description: input.description || '',
+  //   //     properties: input.properties.map((p) => ({
+  //   //       type: p.type || 'string',
+  //   //       label: p.label,
+  //   //       name: p.label,
+  //   //       fieldType: p.type || 'string',
+  //   //     })),
+  //   //     primaryFieldId: input.primaryFieldId,
+  //   //   },
+  //   // })
+  //   const customObject = {
+  //     fullName: input.name,
+  //     label: input.label,
+  //     pluralLabel: input.label.plural,
+  //     nameField: {
+  //       type: 'Text',
+  //       label: 'Name',
+  //     },
+  //     fields: input.properties.map((p) => ({
+  //       fullName: p.label,
+  //       label: p.label,
+  //       type: p.type || 'Text',
+  //       length: 255,
+  //     })),
+  //     deploymentStatus: 'Deployed',
+  //     sharingModel: 'ReadWrite',
+  //   }
+  //   console.log('input:', input)
+  //   // console.log('res:', res)
+  //   return [{id: '123', name: input.name}]
+  // },
 
   metadataListProperties: async ({instance, input}) => {
     const res = await instance.GET('/sobjects/{sObject}/describe', {

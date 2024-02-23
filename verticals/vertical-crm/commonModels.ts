@@ -3,6 +3,7 @@ import {z, zBaseRecord} from '@supaglue/vdk'
 export const account = zBaseRecord
   .extend({
     name: z.string().nullish(),
+    domain: z.string().nullish(),
   })
   .openapi({ref: 'crm.account'})
 
@@ -19,13 +20,17 @@ export const lead = zBaseRecord
   })
   .openapi({ref: 'crm.lead'})
 
-  export const opportunity = zBaseRecord
+export const opportunity = zBaseRecord
   .extend({
     name: z.string().nullish(),
+    closedate: z.string().nullish(),
+    amount: z.string().nullish(),
+    pipeline: z.string().nullish(),
+    dealstage: z.string().nullish(),
   })
   .openapi({ref: 'crm.opportunity'})
 
-  export const user = zBaseRecord
+export const user = zBaseRecord
   .extend({
     name: z.string().nullish(),
   })
