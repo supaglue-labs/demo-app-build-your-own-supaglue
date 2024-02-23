@@ -185,7 +185,7 @@ const _listEntityFullThenMap = async <TIn, TOut extends BaseRecord>(
     },
   )
   return {
-    items: res.data.results.map(mappers.user.parse),
+    items: res.data.results.map(opts.mapper.parse),
     has_next_page: !!res.data.paging?.next?.after,
     // This would reset the sync and loop back from the beginning, except
     // the has_next_page check prevents that
