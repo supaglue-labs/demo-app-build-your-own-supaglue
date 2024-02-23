@@ -96,7 +96,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
 ) => {
   const limit = opts?.page_size ?? 100
   const cursor = LastUpdatedAtNextOffset.fromCursor(opts?.cursor)
-  const kLastModifiedAt =
+  const kUpdatedAt =
     entity === 'contacts' ? 'lastmodifieddate' : 'hs_lastmodifieddate'
   // We may want to consider using the list rather than search endpoint for this stuff...
   const res = await instance[`crm_${entity as 'contacts'}`].POST(
@@ -115,7 +115,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
               {
                 filters: [
                   {
-                    propertyName: kLastModifiedAt,
+                    propertyName: kUpdatedAt,
                     operator: 'GTE',
                     value: cursor?.last_updated_at,
                   },
@@ -126,7 +126,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
         after: cursor?.next_offset ?? '',
         sorts: [
           {
-            propertyName: kLastModifiedAt,
+            propertyName: kUpdatedAt,
             direction: 'ASCENDING',
           },
           // Cannot sort by multiple values unfortunately...
