@@ -3,8 +3,8 @@ import {initBYOSupaglueSDK} from '@supaglue/sdk'
 const supaglue = initBYOSupaglueSDK({
   headers: {
     'x-api-key': process.env['SUPAGLUE_API_KEY']!,
-    'x-customer-id': process.env['_CUSTOMER_ID']!, // '64a350c383ea68001832fd8a',
-    'x-provider-name': process.env['_PROVIDER_NAME']!, // 'hubspot',
+    'x-customer-id': process.env['CUSTOMER_ID']!, // '64a350c383ea68001832fd8a',
+    'x-provider-name': process.env['PROVIDER_NAME']!, // 'hubspot',
     // 'x-customer-id': 'test-connection-id',
     // 'x-provider-name': 'salesforce',
   },
@@ -27,8 +27,8 @@ async function main() {
   //   body: {record: {domain: 'examplebob.com', }, upsert_on: {name: 'Jacob'}},
   // })
   // console.log('Success', res.data)
-  const res = await supaglue.GET('/crm/v2/contact', {})
-  console.log('Success', res.data)
+  // const res = await supaglue.GET('/crm/v2/contact', {})
+  // console.log('Success', res.data)
   // const res = await supaglue.GET('/crm/v2/contacts/{id}', {
   //   params: {path: {id: '0033x00003D6SBOAA3'}},
   // })
@@ -46,8 +46,10 @@ async function main() {
   //     },
   //   },
   // })
-  // const res = await supaglue.GET('/crm/v2/metadata/objects/custom', {})
-  // console.log('Success', res.data)
+  const res = await supaglue.GET('/crm/v2/metadata/properties', {
+    params: {query: {name: 'MyStuff', type: 'custom'}},
+  })
+  console.log('Success', res.data)
   // res.data.record.name
 }
 

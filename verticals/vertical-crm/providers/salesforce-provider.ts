@@ -6,8 +6,12 @@ import {
   PLACEHOLDER_BASE_URL,
   zCast,
 } from '@supaglue/vdk'
+import * as jsforce from 'jsforce'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
-import {initSalesforceSDK, type SalesforceSDK} from '@opensdks/sdk-salesforce'
+import {
+  initSalesforceSDK,
+  type SalesforceSDK as _SalesforceSDK,
+} from '@opensdks/sdk-salesforce'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
@@ -47,6 +51,10 @@ const mappers = {
   }),
 }
 
+type SalesforceSDK = _SalesforceSDK & {
+  getJsForce: () => Promise<jsforce.Connection>
+}
+
 /**
  * Hard-coded for now, to get list of available versions, visit $instanceUrl/services/data
  * TODO: Consider making this configurable by
@@ -55,12 +63,13 @@ const mappers = {
  * 2) Allow it to be configured on a per request basis via a `x-salesforce-api-version` header.
  * Simpler but we would be forcing the consumer to have to worry about it.
  */
-const apiVersion = 'v59.0'
+const API_VERSION = '59.0'
 
 function sdkExt(instance: SalesforceSDK) {
   /** NOTE: extract these into a helper functions inside sdk-salesforce */
   const countEntity = async (entity: string) =>
     instance.query(`SELECT COUNT() FROM ${entity}`).then((r) => r.totalSize)
+
   const listEntity = async <T>({
     cursor,
     ...opts
@@ -121,8 +130,8 @@ function sdkExt(instance: SalesforceSDK) {
 }
 
 export const salesforceProvider = {
-  __init__: ({proxyLinks}) =>
-    initSalesforceSDK({
+  __init__: ({proxyLinks, getCredentials}) => {
+    const sdk = initSalesforceSDK({
       baseUrl: PLACEHOLDER_BASE_URL,
       links: (defaultLinks) => [
         (req, next) =>
@@ -130,14 +139,29 @@ export const salesforceProvider = {
             modifyRequest(req, {
               url: req.url.replace(
                 PLACEHOLDER_BASE_URL,
-                PLACEHOLDER_BASE_URL + '/services/data/' + apiVersion,
+                PLACEHOLDER_BASE_URL + '/services/data/v' + API_VERSION,
               ),
             }),
           ),
         ...proxyLinks,
         ...defaultLinks,
       ],
-    }),
+    })
+    async function getJsForce() {
+      const creds = await getCredentials()
+      if (!creds.instance_url || !creds.access_token) {
+        throw new Error('Missing instance_url or access_token')
+      }
+      const conn = new jsforce.Connection({
+        instanceUrl: creds.instance_url,
+        accessToken: creds.access_token,
+        version: API_VERSION,
+        maxRequest: 10,
+      })
+      return conn
+    }
+    return {...sdk, getJsForce} satisfies SalesforceSDK
+  },
   countEntity: async ({instance, input}) => {
     // NOTE: extract this into a helper function inside sdk-salesforce
     const res = await instance.query(`SELECT COUNT() FROM ${input.entity}`)
@@ -223,5 +247,10 @@ export const salesforceProvider = {
     return (res.data.sobjects ?? [])
       .filter((s) => s.custom)
       .map((s) => ({id: s.name!, name: s.name!}))
+  },
+  metadataListProperties: async ({instance, input}) => {
+    const sfdc = await instance.getJsForce()
+    await sfdc.metadata.read('CustomObject', input.name)
+    return []
   },
 } satisfies CRMProvider<SalesforceSDK>

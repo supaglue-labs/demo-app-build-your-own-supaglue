@@ -221,6 +221,9 @@ importers:
       '@opensdks/fetch-links':
         specifier: 0.0.18
         version: 0.0.18
+      '@opensdks/sdk-supaglue':
+        specifier: 0.0.3
+        version: 0.0.3
       '@opensdks/util-zod':
         specifier: 0.0.15
         version: 0.0.15
@@ -292,6 +295,9 @@ importers:
       '@supaglue/vdk':
         specifier: workspace:*
         version: link:../../packages/vdk
+      jsforce:
+        specifier: ^2.0.0-beta.29
+        version: 2.0.0-beta.29
 
   verticals/vertical-sales-engagement:
     dependencies:
