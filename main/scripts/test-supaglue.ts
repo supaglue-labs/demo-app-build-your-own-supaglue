@@ -1,38 +1,40 @@
-import {createClient, fetchLink} from '@opensdks/runtime'
+// import {createClient, fetchLink} from '@opensdks/runtime'
 import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
-import {env} from '@/env'
+
+// import {env} from '@/env'
 
 const supaglue = initSupaglueSDK({
   headers: {'x-api-key': process.env['SUPAGLUE_API_KEY']!},
 })
 
-async function main() {
-  const syncConfigs = await supaglue.mgmt
-    .GET('/sync_configs')
-    .then((r) => r.data)
-  const customers = await supaglue.mgmt.GET('/customers').then((r) => r.data)
-  const connections = await Promise.all(
-    customers.map((c) =>
-      supaglue.mgmt
-        .GET('/customers/{customer_id}/connections', {
-          params: {path: {customer_id: c.customer_id}},
-        })
-        .then((r) => r.data),
-    ),
-  ).then((nestedArr) =>
-    nestedArr
-      .flatMap((arr) => arr)
-      .map((conn) => ({
-        ...conn,
-        // Not taking into account connection sync config here
-        sync_config: syncConfigs.find(
-          (c) => c.provider_name === conn.provider_name,
-        ),
-      })),
-  )
-  console.log('connections', connections)
-}
-main()
+// async function main() {
+//   const syncConfigs = await supaglue.mgmt
+//     .GET('/sync_configs')
+//     .then((r) => r.data)
+//   const customers = await supaglue.mgmt.GET('/customers').then((r) => r.data)
+//   const connections = await Promise.all(
+//     customers.map((c) =>
+//       supaglue.mgmt
+//         .GET('/customers/{customer_id}/connections', {
+//           params: {path: {customer_id: c.customer_id}},
+//         })
+//         .then((r) => r.data),
+//     ),
+//   ).then((nestedArr) =>
+//     nestedArr
+//       .flatMap((arr) => arr)
+//       .map((conn) => ({
+//         ...conn,
+//         // Not taking into account connection sync config here
+//         sync_config: syncConfigs.find(
+//           (c) => c.provider_name === conn.provider_name,
+//         ),
+//       })),
+//   )
+//   console.log('connections', connections)
+// }
+// main()
+
 // supaglue.mgmt.GET('/sync_configs', {
 //   params: {
 //     // header: {
@@ -65,6 +67,26 @@ main()
 //     console.log(r.data)
 //   })
 
+async function exportMe() {
+  const res = await supaglue.mgmt
+    .GET('/customers/{customer_id}/connections', {
+      params: {path: {customer_id: process.env['CUSTOMER_ID']!}},
+    })
+    .then((r) => {
+      const conn = r.data.find(
+        (c) => c.provider_name === process.env['PROVIDER_NAME']!,
+      )
+      if (!conn) {
+        throw new Error('Connection not found')
+      }
+      return supaglue.private.exportConnection({
+        customerId: conn.customer_id,
+        connectionId: conn.id,
+      })
+    })
+  console.log(res.data)
+}
+exportMe()
 // supaglue.private
 //   .exportConnection({
 //     customerId: process.env['CUSTOMER_ID']!,

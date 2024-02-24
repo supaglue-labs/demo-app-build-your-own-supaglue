@@ -236,10 +236,6 @@ export const hubspotProvider = {
       page_size: input?.page_size,
       cursor: input?.cursor,
     }),
-  // eslint-disable-next-line @typescript-eslint/require-await
-  getAccount: async ({}) => {
-    throw new Error('Not implemented yet')
-  },
   metadataListStandardObjects: () =>
     HUBSPOT_STANDARD_OBJECTS.map((name) => ({name})),
   metadataListCustomObjects: async ({instance}) => {
