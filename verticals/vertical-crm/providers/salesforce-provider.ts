@@ -29,6 +29,39 @@ const mappers = {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
+    isDeleted: 'IsDeleted',
+    type: 'Type',
+    parentId: 'ParentId',
+    billingAddress: (record) => ({
+      street1: record.BillingStreet ?? null,
+      city: record.BillingCity ?? null,
+      state: record.BillingState ?? null,
+      postalCode: record.BillingPostalCode ?? null,
+      country: record.BillingCountry ?? null,
+      latitude: record.BillingLatitude ?? null,
+      longitude: record.BillingLongitude ?? null,
+      geocodeAccuracy: record.BillingGeocodeAccuracy ?? null,
+      addressType: 'billing',
+    }),
+    shippingAddress: (record) => ({
+      street1: record.ShippingStreet ?? null,
+      city: record.ShippingCity ?? null,
+      state: record.ShippingState ?? null,
+      postalCode: record.ShippingPostalCode ?? null,
+      country: record.ShippingCountry ?? null,
+      latitude: record.ShippingLatitude ?? null,
+      longitude: record.ShippingLongitude ?? null,
+      geocodeAccuracy: record.ShippingGeocodeAccuracy ?? null,
+      addressType: 'shipping',
+    }),
+    phone: 'Phone',
+    fax: 'Fax',
+    website: 'Website',
+    industry: 'Industry',
+    numberOfEmployees: 'NumberOfEmployees',
+    ownerId: 'OwnerId',
+    createdAt: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate) : null,
   }),
   opportunity: mapper(
     zCast<SFDC['OpportunitySObject']>(),
@@ -37,18 +70,262 @@ const mappers = {
       id: 'Id',
       updated_at: 'SystemModstamp',
       name: 'Name',
+      description: 'Description',
+      ownerId: 'OwnerId',
+      status: (record) => (record.IsClosed ? 'Closed' : 'Open'),
+      stage: 'StageName',
+      closeDate: (record) =>
+        record.CloseDate ? new Date(record.CloseDate) : null,
+      accountId: 'AccountId',
+      amount: 'Amount',
+      lastActivityAt: (record) =>
+        record.LastActivityDate ? new Date(record.LastActivityDate) : null,
+      createdAt: (record) =>
+        record.CreatedDate ? new Date(record.CreatedDate) : null,
+      isDeleted: 'IsDeleted',
+      lastModifiedAt: (record) =>
+        record.LastModifiedDate ? new Date(record.LastModifiedDate) : null,
+      rawData: (record) => record,
     },
   ),
   lead: mapper(zCast<SFDC['LeadSObject']>(), commonModels.lead, {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
+    firstName: 'FirstName',
+    lastName: 'LastName',
+    ownerId: 'OwnerId',
+    title: 'Title',
+    company: 'Company',
+    convertedDate: (record) =>
+      record.ConvertedDate ? new Date(record.ConvertedDate) : null,
+    leadSource: 'LeadSource',
+    convertedAccountId: 'ConvertedAccountId',
+    convertedContactId: 'ConvertedContactId',
+    addresses: (record) =>
+      record.Street ||
+      record.City ||
+      record.State ||
+      record.Country ||
+      record.PostalCode
+        ? [
+            {
+              street1: record.Street ?? null,
+              street2: null,
+              city: record.City ?? null,
+              state: record.State ?? null,
+              country: record.Country ?? null,
+              postalCode: record.PostalCode ?? null,
+              addressType: 'primary',
+            },
+          ]
+        : [],
+    emailAddresses: (record) =>
+      record.Email
+        ? [{emailAddress: record.Email, emailAddressType: 'primary'}]
+        : [],
+    phoneNumbers: (record) =>
+      record.Phone
+        ? [
+            {
+              phoneNumber: record.Phone ?? null,
+              phoneNumberType: 'primary',
+            },
+          ]
+        : [],
+    createdAt: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate) : null,
+    isDeleted: 'IsDeleted',
+    lastModifiedAt: (record) =>
+      record.SystemModstamp ? new Date(record.SystemModstamp) : new Date(0),
+    rawData: (record) => record,
   }),
   user: mapper(zCast<SFDC['UserSObject']>(), commonModels.user, {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
+    email: 'Email',
+    isActive: 'IsActive',
+    createdAt: 'CreatedDate',
+    updatedAt: 'LastModifiedDate',
+    lastModifiedAt: 'LastModifiedDate',
+    // rawData: (rawData) => rawData,
   }),
+}
+
+type AccountFields =
+  | 'OwnerId'
+  | 'Name'
+  | 'Description'
+  | 'Industry'
+  | 'Website'
+  | 'NumberOfEmployees'
+  | 'BillingCity'
+  | 'BillingCountry'
+  | 'BillingPostalCode'
+  | 'BillingState'
+  | 'BillingStreet'
+  | 'ShippingCity'
+  | 'ShippingCountry'
+  | 'ShippingPostalCode'
+  | 'ShippingState'
+  | 'ShippingStreet'
+  | 'Phone'
+  | 'Fax'
+  | 'LastActivityDate'
+  | 'CreatedDate'
+  | 'IsDeleted'
+type ContactFields =
+  | 'OwnerId'
+  | 'AccountId'
+  | 'FirstName'
+  | 'LastName'
+  | 'Email'
+  | 'Phone'
+  | 'Fax'
+  | 'MobilePhone'
+  | 'LastActivityDate'
+  | 'MailingCity'
+  | 'MailingCountry'
+  | 'MailingPostalCode'
+  | 'MailingState'
+  | 'MailingStreet'
+  | 'OtherCity'
+  | 'OtherCountry'
+  | 'OtherPostalCode'
+  | 'OtherState'
+  | 'OtherStreet'
+  | 'IsDeleted'
+  | 'CreatedDate'
+type OpportunityFields =
+  | 'OwnerId'
+  | 'Name'
+  | 'Description'
+  | 'LastActivityDate'
+  | 'Amount'
+  | 'IsClosed'
+  | 'IsDeleted'
+  | 'IsWon'
+  | 'StageName'
+  | 'CloseDate'
+  | 'CreatedDate'
+  | 'AccountId'
+type LeadFields =
+  | 'OwnerId'
+  | 'Title'
+  | 'FirstName'
+  | 'LastName'
+  | 'ConvertedDate'
+  | 'CreatedDate'
+  | 'SystemModstamp'
+  | 'ConvertedContactId'
+  | 'ConvertedAccountId'
+  | 'Company'
+  | 'City'
+  | 'State'
+  | 'Street'
+  | 'Country'
+  | 'PostalCode'
+  | 'Phone'
+  | 'Email'
+  | 'IsDeleted'
+type UserFields = 'Name' | 'Email' | 'IsActive' | 'CreatedDate'
+
+export const CRM_COMMON_OBJECT_TYPES = [
+  'account',
+  'contact',
+  'lead',
+  'opportunity',
+  'user',
+] as const
+export type CRMCommonObjectType = (typeof CRM_COMMON_OBJECT_TYPES)[number]
+
+const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
+  account: [
+    'OwnerId',
+    'Name',
+    'Description',
+    'Industry',
+    'Website',
+    'NumberOfEmployees',
+    // We may not need all of these fields in order to map to common object
+    'BillingCity',
+    'BillingCountry',
+    'BillingPostalCode',
+    'BillingState',
+    'BillingStreet',
+    // We may not need all of these fields in order to map to common object
+    'ShippingCity',
+    'ShippingCountry',
+    'ShippingPostalCode',
+    'ShippingState',
+    'ShippingStreet',
+    'Phone',
+    'Fax',
+    'LastActivityDate',
+    'CreatedDate',
+    'IsDeleted',
+  ] as AccountFields[],
+  contact: [
+    'OwnerId',
+    'AccountId',
+    'FirstName',
+    'LastName',
+    'Email',
+    'Phone',
+    'Fax',
+    'MobilePhone',
+    'LastActivityDate',
+    // We may not need all of these fields in order to map to common object
+    'MailingCity',
+    'MailingCountry',
+    'MailingPostalCode',
+    'MailingState',
+    'MailingStreet',
+    // We may not need all of these fields in order to map to common object
+    'OtherCity',
+    'OtherCountry',
+    'OtherPostalCode',
+    'OtherState',
+    'OtherStreet',
+    'IsDeleted',
+    'CreatedDate',
+  ] as ContactFields[],
+  opportunity: [
+    'OwnerId',
+    'Name',
+    'Description',
+    'LastActivityDate',
+    'Amount',
+    'IsClosed',
+    'IsDeleted',
+    'IsWon',
+    'StageName',
+    'CloseDate',
+    'CreatedDate',
+    'AccountId',
+  ] as OpportunityFields[],
+  lead: [
+    'OwnerId',
+    'Title',
+    'FirstName',
+    'LastName',
+    'ConvertedDate',
+    'CreatedDate',
+    'SystemModstamp',
+    'ConvertedContactId',
+    'ConvertedAccountId',
+    'Company',
+    'City',
+    'State',
+    'Street',
+    'Country',
+    'PostalCode',
+    'Phone',
+    'Email',
+    'IsDeleted',
+  ] as LeadFields[],
+  user: ['Name', 'Email', 'IsActive', 'CreatedDate'] as UserFields[],
 }
 
 type SalesforceSDK = _SalesforceSDK & {
@@ -88,7 +365,7 @@ function sdkExt(instance: SalesforceSDK) {
       : ''
     const limitStatement = opts.limit != null ? `LIMIT ${opts.limit}` : ''
     return instance.query<T>(`
-        SELECT Id, SystemModstamp, ${opts.fields.join(', ')}
+        SELECT Id, SystemModstamp, ${opts.fields.join(', ')}, FIELDS(CUSTOM)
         FROM ${opts.entity}
         ${whereStatement}
         ORDER BY SystemModstamp ASC, Id ASC
@@ -171,7 +448,7 @@ export const salesforceProvider = {
   listAccounts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Account',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.account,
       mapper: mappers.account,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -191,7 +468,7 @@ export const salesforceProvider = {
   listContacts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Contact',
-      fields: ['FirstName', 'LastName'],
+      fields: propertiesForCommonObject.contact,
       mapper: mappers.contact,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -211,7 +488,7 @@ export const salesforceProvider = {
   listOpportunities: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Opportunity',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.opportunity,
       mapper: mappers.opportunity,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -252,5 +529,31 @@ export const salesforceProvider = {
     const sfdc = await instance.getJsForce()
     await sfdc.metadata.read('CustomObject', input.name)
     return []
+  },
+  metadataCreateObjectsSchema: async ({instance, input}) => {
+    const metadata = [
+      {
+        fullName: `${input.name}__c`,
+        label: input.label.singular,
+        pluralLabel: input.label.plural,
+        nameField: {
+          type: 'Text',
+          label: 'Name',
+        },
+        deploymentStatus: 'Deployed',
+        sharingModel: 'ReadWrite',
+      },
+    ]
+    const sfdc = await instance.getJsForce()
+    let resultObj: {id: string; name: string} = {id: '', name: ''}
+
+    try {
+      const results = await sfdc.metadata.create('CustomObject', metadata)
+      const result: any = results[0]
+      resultObj = {id: result.fullName, name: result.fullName}
+    } catch (err) {
+      console.error(err)
+    }
+    return resultObj
   },
 } satisfies CRMProvider<SalesforceSDK>

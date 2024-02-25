@@ -53,6 +53,84 @@ const HSContact = z.object({
   updatedAt: z.string(),
   archived: z.boolean(),
 })
+const HSOpportunity = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    // properties specific to opportunities below...
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    owner_id: z.string().nullish(),
+    account_id: z.string().nullish(),
+    status: z.string().nullish(),
+    stage: z.string().nullish(),
+    closedate: z.string().nullish(), // Assuming closeDate is a string in HubSpot format
+    amount: z.string().nullish(),
+    last_activity_at: z.string().nullish(), // Assuming lastActivityAt is a string in HubSpot format
+    is_deleted: z.boolean().nullish(),
+    hs_is_closed_won: z.string().nullish(),
+    hs_is_closed: z.string().nullish(),
+    archivedAt: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+
+const propertiesToFetch = {
+  company: [
+    'hubspot_owner_id',
+    'description',
+    'industry',
+    'website',
+    'domain',
+    'hs_additional_domains',
+    'numberofemployees',
+    'address',
+    'address2',
+    'city',
+    'state',
+    'country',
+    'zip',
+    'phone',
+    'notes_last_updated',
+    'lifecyclestage',
+    'createddate',
+  ],
+  contact: [
+    'address', // TODO: IP state/zip/country?
+    'address2',
+    'city',
+    'country',
+    'email',
+    'fax',
+    'firstname',
+    'hs_createdate', // TODO: Use this or createdate?
+    'hs_is_contact', // TODO: distinguish from "visitor"?
+    'hubspot_owner_id',
+    'lifecyclestage',
+    'lastname',
+    'mobilephone',
+    'phone',
+    'state',
+    'work_email',
+    'zip',
+  ],
+  deal: [
+    'dealname',
+    'description',
+    'dealstage',
+    'amount',
+    'hubspot_owner_id',
+    'notes_last_updated',
+    'closedate',
+    'pipeline',
+    'hs_is_closed_won',
+    'hs_is_closed',
+  ],
+}
 
 const mappers = {
   account: mapper(HSBase, commonModels.account, {
@@ -65,10 +143,36 @@ const mappers = {
     last_name: 'properties.lastname',
     updated_at: 'updatedAt',
   }),
-  opportunity: mapper(HSBase, commonModels.opportunity, {
+  opportunity: mapper(HSOpportunity, commonModels.opportunity, {
     id: 'id',
-    name: 'id',
-    updated_at: 'updatedAt',
+    name: 'properties.name',
+    updated_at: (record) =>
+      record.properties.lastmodifieddate
+        ? new Date(record.properties.lastmodifieddate)
+        : null,
+    description: 'properties.description',
+    ownerId: 'properties.owner_id',
+    status: (record) =>
+      record.properties.hs_is_closed_won
+        ? 'WON'
+        : record.properties.hs_is_closed
+          ? 'LOST'
+          : 'Open',
+    stage: 'properties.stage',
+    closeDate: (record) =>
+      record.properties.closedate
+        ? new Date(record.properties.closedate)
+        : null,
+    accountId: 'properties.account_id',
+    amount: 'properties.amount',
+    lastActivityAt: (record) =>
+      record.properties.last_activity_at
+        ? new Date(record.properties.last_activity_at)
+        : null,
+    createdAt: (record) => new Date(record.properties.createdate),
+    updatedAt: (record) => new Date(record.properties.createdate),
+    isDeleted: 'properties.is_deleted',
+    lastModifiedAt: (record) => new Date(record.updatedAt),
   }),
   lead: mapper(HSBase, commonModels.lead, {
     id: 'id',
@@ -108,6 +212,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
           'createdate',
           'lastmodifieddate',
           'hs_lastmodifieddate',
+          'name',
           ...fields,
         ],
         filterGroups: cursor?.last_updated_at
@@ -211,14 +316,14 @@ export const hubspotProvider = {
       ...input,
       entity: 'companies',
       mapper: mappers.account,
-      fields: [],
+      fields: propertiesToFetch.company,
     }),
   listOpportunities: async ({instance, input}) =>
     _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'deals',
       mapper: mappers.opportunity,
-      fields: [],
+      fields: propertiesToFetch.deal,
     }),
   // Original supaglue never implemented this, TODO: handle me...
   // listLeads: async ({instance, input}) =>
