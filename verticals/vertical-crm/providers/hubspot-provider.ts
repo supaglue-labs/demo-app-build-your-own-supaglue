@@ -78,6 +78,42 @@ const HSOpportunity = z.object({
   updatedAt: z.string(),
   archived: z.boolean(),
 })
+const HSUser = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    // properties specific to opportunities below...
+    email: z.string().nullish(),
+    firstname: z.string().nullish(),
+    lastname: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+const HSAccount = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    hubspot_owner_id: z.string().nullish(),
+    industry: z.string().nullish(),
+    website: z.string().nullish(),
+    numberofemployees: z.string().nullish(),
+    addresses: z.string().nullish(), // Assuming addresses is a string; adjust the type if needed
+    phonenumbers: z.string().nullish(), // Assuming phonenumbers is a string; adjust the type if needed
+    lifecyclestage: z.string().nullish(),
+    notes_last_updated: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
 
 const propertiesToFetch = {
   company: [
@@ -130,12 +166,43 @@ const propertiesToFetch = {
     'hs_is_closed_won',
     'hs_is_closed',
   ],
+  user: ['Id', 'Name', 'Email', 'IsActive', 'CreatedDate', 'SystemModstamp'],
+  account: [
+    'Id',
+    'Name',
+    'Type',
+    'ParentId',
+    'BillingAddress',
+    'ShippingAddress',
+    'Phone',
+    'Fax',
+    'Website',
+    'Industry',
+    'NumberOfEmployees',
+    'OwnerId',
+    'CreatedDate',
+    'LastModifiedDate',
+  ],
 }
 
 const mappers = {
-  account: mapper(HSBase, commonModels.account, {
+  account: mapper(HSAccount, commonModels.account, {
     id: 'id',
-    updated_at: 'updatedAt',
+    name: 'properties.name',
+    updated_at: (record) =>
+      record.properties.lastmodifieddate
+        ? new Date(record.properties.lastmodifieddate)
+        : null,
+    isDeleted: (record) => !!record.archived,
+    website: 'properties.website',
+    industry: 'properties.industry',
+    numberOfEmployees: (record) =>
+      record.properties.numberofemployees
+        ? parseInt(record.properties.numberofemployees, 10)
+        : null,
+    ownerId: 'properties.hubspot_owner_id',
+    createdAt: (record) => new Date(record.createdAt),
+    updatedAt: (record) => new Date(record.updatedAt),
   }),
   contact: mapper(HSContact, commonModels.contact, {
     id: 'id',
@@ -178,10 +245,23 @@ const mappers = {
     id: 'id',
     updated_at: 'updatedAt',
   }),
-  user: mapper(zCast<Owner>(), commonModels.user, {
+  user: mapper(HSUser, commonModels.user, {
     id: 'id',
     updated_at: 'updatedAt',
-    name: (o) => [o.firstName, o.lastName].filter((n) => !!n?.trim()).join(' '),
+    name: (record) =>
+      [record.properties.firstname, record.properties.lastname]
+        .filter((n) => !!n?.trim())
+        .join(' '),
+    email: 'properties.email',
+    isActive: (record) => !record.archived, // Assuming archived is a boolean
+    createdAt: (record) => new Date(record.properties.createdate),
+    updatedAt: (record) =>
+      record.properties.lastmodifieddate
+        ? new Date(record.properties.lastmodifieddate)
+        : null,
+    isDeleted: (record) => !!record.archived, // Assuming archived is a boolean
+    lastModifiedAt: (record) =>
+      record.updatedAt ? new Date(record.updatedAt) : null,
   }),
 }
 const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
@@ -316,7 +396,7 @@ export const hubspotProvider = {
       ...input,
       entity: 'companies',
       mapper: mappers.account,
-      fields: propertiesToFetch.company,
+      fields: propertiesToFetch.account,
     }),
   listOpportunities: async ({instance, input}) =>
     _listEntityIncrementalThenMap(instance, {

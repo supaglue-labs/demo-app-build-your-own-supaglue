@@ -27,35 +27,10 @@ const mappers = {
   }),
   account: mapper(zCast<SFDC['AccountSObject']>(), commonModels.account, {
     id: 'Id',
-    updated_at: 'SystemModstamp',
+    updated_at: (record) =>
+      record.SystemModstamp ? new Date(record.SystemModstamp) : null,
     name: 'Name',
     isDeleted: 'IsDeleted',
-    type: 'Type',
-    parentId: 'ParentId',
-    billingAddress: (record) => ({
-      street1: record.BillingStreet ?? null,
-      city: record.BillingCity ?? null,
-      state: record.BillingState ?? null,
-      postalCode: record.BillingPostalCode ?? null,
-      country: record.BillingCountry ?? null,
-      latitude: record.BillingLatitude ?? null,
-      longitude: record.BillingLongitude ?? null,
-      geocodeAccuracy: record.BillingGeocodeAccuracy ?? null,
-      addressType: 'billing',
-    }),
-    shippingAddress: (record) => ({
-      street1: record.ShippingStreet ?? null,
-      city: record.ShippingCity ?? null,
-      state: record.ShippingState ?? null,
-      postalCode: record.ShippingPostalCode ?? null,
-      country: record.ShippingCountry ?? null,
-      latitude: record.ShippingLatitude ?? null,
-      longitude: record.ShippingLongitude ?? null,
-      geocodeAccuracy: record.ShippingGeocodeAccuracy ?? null,
-      addressType: 'shipping',
-    }),
-    phone: 'Phone',
-    fax: 'Fax',
     website: 'Website',
     industry: 'Industry',
     numberOfEmployees: 'NumberOfEmployees',
@@ -146,9 +121,12 @@ const mappers = {
     name: 'Name',
     email: 'Email',
     isActive: 'IsActive',
-    createdAt: 'CreatedDate',
-    updatedAt: 'LastModifiedDate',
-    lastModifiedAt: 'LastModifiedDate',
+    createdAt: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate) : null,
+    updatedAt: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate) : null,
+    lastModifiedAt: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate) : null,
     // rawData: (rawData) => rawData,
   }),
 }
@@ -510,7 +488,7 @@ export const salesforceProvider = {
   listUsers: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'User',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.user,
       mapper: mappers.user,
       cursor: input?.cursor,
       page_size: input?.page_size,

@@ -4,29 +4,8 @@ export const account = zBaseRecord
   .extend({
     id: z.string().nullish(),
     name: z.string().nullish(),
+    updated_at: z.date().nullish(),
     isDeleted: z.boolean().nullish(),
-    type: z.string().nullish(),
-    parentId: z.string().nullish(),
-    billingAddress: z
-      .object({
-        street: z.string().nullish(),
-        city: z.string().nullish(),
-        state: z.string().nullish(),
-        postalCode: z.string().nullish(),
-        country: z.string().nullish(),
-      })
-      .nullish(),
-    shippingAddress: z
-      .object({
-        street: z.string().nullish(),
-        city: z.string().nullish(),
-        state: z.string().nullish(),
-        postalCode: z.string().nullish(),
-        country: z.string().nullish(),
-      })
-      .nullish(),
-    phone: z.string().nullish(),
-    fax: z.string().nullish(),
     website: z.string().nullish(),
     industry: z.string().nullish(),
     numberOfEmployees: z.number().nullish(),
