@@ -809,4 +809,145 @@ export const salesforceProvider = {
       .create(input.record as Record<string, any>)
     return {record: {id: result.id}}
   },
+  metadataCreateAssociation: async ({instance, input}) => {
+    const sfdc = await instance.getJsForce()
+    // if id doesn't end with __c, we need to add it ourselves
+    if (!input.id.endsWith('__c')) {
+      input.id = `${input.id}__c`
+    }
+
+    // Look up source custom object to figure out a relationship name
+    const sourceCustomObjectMetadata = await sfdc.metadata.read(
+      'CustomObject',
+      input.sourceObject,
+    )
+
+    // If the relationship field doesn't already exist, create it
+    const existingField = sourceCustomObjectMetadata.fields?.find(
+      (field: any) => field.fullName === input.id,
+    )
+
+    const customFieldPayload = {
+      fullName: `${input.sourceObject}.${input.id}`,
+      label: input.label,
+      // The custom field name you provided Related Opportunity on object Opportunity can
+      // only contain alphanumeric characters, must begin with a letter, cannot end
+      // with an underscore or contain two consecutive underscore characters, and
+      // must be unique across all Opportunity fields
+      // TODO: allow developer to specify name?
+      relationshipName:
+        sourceCustomObjectMetadata.pluralLabel?.replace(/\s/g, '') ??
+        'relationshipName',
+      type: 'Lookup',
+      required: false,
+      referenceTo: input.targetObject,
+    }
+
+    if (existingField) {
+      const result = await sfdc.metadata.update(
+        'CustomField',
+        customFieldPayload,
+      )
+
+      console.log('result', result)
+
+      if (!result.success) {
+        throw new Error(
+          `Failed to update custom field for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    } else {
+      const result = await sfdc.metadata.create(
+        'CustomField',
+        customFieldPayload,
+      )
+
+      if (!result.success) {
+        throw new Error(
+          `Failed to create custom field for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    }
+
+    const {userInfo} = sfdc
+    if (!userInfo) {
+      throw new Error('Could not get info of current user')
+    }
+
+    // Get the user record
+    const user = await sfdc.retrieve('User', userInfo.id, {
+      fields: ['ProfileId'],
+    })
+
+    // Get the first permission set
+    // TODO: Is this the right thing to do? How do we know the first one is the best one?
+    const result = await sfdc.query(
+      `SELECT Id FROM PermissionSet WHERE ProfileId='${user['ProfileId']}' LIMIT 1`,
+    )
+    if (!result.records.length) {
+      throw new Error(
+        `Could not find permission set for profile ${user['ProfileId']}`,
+      )
+    }
+
+    const permissionSetId = result.records[0]?.Id
+
+    // Figure out which fields already have permissions
+    const {records: existingFieldPermissions} = await sfdc.query(
+      `SELECT Id,Field FROM FieldPermissions WHERE SobjectType='${input.sourceObject}' AND ParentId='${permissionSetId}' AND Field='${input.sourceObject}.${input.id}'`,
+    )
+    if (existingFieldPermissions.length) {
+      // Update permission
+      const existingFieldPermission = existingFieldPermissions[0]
+      const result = await sfdc.update('FieldPermissions', {
+        Id: existingFieldPermission?.Id as string,
+        ParentId: permissionSetId,
+        SobjectType: input.sourceObject,
+        Field: `${input.sourceObject}.${input.id}`,
+        PermissionsEdit: true,
+        PermissionsRead: true,
+      })
+      if (!result.success) {
+        throw new Error(
+          `Failed to update field permission for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    } else {
+      // Create permission
+      const result = await sfdc.create('FieldPermissions', {
+        ParentId: permissionSetId,
+        SobjectType: input.sourceObject,
+        Field: `${input.sourceObject}.${input.id}`,
+        PermissionsEdit: true,
+        PermissionsRead: true,
+      })
+      if (!result.success) {
+        throw new Error(
+          `Failed to create field permission for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    }
+    return {
+      id: `${input.sourceObject}.${input.id}`,
+      sourceObject: input.sourceObject,
+      targetObject: input.targetObject,
+      label: input.label,
+    }
+  },
 } satisfies CRMProvider<SalesforceSDK>
