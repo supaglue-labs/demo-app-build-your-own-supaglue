@@ -80,6 +80,16 @@ export const crmRouter = trpc.router({
     .input(z.object({id: z.string()}))
     .output(z.object({record: commonModels.user, raw: z.unknown()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  listCustomObjectRecords: remoteProcedure
+    .meta(oapi({method: 'GET', path: '/custom/{id}'}))
+    .input(
+      z.object({
+        id: z.string(),
+        ...zPaginationParams.shape,
+      }),
+    )
+    .output(zPaginatedResult.extend({items: z.array(z.unknown())}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 
   // MARK: - Metadata
   metadataListStandardObjects: remoteProcedure
@@ -113,6 +123,31 @@ export const crmRouter = trpc.router({
           plural: z.string(),
         }),
         primaryFieldId: z.string(),
+        fields: z.array(
+          z.object({
+            id: z.string(),
+            description: z.string().optional().nullish(),
+            type: z.string(),
+            label: z.string(),
+            is_required: z.boolean(),
+            default_value: z.string().nullish(),
+            group_name: z.string().nullish().nullish(),
+          }),
+        ),
+      }),
+    )
+    .output(commonModels.metaCustomObject)
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataCreateFieldsSchema: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/objects/fields'}))
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().nullish(),
+        label: z.object({
+          singular: z.string(),
+          plural: z.string(),
+        }),
       }),
     )
     .output(commonModels.metaCustomObject)

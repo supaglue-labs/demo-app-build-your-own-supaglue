@@ -4,17 +4,26 @@ import {
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
+  z,
   zCast,
 } from '@supaglue/vdk'
 import * as jsforce from 'jsforce'
+import type {
+  CustomField as SalesforceCustomField,
+  CustomObject as SalesforceCustomObject,
+} from 'jsforce/lib/api/metadata/schema'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {
   initSalesforceSDK,
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
+import {CustomObjectSchemaCreateParams} from '../../types/custom_object'
+import {PropertyUnified} from '../../types/property'
+import {BadRequestError} from '../errors'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
+import {updateFieldPermissions} from './salesforce/updatePermissions'
 
 export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
 
@@ -129,6 +138,67 @@ const mappers = {
       record.CreatedDate ? new Date(record.CreatedDate) : null,
     // rawData: (rawData) => rawData,
   }),
+  customObject: {
+    parse: (rawData: any) => ({
+      id: rawData.Id,
+      updated_at: rawData.SystemModstamp
+        ? new Date(rawData.SystemModstamp).toISOString()
+        : '',
+      name: rawData.Name,
+      createdAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      updatedAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      lastModifiedAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      raw_data: rawData,
+    }),
+    _in: {
+      Name: true,
+    },
+  },
+}
+
+type ToolingAPICustomField = {
+  FullName: string
+  Metadata: (
+    | {
+        type: 'DateTime' | 'Url' | 'Checkbox' | 'Date'
+      }
+    | {
+        type: 'Text' | 'TextArea'
+        length: number
+      }
+    | {
+        type: 'Number'
+        precision: number
+        scale: number
+      }
+    | {
+        type: 'MultiselectPicklist'
+        valueSet: ToolingAPIValueSet
+        visibleLines: number
+      }
+    | {
+        type: 'Picklist'
+        valueSet: ToolingAPIValueSet
+      }
+  ) & {
+    required: boolean
+    label: string
+    description?: string
+    defaultValue: string | null
+  }
+}
+
+export function capitalizeString(str: string): string {
+  if (!str) {
+    return str
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 type AccountFields =
@@ -217,6 +287,156 @@ export const CRM_COMMON_OBJECT_TYPES = [
   'user',
 ] as const
 export type CRMCommonObjectType = (typeof CRM_COMMON_OBJECT_TYPES)[number]
+
+// TODO: Figure out what to do with id and reference types
+export const toSalesforceType = (
+  property: PropertyUnified,
+): ToolingAPICustomField['Metadata']['type'] => {
+  switch (property.type) {
+    case 'number':
+      return 'Number'
+    case 'text':
+      return 'Text'
+    case 'textarea':
+      return 'TextArea'
+    case 'boolean':
+      return 'Checkbox'
+    case 'picklist':
+      return 'Picklist'
+    case 'multipicklist':
+      return 'MultiselectPicklist'
+    case 'date':
+      return 'Date'
+    case 'datetime':
+      return 'DateTime'
+    case 'url':
+      return 'Url'
+    default:
+      return 'Text'
+  }
+}
+
+function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
+  if (!params.fields.length) {
+    throw new BadRequestError('Cannot create custom object with no fields')
+  }
+
+  const primaryField = params.fields.find(
+    (field) => field.id === params.primaryFieldId,
+  )
+
+  if (!primaryField) {
+    throw new BadRequestError(
+      `Could not find primary field with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (primaryField.type !== 'text') {
+    throw new BadRequestError(
+      `Primary field must be of type text, but was ${primaryField.type} with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (!primaryField.is_required) {
+    throw new BadRequestError(
+      `Primary field must be required, but was not with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (capitalizeString(primaryField.id) !== 'Name') {
+    throw new BadRequestError(
+      `Primary field for salesforce must have key name 'Name', but was ${primaryField.id}`,
+    )
+  }
+
+  const nonPrimaryFields = params.fields.filter(
+    (field) => field.id !== params.primaryFieldId,
+  )
+
+  if (nonPrimaryFields.some((field) => !field.id.endsWith('__c'))) {
+    throw new BadRequestError('Custom object field key names must end with __c')
+  }
+
+  if (
+    nonPrimaryFields.some(
+      (field) => field.type === 'boolean' && field.isRequired,
+    )
+  ) {
+    throw new BadRequestError('Boolean fields cannot be required in Salesforce')
+  }
+}
+
+export const toSalesforceCustomFieldCreateParams = (
+  objectName: string,
+  property: any,
+  prefixed = false,
+): Partial<SalesforceCustomField> => {
+  const base: Partial<SalesforceCustomField> = {
+    // When calling the CustomObjects API, it does not need to be prefixed.
+    // However, when calling the CustomFields API, it needs to be prefixed.
+    fullName: prefixed ? `${objectName}.${property.id}` : property.id,
+    label: property.label,
+    type: toSalesforceType(property),
+    required: property.isRequired,
+    defaultValue: property.defaultValue?.toString() ?? null,
+  }
+  // if (property.defaultValue) {
+  //   base = { ...base, defaultValue: property.defaultValue.toString() };
+  // }
+  if (property.type === 'text') {
+    return {
+      ...base,
+      // TODO: Maybe textarea should be longer
+      length: 255,
+    }
+  }
+  if (property.type === 'number') {
+    return {
+      ...base,
+      scale: property.scale,
+      precision: property.precision,
+    }
+  }
+  if (property.type === 'boolean') {
+    return {
+      ...base,
+      // Salesforce does not support the concept of required boolean fields
+      required: false,
+      // JS Force (incorrectly) expects string here
+      // This is required for boolean fields
+      defaultValue: property.defaultValue?.toString() ?? 'false',
+    }
+  }
+  // TODO: Support picklist options
+  return base
+}
+
+export const toSalesforceCustomObjectCreateParams = (
+  objectName: string,
+  labels: {
+    singular: string
+    plural: string
+  },
+  description: string | null,
+  primaryField: PropertyUnified,
+  nonPrimaryFieldsToUpdate: PropertyUnified[],
+) => {
+  return {
+    deploymentStatus: 'Deployed',
+    sharingModel: 'ReadWrite',
+    fullName: objectName,
+    description,
+    label: labels.singular,
+    pluralLabel: labels.plural,
+    nameField: {
+      label: primaryField?.label,
+      type: 'Text',
+    },
+    fields: nonPrimaryFieldsToUpdate.map((field) =>
+      toSalesforceCustomFieldCreateParams(objectName, field),
+    ),
+  }
+}
 
 const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
   account: [
@@ -494,6 +714,15 @@ export const salesforceProvider = {
       page_size: input?.page_size,
     }),
 
+  listCustomObjectRecords: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: input.id,
+      fields: ['Name'],
+      mapper: mappers.customObject,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
   // MARK: - Metadata
   metadataListStandardObjects: () =>
     SALESFORCE_STANDARD_OBJECTS.map((name) => ({name})),
@@ -508,30 +737,69 @@ export const salesforceProvider = {
     await sfdc.metadata.read('CustomObject', input.name)
     return []
   },
-  metadataCreateObjectsSchema: async ({instance, input}) => {
-    const metadata = [
-      {
-        fullName: `${input.name}__c`,
-        label: input.label.singular,
-        pluralLabel: input.label.plural,
-        nameField: {
-          type: 'Text',
-          label: 'Name',
-        },
-        deploymentStatus: 'Deployed',
-        sharingModel: 'ReadWrite',
-      },
-    ]
-    const sfdc = await instance.getJsForce()
-    let resultObj: {id: string; name: string} = {id: '', name: ''}
 
-    try {
-      const results = await sfdc.metadata.create('CustomObject', metadata)
-      const result: any = results[0]
-      resultObj = {id: result.fullName, name: result.fullName}
-    } catch (err) {
-      console.error(err)
+  metadataCreateObjectsSchema: async ({instance, input}) => {
+    validateCustomObject(input)
+
+    const sfdc = await instance.getJsForce()
+
+    const objectName = input.name.endsWith('__c')
+      ? input.name
+      : `${input.name}__c`
+
+    const readResponse = await sfdc.metadata.read('CustomObject', objectName)
+    if (readResponse.fullName) {
+      console.log(`Custom object with name ${objectName} already exists`)
     }
-    return resultObj
+
+    const primaryField = input.fields.find(
+      (field) => field.id === input.primaryFieldId,
+    )
+    const nonPrimaryFields = input.fields.filter(
+      (field) => field.id !== input.primaryFieldId,
+    )
+
+    const result = await sfdc.metadata.create(
+      'CustomObject',
+      toSalesforceCustomObjectCreateParams(
+        objectName,
+        input.label,
+        input.description || null,
+        primaryField!,
+        nonPrimaryFields,
+      ),
+    )
+
+    // const nonRequiredFields = nonPrimaryFields.filter(
+    //   (field) => !field.is_required,
+    // )
+
+    // await updateFieldPermissions(
+    //   instance,
+    //   objectName,
+    //   nonRequiredFields.map((field) => field.id),
+    // )
+
+    if (result.success) {
+      // throw new Error(
+      //   `Failed to create custom object. Since creating a custom object with custom fields is not an atomic operation in Salesforce, you should use the custom object name ${
+      //     input.name
+      //   } as the 'id' parameter in the Custom Object GET endpoint to check if it was already partially created. If so, use the PUT endpoint to update the existing object. Raw error message from Salesforce: ${JSON.stringify(
+      //     result,
+      //     null,
+      //     2,
+      //   )}`,
+      // )
+      return {id: input.name, name: input.name}
+    }
+    throw new Error(
+      `Failed to create custom object. Since creating a custom object with custom fields is not an atomic operation in Salesforce, you should use the custom object name ${
+        input.name
+      } as the 'id' parameter in the Custom Object GET endpoint to check if it was already partially created. If so, use the PUT endpoint to update the existing object. Raw error message from Salesforce: ${JSON.stringify(
+        result,
+        null,
+        2,
+      )}`,
+    )
   },
 } satisfies CRMProvider<SalesforceSDK>
