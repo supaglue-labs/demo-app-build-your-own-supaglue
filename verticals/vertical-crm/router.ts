@@ -152,6 +152,16 @@ export const crmRouter = trpc.router({
     )
     .output(commonModels.metaCustomObject)
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  createCustomObjectRecord: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/custom/{id}'}))
+    .input(
+      z.object({
+        id: z.string(),
+        record: z.record(z.any()),
+      }),
+    )
+    .output(z.object({record: z.unknown()}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
 export type CRMProvider<TInstance> = ProviderFromRouter<

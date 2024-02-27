@@ -802,4 +802,11 @@ export const salesforceProvider = {
       )}`,
     )
   },
+  createCustomObjectRecord: async ({instance, input}) => {
+    const sfdc = await instance.getJsForce()
+    const result = await sfdc
+      .sobject(input.id)
+      .create(input.record as Record<string, any>)
+    return {record: {id: result.id}}
+  },
 } satisfies CRMProvider<SalesforceSDK>
