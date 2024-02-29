@@ -72,7 +72,10 @@ export const resource = pgTable(
       mode: 'string',
     }).defaultNow(),
     connector_name: text('connector_name').notNull(),
-    customer_id: text('customer_id').references(() => customer.id),
+    customer_id: text('customer_id').references(() => customer.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
   },
   (table) => ({
     connector_name_idx: index('resource_connector_name').on(
