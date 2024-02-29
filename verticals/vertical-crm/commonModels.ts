@@ -2,15 +2,13 @@ import {z, zBaseRecord} from '@supaglue/vdk'
 
 export const account = zBaseRecord
   .extend({
-    id: z.string().nullish(),
     name: z.string().nullish(),
-    updated_at: z.date().nullish(),
     is_deleted: z.boolean().nullish(),
     website: z.string().nullish(),
     industry: z.string().nullish(),
     number_of_employees: z.number().nullish(),
     owner_id: z.string().nullish(),
-    created_at: z.date().nullish(),
+    created_at: z.string().nullish(),
   })
   .openapi({ref: 'crm.account'})
 
@@ -23,14 +21,13 @@ export const contact = zBaseRecord
 
 export const lead = zBaseRecord
   .extend({
-    id: z.string().nullish(),
     name: z.string().nullish(),
     first_name: z.string().nullish(),
     last_name: z.string().nullish(),
     owner_id: z.string().nullish(),
     title: z.string().nullish(),
     company: z.string().nullish(),
-    converted_date: z.date().nullish(),
+    converted_date: z.string().nullish(),
     lead_source: z.string().nullish(),
     converted_account_id: z.string().nullish(),
     converted_contact_id: z.string().nullish(),
@@ -63,19 +60,15 @@ export const lead = zBaseRecord
         }),
       )
       .nullish(),
-    created_at: z.date().nullish(),
-    updated_at: z.date().nullish(),
+    created_at: z.string().nullish(),
     is_deleted: z.boolean().nullish(),
-    last_modified_at: z.date().nullish(),
-    raw_data: z.record(z.unknown()).nullish(),
+    last_modified_at: z.string().nullish(),
   })
   .openapi({ref: 'crm.lead'})
 
 export const opportunity = zBaseRecord
   .extend({
-    id: z.string().nullish(),
     name: z.string().nullish(),
-    updated_at: z.date().nullish(),
     description: z.string().nullish(),
     owner_id: z.string().nullish(),
     status: z.string().nullish(),
@@ -85,24 +78,20 @@ export const opportunity = zBaseRecord
     pipeline: z.string().nullish(),
     amount: z.number().nullish(),
     last_activity_at: z.date().nullish(),
-    created_at: z.date().nullish(),
+    created_at: z.string().nullish(),
     is_deleted: z.boolean().nullish(),
-    last_modified_at: z.date().nullish(),
-    raw_data: z.record(z.unknown()).nullish(),
+    last_modified_at: z.string().nullish(),
   })
   .openapi({ref: 'crm.opportunity'})
 
 export const user = zBaseRecord
   .extend({
-    id: z.string().nullish(),
     name: z.string().nullish(),
     email: z.string().nullish(),
     is_active: z.boolean().nullish(),
-    created_at: z.date().nullish(),
-    updated_at: z.date().nullish(),
+    created_at: z.string().nullish(),
     is_deleted: z.boolean().nullish(),
-    last_modified_at: z.date().nullish(),
-    raw_data: z.record(z.unknown()).nullish(),
+    last_modified_at: z.string().nullish(),
   })
   .openapi({ref: 'crm.user'})
 

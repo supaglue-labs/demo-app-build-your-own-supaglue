@@ -18,7 +18,7 @@ import {
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
 import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
-import type {PropertyUnified} from '../../types/property'
+import type {PropertyType, PropertyUnified} from '../../types/property'
 import {BadRequestError} from '../errors'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
@@ -37,8 +37,7 @@ const mappers = {
   }),
   account: mapper(zCast<SFDC['AccountSObject']>(), commonModels.account, {
     id: 'Id',
-    updated_at: (record) =>
-      record.SystemModstamp ? new Date(record.SystemModstamp) : null,
+    updated_at: 'SystemModstamp',
     name: 'Name',
     is_deleted: 'IsDeleted',
     website: 'Website',
@@ -46,15 +45,14 @@ const mappers = {
     number_of_employees: 'NumberOfEmployees',
     owner_id: 'OwnerId',
     created_at: (record) =>
-      record.CreatedDate ? new Date(record.CreatedDate) : null,
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
   }),
   opportunity: mapper(
     zCast<SFDC['OpportunitySObject']>(),
     commonModels.opportunity,
     {
       id: 'Id',
-      updated_at: (record) =>
-        record.SystemModstamp ? new Date(record.SystemModstamp) : null,
+      updated_at: 'SystemModstamp',
       name: 'Name',
       description: 'Description',
       owner_id: 'OwnerId',
@@ -67,11 +65,12 @@ const mappers = {
       last_activity_at: (record) =>
         record.LastActivityDate ? new Date(record.LastActivityDate) : null,
       created_at: (record) =>
-        record.CreatedDate ? new Date(record.CreatedDate) : null,
+        record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
       is_deleted: 'IsDeleted',
       last_modified_at: (record) =>
-        record.LastModifiedDate ? new Date(record.LastModifiedDate) : null,
-      raw_data: (record) => record,
+        record.LastModifiedDate
+          ? new Date(record.LastModifiedDate).toISOString()
+          : '',
     },
   ),
   lead: mapper(zCast<SFDC['LeadSObject']>(), commonModels.lead, {
@@ -84,7 +83,7 @@ const mappers = {
     title: 'Title',
     company: 'Company',
     converted_date: (record) =>
-      record.ConvertedDate ? new Date(record.ConvertedDate) : null,
+      record.ConvertedDate ? new Date(record.ConvertedDate).toISOString() : '',
     lead_source: 'LeadSource',
     converted_account_id: 'ConvertedAccountId',
     converted_contact_id: 'ConvertedContactId',
@@ -120,11 +119,12 @@ const mappers = {
           ]
         : [],
     created_at: (record) =>
-      record.CreatedDate ? new Date(record.CreatedDate) : null,
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
     is_deleted: 'IsDeleted',
     last_modified_at: (record) =>
-      record.SystemModstamp ? new Date(record.SystemModstamp) : new Date(0),
-    raw_data: (record) => record,
+      record.SystemModstamp
+        ? new Date(record.SystemModstamp).toISOString()
+        : '',
   }),
   user: mapper(zCast<SFDC['UserSObject']>(), commonModels.user, {
     id: 'Id',
@@ -132,12 +132,11 @@ const mappers = {
     email: 'Email',
     is_active: 'IsActive',
     created_at: (record) =>
-      record.CreatedDate ? new Date(record.CreatedDate) : null,
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
     updated_at: (record) =>
-      record.CreatedDate ? new Date(record.CreatedDate) : null,
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
     last_modified_at: (record) =>
-      record.CreatedDate ? new Date(record.CreatedDate) : null,
-    // raw_data: (rawData) => rawData,
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
   }),
 
   customObject: {
@@ -164,6 +163,30 @@ const mappers = {
   },
 }
 
+function mapStringToPropertyType(type: string): PropertyType {
+  switch (type) {
+    case 'text':
+    case 'textarea':
+    case 'number':
+    case 'picklist':
+    case 'multipicklist':
+    case 'date':
+    case 'datetime':
+    case 'boolean':
+    case 'url':
+      return type
+    default:
+      return 'other'
+  }
+}
+
+type ToolingAPIValueSet = {
+  restricted: boolean
+  valueSetDefinition: {
+    sorted: boolean
+    value: {label: string; valueName: string; description: string}[]
+  }
+}
 type ToolingAPICustomField = {
   FullName: string
   Metadata: (
@@ -463,7 +486,7 @@ const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
     'LastActivityDate',
     'CreatedDate',
     'IsDeleted',
-  ] as AccountFields[],
+  ],
   contact: [
     'OwnerId',
     'AccountId',
@@ -488,7 +511,7 @@ const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
     'OtherStreet',
     'IsDeleted',
     'CreatedDate',
-  ] as ContactFields[],
+  ],
   opportunity: [
     'OwnerId',
     'Name',
@@ -502,7 +525,7 @@ const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
     'CloseDate',
     'CreatedDate',
     'AccountId',
-  ] as OpportunityFields[],
+  ],
   lead: [
     'OwnerId',
     'Title',
@@ -522,8 +545,8 @@ const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
     'Phone',
     'Email',
     'IsDeleted',
-  ] as LeadFields[],
-  user: ['Name', 'Email', 'IsActive', 'CreatedDate'] as UserFields[],
+  ],
+  user: ['Name', 'Email', 'IsActive', 'CreatedDate'],
 }
 
 type SalesforceSDK = _SalesforceSDK & {
@@ -646,7 +669,7 @@ export const salesforceProvider = {
   listAccounts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Account',
-      fields: propertiesForCommonObject.account,
+      fields: propertiesForCommonObject.account as AccountFields[],
       mapper: mappers.account,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -666,7 +689,7 @@ export const salesforceProvider = {
   listContacts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Contact',
-      fields: propertiesForCommonObject.contact,
+      fields: propertiesForCommonObject.contact as ContactFields[],
       mapper: mappers.contact,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -686,7 +709,7 @@ export const salesforceProvider = {
   listOpportunities: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Opportunity',
-      fields: propertiesForCommonObject.opportunity,
+      fields: propertiesForCommonObject.opportunity as OpportunityFields[],
       mapper: mappers.opportunity,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -708,7 +731,7 @@ export const salesforceProvider = {
   listUsers: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'User',
-      fields: propertiesForCommonObject.user,
+      fields: propertiesForCommonObject.user as UserFields[],
       mapper: mappers.user,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -739,7 +762,13 @@ export const salesforceProvider = {
   },
 
   metadataCreateObjectsSchema: async ({instance, input}) => {
-    validateCustomObject(input)
+    validateCustomObject({
+      ...input,
+      fields: input.fields.map((field) => ({
+        ...field,
+        type: mapStringToPropertyType(field.type),
+      })),
+    })
 
     const sfdc = await instance.getJsForce()
 
@@ -763,14 +792,24 @@ export const salesforceProvider = {
       (field) => field.id !== input.primaryFieldId,
     )
 
+    const primaryFieldMapped = {
+      ...primaryField,
+      type: mapStringToPropertyType(primaryField.type),
+    }
+
+    const nonPrimaryFieldsMapped = nonPrimaryFields.map((field) => ({
+      ...field,
+      type: mapStringToPropertyType(field.type),
+    }))
+
     const result = await sfdc.metadata.create(
       'CustomObject',
       toSalesforceCustomObjectCreateParams(
         objectName,
         input.label,
         input.description || null,
-        primaryField,
-        nonPrimaryFields,
+        primaryFieldMapped,
+        nonPrimaryFieldsMapped,
       ),
     )
 
