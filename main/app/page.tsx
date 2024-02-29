@@ -30,12 +30,14 @@ async function listConnections() {
   })
   const res = await nango.GET('/connection')
 
-  return res.data.configs?.map((c) => ({
-    id: c.id,
-    provider: c.provider,
-    connection_id: c.connection_id,
-    // CustomerId does not exist in nango...
-  }))
+  return (
+    res.data.configs?.map((c) => ({
+      id: c.id,
+      provider: c.provider,
+      connection_id: c.connection_id,
+      // CustomerId does not exist in nango...
+    })) || []
+  )
   // }
   // throw new Error('Neither Supaglue nor nango is initialized')
 }
