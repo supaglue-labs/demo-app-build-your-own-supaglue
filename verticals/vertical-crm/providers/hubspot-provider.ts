@@ -9,6 +9,26 @@ export type SimplePublicObject =
   Oas_crm_contacts['components']['schemas']['SimplePublicObject']
 export type Owner = Oas_crm_owners['components']['schemas']['PublicOwner']
 
+//   // In certain cases, Hubspot cannot determine the object type based on just the name for custom objects,
+//   // so we need to get the ID.
+//  const getObjectTypeIdFromNameOrId = async(nameOrId: string): Promise<string> => {
+//     // Standard objects can be referred by name no problem
+//     if (isStandardObjectType(nameOrId)) {
+//       return nameOrId;
+//     }
+//     if (this.#isAlreadyObjectTypeId(nameOrId)) {
+//       return nameOrId;
+//     }
+//     await this.maybeRefreshAccessToken();
+//     const schemas = await this.#client.crm.schemas.coreApi.getAll();
+//     const schemaId = schemas.results.find((schema) => schema.name === nameOrId || schema.objectTypeId === nameOrId)
+//       ?.objectTypeId;
+//     if (!schemaId) {
+//       throw new NotFoundError(`Could not find custom object schema with name or id ${nameOrId}`);
+//     }
+//     return schemaId;
+//   }
+
 export const HUBSPOT_STANDARD_OBJECTS = [
   'company',
   'contact',
@@ -53,33 +73,210 @@ const HSContact = z.object({
   updatedAt: z.string(),
   archived: z.boolean(),
 })
+const HSOpportunity = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    // properties specific to opportunities below...
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    owner_id: z.string().nullish(),
+    account_id: z.string().nullish(),
+    status: z.string().nullish(),
+    stage: z.string().nullish(),
+    closedate: z.string().nullish(), // Assuming closeDate is a string in HubSpot format
+    amount: z.string().nullish(),
+    last_activity_at: z.string().nullish(), // Assuming lastActivityAt is a string in HubSpot format
+    is_deleted: z.boolean().nullish(),
+    hs_is_closed_won: z.string().nullish(),
+    hs_is_closed: z.string().nullish(),
+    archivedAt: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+const HSUser = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    // properties specific to opportunities below...
+    email: z.string().nullish(),
+    firstname: z.string().nullish(),
+    lastname: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+const HSAccount = z.object({
+  id: z.string(),
+  properties: z.object({
+    hs_object_id: z.string(),
+    createdate: z.string(),
+    lastmodifieddate: z.string().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    hubspot_owner_id: z.string().nullish(),
+    industry: z.string().nullish(),
+    website: z.string().nullish(),
+    numberofemployees: z.string().nullish(),
+    addresses: z.string().nullish(), // Assuming addresses is a string; adjust the type if needed
+    phonenumbers: z.string().nullish(), // Assuming phonenumbers is a string; adjust the type if needed
+    lifecyclestage: z.string().nullish(),
+    notes_last_updated: z.string().nullish(),
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archived: z.boolean(),
+})
+
+const propertiesToFetch = {
+  company: [
+    'hubspot_owner_id',
+    'description',
+    'industry',
+    'website',
+    'domain',
+    'hs_additional_domains',
+    'numberofemployees',
+    'address',
+    'address2',
+    'city',
+    'state',
+    'country',
+    'zip',
+    'phone',
+    'notes_last_updated',
+    'lifecyclestage',
+    'createddate',
+  ],
+  contact: [
+    'address', // TODO: IP state/zip/country?
+    'address2',
+    'city',
+    'country',
+    'email',
+    'fax',
+    'firstname',
+    'hs_createdate', // TODO: Use this or createdate?
+    'hs_is_contact', // TODO: distinguish from "visitor"?
+    'hubspot_owner_id',
+    'lifecyclestage',
+    'lastname',
+    'mobilephone',
+    'phone',
+    'state',
+    'work_email',
+    'zip',
+  ],
+  deal: [
+    'dealname',
+    'description',
+    'dealstage',
+    'amount',
+    'hubspot_owner_id',
+    'notes_last_updated',
+    'closedate',
+    'pipeline',
+    'hs_is_closed_won',
+    'hs_is_closed',
+  ],
+  user: ['Id', 'Name', 'Email', 'IsActive', 'CreatedDate', 'SystemModstamp'],
+  account: [
+    'Id',
+    'Name',
+    'Type',
+    'ParentId',
+    'BillingAddress',
+    'ShippingAddress',
+    'Phone',
+    'Fax',
+    'Website',
+    'Industry',
+    'NumberOfEmployees',
+    'OwnerId',
+    'CreatedDate',
+    'LastModifiedDate',
+  ],
+}
 
 const mappers = {
-  account: mapper(HSBase, commonModels.account, {
+  account: mapper(HSAccount, commonModels.account, {
     id: 'id',
-    updated_at: 'updatedAt',
+    name: 'properties.name',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
+    is_deleted: (record) => !!record.archived,
+    website: 'properties.website',
+    industry: 'properties.industry',
+    number_of_employees: (record) =>
+      record.properties.numberofemployees
+        ? Number.parseInt(record.properties.numberofemployees, 10)
+        : null,
+    owner_id: 'properties.hubspot_owner_id',
+    created_at: (record) => new Date(record.createdAt).toISOString(),
   }),
   contact: mapper(HSContact, commonModels.contact, {
     id: 'id',
     first_name: 'properties.firstname',
     last_name: 'properties.lastname',
-    updated_at: 'updatedAt',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
-  opportunity: mapper(HSBase, commonModels.opportunity, {
+  opportunity: mapper(HSOpportunity, commonModels.opportunity, {
     id: 'id',
-    name: 'id',
-    updated_at: 'updatedAt',
+    name: 'properties.name',
+    description: 'properties.description',
+    owner_id: 'properties.owner_id',
+    status: (record) =>
+      record.properties.hs_is_closed_won
+        ? 'WON'
+        : record.properties.hs_is_closed
+          ? 'LOST'
+          : 'Open',
+    stage: 'properties.stage',
+    close_date: (record) =>
+      record.properties.closedate
+        ? new Date(record.properties.closedate)
+        : null,
+    account_id: 'properties.account_id',
+    amount: (record) =>
+      record.properties.amount
+        ? Number.parseFloat(record.properties.amount)
+        : null,
+    last_activity_at: (record) =>
+      record.properties.last_activity_at
+        ? new Date(record.properties.last_activity_at)
+        : null,
+    created_at: (record) =>
+      new Date(record.properties.createdate).toISOString(),
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
+    last_modified_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
   lead: mapper(HSBase, commonModels.lead, {
     id: 'id',
-    updated_at: 'updatedAt',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
-  user: mapper(zCast<Owner>(), commonModels.user, {
+  user: mapper(HSUser, commonModels.user, {
     id: 'id',
-    updated_at: 'updatedAt',
-    name: (o) => [o.firstName, o.lastName].filter((n) => !!n?.trim()).join(' '),
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
+    name: (record) =>
+      [record.properties.firstname, record.properties.lastname]
+        .filter((n) => !!n?.trim())
+        .join(' '),
+    email: 'properties.email',
+    is_active: (record) => !record.archived, // Assuming archived is a boolean
+    created_at: (record) =>
+      new Date(record.properties.createdate).toISOString(),
+    is_deleted: (record) => !!record.archived, // Assuming archived is a boolean
+    last_modified_at: (record) =>
+      record.updatedAt ? new Date(record.updatedAt).toISOString() : null,
   }),
 }
+
 const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
   instance: HubspotSDK,
   {
@@ -88,7 +285,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
     ...opts
   }: {
     entity: string
-    fields: Array<Extract<keyof TIn, string>>
+    fields: string[]
     mapper: {parse: (rawData: unknown) => TOut; _in: TIn}
     page_size?: number
     cursor?: string | null
@@ -108,6 +305,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
           'createdate',
           'lastmodifieddate',
           'hs_lastmodifieddate',
+          'name',
           ...fields,
         ],
         filterGroups: cursor?.last_updated_at
@@ -204,21 +402,21 @@ export const hubspotProvider = {
       ...input,
       entity: 'contacts',
       mapper: mappers.contact,
-      fields: [],
+      fields: propertiesToFetch.contact,
     }),
   listAccounts: async ({instance, input}) =>
     _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'companies',
       mapper: mappers.account,
-      fields: [],
+      fields: propertiesToFetch.account,
     }),
   listOpportunities: async ({instance, input}) =>
     _listEntityIncrementalThenMap(instance, {
       ...input,
       entity: 'deals',
       mapper: mappers.opportunity,
-      fields: [],
+      fields: propertiesToFetch.deal,
     }),
   // Original supaglue never implemented this, TODO: handle me...
   // listLeads: async ({instance, input}) =>
@@ -242,4 +440,55 @@ export const hubspotProvider = {
     const res = await instance.crm_schemas.GET('/crm/v3/schemas')
     return res.data.results.map((obj) => ({id: obj.id, name: obj.name}))
   },
+  metadataListProperties: async ({instance, input}) => {
+    const res = await instance.crm_properties.GET(
+      '/crm/v3/properties/{objectType}',
+      {
+        params: {path: {objectType: input.name}},
+      },
+    )
+    return res.data.results.map((obj) => ({id: obj.name, label: obj.label}))
+  },
+  // metadataCreateObjectsSchema: async ({instance, input}) => {
+  //   const res = await instance.crm_schemas.POST('/crm/v3/schemas', {
+  //     body: {
+  //       name: input.name,
+  //       labels: input.label.singular,
+  //       description: input.description || '',
+  //       properties: input.fields.map((p) => ({
+  //         type: p.type || 'string',
+  //         label: p.label,
+  //         name: p.label,
+  //         fieldType: p.type || 'string',
+  //       })),
+  //       primaryFieldId: input.primaryFieldId,
+  //     },
+  //   })
+  //   console.log('input:', input)
+  //   // console.log('res:', res)
+  //   return [{id: '123', name: input.name}]
+  // },
+  // metadataCreateAssociation: async ({instance, input}) => {
+  //   const res = await instance.crm_associations.POST(
+  //     '/crm/v3/associations/{fromObjectType}/{toObjectType}/batch/create',
+  //     {
+  //       params: {
+  //         path: {
+  //           fromObjectType: input.sourceObject,
+  //           toObjectType: input.targetObject,
+  //         },
+  //       },
+  //       body: {
+  //         inputs: [
+  //           {
+  //             from: {id: input.sourceObject},
+  //             to: {id: input.targetObject},
+  //             type: `${input.sourceObject}_${input.targetObject}`,
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   )
+  //   return res.data
+  // },
 } satisfies CRMProvider<HubspotSDK>

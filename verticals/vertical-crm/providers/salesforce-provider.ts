@@ -4,17 +4,26 @@ import {
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
+  z,
   zCast,
 } from '@supaglue/vdk'
 import * as jsforce from 'jsforce'
+import type {
+  CustomField as SalesforceCustomField,
+  CustomObject as SalesforceCustomObject,
+} from 'jsforce/lib/api/metadata/schema'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {
   initSalesforceSDK,
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
+import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
+import type {PropertyType, PropertyUnified} from '../../types/property'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
+
+// import {updateFieldPermissions} from './salesforce/updatePermissions'
 
 export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
 
@@ -29,6 +38,13 @@ const mappers = {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
+    is_deleted: 'IsDeleted',
+    website: 'Website',
+    industry: 'Industry',
+    number_of_employees: 'NumberOfEmployees',
+    owner_id: 'OwnerId',
+    created_at: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
   }),
   opportunity: mapper(
     zCast<SFDC['OpportunitySObject']>(),
@@ -37,18 +53,499 @@ const mappers = {
       id: 'Id',
       updated_at: 'SystemModstamp',
       name: 'Name',
+      description: 'Description',
+      owner_id: 'OwnerId',
+      status: (record) => (record.IsClosed ? 'Closed' : 'Open'),
+      stage: 'StageName',
+      close_date: (record) =>
+        record.CloseDate ? new Date(record.CloseDate) : null,
+      account_id: 'AccountId',
+      amount: 'Amount',
+      last_activity_at: (record) =>
+        record.LastActivityDate ? new Date(record.LastActivityDate) : null,
+      created_at: (record) =>
+        record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
+      is_deleted: 'IsDeleted',
+      last_modified_at: (record) =>
+        record.LastModifiedDate
+          ? new Date(record.LastModifiedDate).toISOString()
+          : '',
     },
   ),
   lead: mapper(zCast<SFDC['LeadSObject']>(), commonModels.lead, {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
+    first_name: 'FirstName',
+    last_name: 'LastName',
+    owner_id: 'OwnerId',
+    title: 'Title',
+    company: 'Company',
+    converted_date: (record) =>
+      record.ConvertedDate ? new Date(record.ConvertedDate).toISOString() : '',
+    lead_source: 'LeadSource',
+    converted_account_id: 'ConvertedAccountId',
+    converted_contact_id: 'ConvertedContactId',
+    addresses: (record) =>
+      record.Street ||
+      record.City ||
+      record.State ||
+      record.Country ||
+      record.PostalCode
+        ? [
+            {
+              street1: record.Street ?? null,
+              street2: null,
+              city: record.City ?? null,
+              state: record.State ?? null,
+              country: record.Country ?? null,
+              postal_code: record.PostalCode ?? null,
+              address_type: 'primary',
+            },
+          ]
+        : [],
+    email_addresses: (record) =>
+      record.Email
+        ? [{email_address: record.Email, email_address_type: 'primary'}]
+        : [],
+    phone_numbers: (record) =>
+      record.Phone
+        ? [
+            {
+              phone_number: record.Phone ?? null,
+              phone_number_type: 'primary',
+            },
+          ]
+        : [],
+    created_at: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
+    is_deleted: 'IsDeleted',
+    last_modified_at: (record) =>
+      record.SystemModstamp
+        ? new Date(record.SystemModstamp).toISOString()
+        : '',
   }),
   user: mapper(zCast<SFDC['UserSObject']>(), commonModels.user, {
     id: 'Id',
-    updated_at: 'SystemModstamp',
     name: 'Name',
+    email: 'Email',
+    is_active: 'IsActive',
+    created_at: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
+    updated_at: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
+    last_modified_at: (record) =>
+      record.CreatedDate ? new Date(record.CreatedDate).toISOString() : '',
   }),
+
+  customObject: {
+    parse: (rawData: any) => ({
+      id: rawData.Id,
+      updated_at: rawData.SystemModstamp
+        ? new Date(rawData.SystemModstamp).toISOString()
+        : '',
+      name: rawData.Name,
+      createdAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      updatedAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      lastModifiedAt: rawData.CreatedDate
+        ? new Date(rawData.CreatedDate).toISOString()
+        : '',
+      raw_data: rawData,
+    }),
+    _in: {
+      Name: true,
+    },
+  },
+}
+
+function mapStringToPropertyType(type: string): PropertyType {
+  switch (type) {
+    case 'text':
+    case 'textarea':
+    case 'number':
+    case 'picklist':
+    case 'multipicklist':
+    case 'date':
+    case 'datetime':
+    case 'boolean':
+    case 'url':
+      return type
+    default:
+      return 'other'
+  }
+}
+
+type ToolingAPIValueSet = {
+  restricted: boolean
+  valueSetDefinition: {
+    sorted: boolean
+    value: {label: string; valueName: string; description: string}[]
+  }
+}
+type ToolingAPICustomField = {
+  FullName: string
+  Metadata: (
+    | {
+        type: 'DateTime' | 'Url' | 'Checkbox' | 'Date'
+      }
+    | {
+        type: 'Text' | 'TextArea'
+        length: number
+      }
+    | {
+        type: 'Number'
+        precision: number
+        scale: number
+      }
+    | {
+        type: 'MultiselectPicklist'
+        valueSet: ToolingAPIValueSet
+        visibleLines: number
+      }
+    | {
+        type: 'Picklist'
+        valueSet: ToolingAPIValueSet
+      }
+  ) & {
+    required: boolean
+    label: string
+    description?: string
+    defaultValue: string | null
+  }
+}
+
+export function capitalizeString(str: string): string {
+  if (!str) {
+    return str
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+type AccountFields =
+  | 'OwnerId'
+  | 'Name'
+  | 'Description'
+  | 'Industry'
+  | 'Website'
+  | 'NumberOfEmployees'
+  | 'BillingCity'
+  | 'BillingCountry'
+  | 'BillingPostalCode'
+  | 'BillingState'
+  | 'BillingStreet'
+  | 'ShippingCity'
+  | 'ShippingCountry'
+  | 'ShippingPostalCode'
+  | 'ShippingState'
+  | 'ShippingStreet'
+  | 'Phone'
+  | 'Fax'
+  | 'LastActivityDate'
+  | 'CreatedDate'
+  | 'IsDeleted'
+type ContactFields =
+  | 'OwnerId'
+  | 'AccountId'
+  | 'FirstName'
+  | 'LastName'
+  | 'Email'
+  | 'Phone'
+  | 'Fax'
+  | 'MobilePhone'
+  | 'LastActivityDate'
+  | 'MailingCity'
+  | 'MailingCountry'
+  | 'MailingPostalCode'
+  | 'MailingState'
+  | 'MailingStreet'
+  | 'OtherCity'
+  | 'OtherCountry'
+  | 'OtherPostalCode'
+  | 'OtherState'
+  | 'OtherStreet'
+  | 'IsDeleted'
+  | 'CreatedDate'
+type OpportunityFields =
+  | 'OwnerId'
+  | 'Name'
+  | 'Description'
+  | 'LastActivityDate'
+  | 'Amount'
+  | 'IsClosed'
+  | 'IsDeleted'
+  | 'IsWon'
+  | 'StageName'
+  | 'CloseDate'
+  | 'CreatedDate'
+  | 'AccountId'
+type LeadFields =
+  | 'OwnerId'
+  | 'Title'
+  | 'FirstName'
+  | 'LastName'
+  | 'ConvertedDate'
+  | 'CreatedDate'
+  | 'SystemModstamp'
+  | 'ConvertedContactId'
+  | 'ConvertedAccountId'
+  | 'Company'
+  | 'City'
+  | 'State'
+  | 'Street'
+  | 'Country'
+  | 'PostalCode'
+  | 'Phone'
+  | 'Email'
+  | 'IsDeleted'
+type UserFields = 'Name' | 'Email' | 'IsActive' | 'CreatedDate'
+
+export const CRM_COMMON_OBJECT_TYPES = [
+  'account',
+  'contact',
+  'lead',
+  'opportunity',
+  'user',
+] as const
+export type CRMCommonObjectType = (typeof CRM_COMMON_OBJECT_TYPES)[number]
+
+// TODO: Figure out what to do with id and reference types
+export const toSalesforceType = (
+  property: PropertyUnified,
+): ToolingAPICustomField['Metadata']['type'] => {
+  switch (property.type) {
+    case 'number':
+      return 'Number'
+    case 'text':
+      return 'Text'
+    case 'textarea':
+      return 'TextArea'
+    case 'boolean':
+      return 'Checkbox'
+    case 'picklist':
+      return 'Picklist'
+    case 'multipicklist':
+      return 'MultiselectPicklist'
+    case 'date':
+      return 'Date'
+    case 'datetime':
+      return 'DateTime'
+    case 'url':
+      return 'Url'
+    default:
+      return 'Text'
+  }
+}
+
+function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
+  if (!params.fields.length) {
+    throw new Error('Cannot create custom object with no fields')
+  }
+
+  const primaryField = params.fields.find(
+    (field) => field.id === params.primaryFieldId,
+  )
+
+  if (!primaryField) {
+    throw new Error(
+      `Could not find primary field with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (primaryField.type !== 'text') {
+    throw new Error(
+      `Primary field must be of type text, but was ${primaryField.type} with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (!primaryField.isRequired) {
+    throw new Error(
+      `Primary field must be required, but was not with key name ${params.primaryFieldId}`,
+    )
+  }
+
+  if (capitalizeString(primaryField.id) !== 'Name') {
+    throw new Error(
+      `Primary field for salesforce must have key name 'Name', but was ${primaryField.id}`,
+    )
+  }
+
+  const nonPrimaryFields = params.fields.filter(
+    (field) => field.id !== params.primaryFieldId,
+  )
+
+  if (nonPrimaryFields.some((field) => !field.id.endsWith('__c'))) {
+    throw new Error('Custom object field key names must end with __c')
+  }
+
+  if (
+    nonPrimaryFields.some(
+      (field) => field.type === 'boolean' && field.isRequired,
+    )
+  ) {
+    throw new Error('Boolean fields cannot be required in Salesforce')
+  }
+}
+
+export const toSalesforceCustomFieldCreateParams = (
+  objectName: string,
+  property: any,
+  prefixed = false,
+): Partial<SalesforceCustomField> => {
+  const base: Partial<SalesforceCustomField> = {
+    // When calling the CustomObjects API, it does not need to be prefixed.
+    // However, when calling the CustomFields API, it needs to be prefixed.
+    fullName: prefixed ? `${objectName}.${property.id}` : property.id,
+    label: property.label,
+    type: toSalesforceType(property),
+    required: property.isRequired,
+    defaultValue: property.defaultValue?.toString() ?? null,
+  }
+  // if (property.defaultValue) {
+  //   base = { ...base, defaultValue: property.defaultValue.toString() };
+  // }
+  if (property.type === 'text') {
+    return {
+      ...base,
+      // TODO: Maybe textarea should be longer
+      length: 255,
+    }
+  }
+  if (property.type === 'number') {
+    return {
+      ...base,
+      scale: property.scale,
+      precision: property.precision,
+    }
+  }
+  if (property.type === 'boolean') {
+    return {
+      ...base,
+      // Salesforce does not support the concept of required boolean fields
+      required: false,
+      // JS Force (incorrectly) expects string here
+      // This is required for boolean fields
+      defaultValue: property.defaultValue?.toString() ?? 'false',
+    }
+  }
+  // TODO: Support picklist options
+  return base
+}
+
+export const toSalesforceCustomObjectCreateParams = (
+  objectName: string,
+  labels: {
+    singular: string
+    plural: string
+  },
+  description: string | null,
+  primaryField: PropertyUnified,
+  nonPrimaryFieldsToUpdate: PropertyUnified[],
+) => ({
+  deploymentStatus: 'Deployed',
+  sharingModel: 'ReadWrite',
+  fullName: objectName,
+  description,
+  label: labels.singular,
+  pluralLabel: labels.plural,
+  nameField: {
+    label: primaryField?.label,
+    type: 'Text',
+  },
+  fields: nonPrimaryFieldsToUpdate.map((field) =>
+    toSalesforceCustomFieldCreateParams(objectName, field),
+  ),
+})
+
+const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
+  account: [
+    'OwnerId',
+    'Name',
+    'Description',
+    'Industry',
+    'Website',
+    'NumberOfEmployees',
+    // We may not need all of these fields in order to map to common object
+    'BillingCity',
+    'BillingCountry',
+    'BillingPostalCode',
+    'BillingState',
+    'BillingStreet',
+    // We may not need all of these fields in order to map to common object
+    'ShippingCity',
+    'ShippingCountry',
+    'ShippingPostalCode',
+    'ShippingState',
+    'ShippingStreet',
+    'Phone',
+    'Fax',
+    'LastActivityDate',
+    'CreatedDate',
+    'IsDeleted',
+  ],
+  contact: [
+    'OwnerId',
+    'AccountId',
+    'FirstName',
+    'LastName',
+    'Email',
+    'Phone',
+    'Fax',
+    'MobilePhone',
+    'LastActivityDate',
+    // We may not need all of these fields in order to map to common object
+    'MailingCity',
+    'MailingCountry',
+    'MailingPostalCode',
+    'MailingState',
+    'MailingStreet',
+    // We may not need all of these fields in order to map to common object
+    'OtherCity',
+    'OtherCountry',
+    'OtherPostalCode',
+    'OtherState',
+    'OtherStreet',
+    'IsDeleted',
+    'CreatedDate',
+  ],
+  opportunity: [
+    'OwnerId',
+    'Name',
+    'Description',
+    'LastActivityDate',
+    'Amount',
+    'IsClosed',
+    'IsDeleted',
+    'IsWon',
+    'StageName',
+    'CloseDate',
+    'CreatedDate',
+    'AccountId',
+  ],
+  lead: [
+    'OwnerId',
+    'Title',
+    'FirstName',
+    'LastName',
+    'ConvertedDate',
+    'CreatedDate',
+    'SystemModstamp',
+    'ConvertedContactId',
+    'ConvertedAccountId',
+    'Company',
+    'City',
+    'State',
+    'Street',
+    'Country',
+    'PostalCode',
+    'Phone',
+    'Email',
+    'IsDeleted',
+  ],
+  user: ['Name', 'Email', 'IsActive', 'CreatedDate'],
 }
 
 type SalesforceSDK = _SalesforceSDK & {
@@ -63,7 +560,7 @@ type SalesforceSDK = _SalesforceSDK & {
  * 2) Allow it to be configured on a per request basis via a `x-salesforce-api-version` header.
  * Simpler but we would be forcing the consumer to have to worry about it.
  */
-const API_VERSION = '59.0'
+export const API_VERSION = '59.0'
 
 function sdkExt(instance: SalesforceSDK) {
   /** NOTE: extract these into a helper functions inside sdk-salesforce */
@@ -88,7 +585,7 @@ function sdkExt(instance: SalesforceSDK) {
       : ''
     const limitStatement = opts.limit != null ? `LIMIT ${opts.limit}` : ''
     return instance.query<T>(`
-        SELECT Id, SystemModstamp, ${opts.fields.join(', ')}
+        SELECT Id, SystemModstamp, ${opts.fields.join(', ')}, FIELDS(CUSTOM)
         FROM ${opts.entity}
         ${whereStatement}
         ORDER BY SystemModstamp ASC, Id ASC
@@ -171,7 +668,7 @@ export const salesforceProvider = {
   listAccounts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Account',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.account as AccountFields[],
       mapper: mappers.account,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -191,7 +688,7 @@ export const salesforceProvider = {
   listContacts: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Contact',
-      fields: ['FirstName', 'LastName'],
+      fields: propertiesForCommonObject.contact as ContactFields[],
       mapper: mappers.contact,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -211,7 +708,7 @@ export const salesforceProvider = {
   listOpportunities: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'Opportunity',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.opportunity as OpportunityFields[],
       mapper: mappers.opportunity,
       cursor: input?.cursor,
       page_size: input?.page_size,
@@ -233,8 +730,17 @@ export const salesforceProvider = {
   listUsers: async ({instance, input}) =>
     sdkExt(instance)._listEntityThenMap({
       entity: 'User',
-      fields: ['Name'],
+      fields: propertiesForCommonObject.user as UserFields[],
       mapper: mappers.user,
+      cursor: input?.cursor,
+      page_size: input?.page_size,
+    }),
+
+  listCustomObjectRecords: async ({instance, input}) =>
+    sdkExt(instance)._listEntityThenMap({
+      entity: input.id,
+      fields: ['Name'],
+      mapper: mappers.customObject,
       cursor: input?.cursor,
       page_size: input?.page_size,
     }),
@@ -252,5 +758,236 @@ export const salesforceProvider = {
     const sfdc = await instance.getJsForce()
     await sfdc.metadata.read('CustomObject', input.name)
     return []
+  },
+
+  metadataCreateObjectsSchema: async ({instance, input}) => {
+    validateCustomObject({
+      ...input,
+      fields: input.fields.map((field) => ({
+        ...field,
+        type: mapStringToPropertyType(field.type),
+      })),
+    })
+
+    const sfdc = await instance.getJsForce()
+
+    const objectName = input.name.endsWith('__c')
+      ? input.name
+      : `${input.name}__c`
+
+    const readResponse = await sfdc.metadata.read('CustomObject', objectName)
+    if (readResponse.fullName) {
+      console.log(`Custom object with name ${objectName} already exists`)
+    }
+
+    const primaryField = input.fields.find(
+      (field) => field.id === input.primaryFieldId,
+    )
+    if (!primaryField) {
+      throw new Error('Primary field not found')
+    }
+
+    const nonPrimaryFields = input.fields.filter(
+      (field) => field.id !== input.primaryFieldId,
+    )
+
+    const primaryFieldMapped = {
+      ...primaryField,
+      type: mapStringToPropertyType(primaryField.type),
+    }
+
+    const nonPrimaryFieldsMapped = nonPrimaryFields.map((field) => ({
+      ...field,
+      type: mapStringToPropertyType(field.type),
+    }))
+
+    const result = await sfdc.metadata.create(
+      'CustomObject',
+      toSalesforceCustomObjectCreateParams(
+        objectName,
+        input.label,
+        input.description || null,
+        primaryFieldMapped,
+        nonPrimaryFieldsMapped,
+      ),
+    )
+
+    // const nonRequiredFields = nonPrimaryFields.filter(
+    //   (field) => !field.isRequired,
+    // )
+
+    // await updateFieldPermissions(
+    //   sfdc,
+    //   objectName,
+    //   nonRequiredFields.map((field) => field.id),
+    // )
+
+    if (result.success) {
+      // throw new Error(
+      //   `Failed to create custom object. Since creating a custom object with custom fields is not an atomic operation in Salesforce, you should use the custom object name ${
+      //     input.name
+      //   } as the 'id' parameter in the Custom Object GET endpoint to check if it was already partially created. If so, use the PUT endpoint to update the existing object. Raw error message from Salesforce: ${JSON.stringify(
+      //     result,
+      //     null,
+      //     2,
+      //   )}`,
+      // )
+      return {id: input.name, name: input.name}
+    }
+    throw new Error(
+      `Failed to create custom object. Since creating a custom object with custom fields is not an atomic operation in Salesforce, you should use the custom object name ${
+        input.name
+      } as the 'id' parameter in the Custom Object GET endpoint to check if it was already partially created. If so, use the PUT endpoint to update the existing object. Raw error message from Salesforce: ${JSON.stringify(
+        result,
+        null,
+        2,
+      )}`,
+    )
+  },
+  createCustomObjectRecord: async ({instance, input}) => {
+    const sfdc = await instance.getJsForce()
+    const result = await sfdc.sobject(input.id).create(input.record)
+    return {record: {id: result.id}}
+  },
+  metadataCreateAssociation: async ({instance, input}) => {
+    const sfdc = await instance.getJsForce()
+    // if id doesn't end with __c, we need to add it ourselves
+    if (!input.id.endsWith('__c')) {
+      input.id = `${input.id}__c`
+    }
+
+    // Look up source custom object to figure out a relationship name
+    const sourceCustomObjectMetadata = await sfdc.metadata.read(
+      'CustomObject',
+      input.sourceObject,
+    )
+
+    // If the relationship field doesn't already exist, create it
+    const existingField = sourceCustomObjectMetadata.fields?.find(
+      (field: any) => field.fullName === input.id,
+    )
+
+    const customFieldPayload = {
+      fullName: `${input.sourceObject}.${input.id}`,
+      label: input.label,
+      // The custom field name you provided Related Opportunity on object Opportunity can
+      // only contain alphanumeric characters, must begin with a letter, cannot end
+      // with an underscore or contain two consecutive underscore characters, and
+      // must be unique across all Opportunity fields
+      // TODO: allow developer to specify name?
+      relationshipName:
+        sourceCustomObjectMetadata.pluralLabel?.replace(/\s/g, '') ??
+        'relationshipName',
+      type: 'Lookup',
+      required: false,
+      referenceTo: input.targetObject,
+    }
+
+    if (existingField) {
+      const result = await sfdc.metadata.update(
+        'CustomField',
+        customFieldPayload,
+      )
+
+      console.log('result', result)
+
+      if (!result.success) {
+        throw new Error(
+          `Failed to update custom field for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    } else {
+      const result = await sfdc.metadata.create(
+        'CustomField',
+        customFieldPayload,
+      )
+
+      if (!result.success) {
+        throw new Error(
+          `Failed to create custom field for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    }
+
+    const {userInfo} = sfdc
+    if (!userInfo) {
+      throw new Error('Could not get info of current user')
+    }
+
+    // Get the user record
+    const user = await sfdc.retrieve('User', userInfo.id, {
+      fields: ['ProfileId'],
+    })
+
+    // Get the first permission set
+    // TODO: Is this the right thing to do? How do we know the first one is the best one?
+    const result = await sfdc.query(
+      `SELECT Id FROM PermissionSet WHERE ProfileId='${user['ProfileId']}' LIMIT 1`,
+    )
+    if (!result.records.length) {
+      throw new Error(
+        `Could not find permission set for profile ${user['ProfileId']}`,
+      )
+    }
+
+    const permissionSetId = result.records[0]?.Id
+
+    // Figure out which fields already have permissions
+    const {records: existingFieldPermissions} = await sfdc.query(
+      `SELECT Id,Field FROM FieldPermissions WHERE SobjectType='${input.sourceObject}' AND ParentId='${permissionSetId}' AND Field='${input.sourceObject}.${input.id}'`,
+    )
+    if (existingFieldPermissions.length) {
+      // Update permission
+      const existingFieldPermission = existingFieldPermissions[0]
+      const result = await sfdc.update('FieldPermissions', {
+        Id: existingFieldPermission?.Id as string,
+        ParentId: permissionSetId,
+        SobjectType: input.sourceObject,
+        Field: `${input.sourceObject}.${input.id}`,
+        PermissionsEdit: true,
+        PermissionsRead: true,
+      })
+      if (!result.success) {
+        throw new Error(
+          `Failed to update field permission for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    } else {
+      // Create permission
+      const result = await sfdc.create('FieldPermissions', {
+        ParentId: permissionSetId,
+        SobjectType: input.sourceObject,
+        Field: `${input.sourceObject}.${input.id}`,
+        PermissionsEdit: true,
+        PermissionsRead: true,
+      })
+      if (!result.success) {
+        throw new Error(
+          `Failed to create field permission for association type: ${JSON.stringify(
+            result.errors,
+            null,
+            2,
+          )}`,
+        )
+      }
+    }
+    return {
+      id: `${input.sourceObject}.${input.id}`,
+      sourceObject: input.sourceObject,
+      targetObject: input.targetObject,
+      label: input.label,
+    }
   },
 } satisfies CRMProvider<SalesforceSDK>

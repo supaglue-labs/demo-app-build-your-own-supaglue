@@ -80,6 +80,16 @@ export const crmRouter = trpc.router({
     .input(z.object({id: z.string()}))
     .output(z.object({record: commonModels.user, raw: z.unknown()}))
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  listCustomObjectRecords: remoteProcedure
+    .meta(oapi({method: 'GET', path: '/custom/{id}'}))
+    .input(
+      z.object({
+        id: z.string(),
+        ...zPaginationParams.shape,
+      }),
+    )
+    .output(zPaginatedResult.extend({items: z.array(z.unknown())}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 
   // MARK: - Metadata
   metadataListStandardObjects: remoteProcedure
@@ -101,6 +111,75 @@ export const crmRouter = trpc.router({
       }),
     )
     .output(z.array(commonModels.metaProperty))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataCreateObjectsSchema: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/objects/custom'}))
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().nullish(),
+        label: z.object({
+          singular: z.string(),
+          plural: z.string(),
+        }),
+        primaryFieldId: z.string(),
+        fields: z.array(
+          z.object({
+            id: z.string(),
+            description: z.string().nullish(),
+            type: z.string(),
+            label: z.string(),
+            isRequired: z.boolean(),
+            default_value: z.string().nullish(),
+            group_name: z.string().nullish(),
+          }),
+        ),
+      }),
+    )
+    .output(commonModels.metaCustomObject)
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataCreateFieldsSchema: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/objects/fields'}))
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string().nullish(),
+        label: z.object({
+          singular: z.string(),
+          plural: z.string(),
+        }),
+      }),
+    )
+    .output(commonModels.metaCustomObject)
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  createCustomObjectRecord: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/custom/{id}'}))
+    .input(
+      z.object({
+        id: z.string(),
+        record: z.record(z.any()),
+      }),
+    )
+    .output(z.object({record: z.unknown()}))
+    .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
+  metadataCreateAssociation: remoteProcedure
+    .meta(oapi({method: 'POST', path: '/metadata/associations'}))
+    .input(
+      z.object({
+        sourceObject: z.string(),
+        targetObject: z.string(),
+        id: z.string(),
+        label: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        sourceObject: z.string(),
+        targetObject: z.string(),
+        id: z.string(),
+        label: z.string(),
+      }),
+    )
     .query(async ({input, ctx}) => proxyCallProvider({input, ctx})),
 })
 
