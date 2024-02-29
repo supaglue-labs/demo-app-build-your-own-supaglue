@@ -25,16 +25,17 @@ async function listConnections() {
   //   }))
   // }
   // if (env.NANGO_SECRET_KEY && featureFlags.mode === 'nango') {
-    const nango = initNangoSDK({
-      headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
-    })
-    const res = await nango.GET('/connection')
-    return res.data.connections.map((c) => ({
-      id: c.id,
-      provider: c.provider,
-      connection_id: c.connection_id,
-      // CustomerId does not exist in nango...
-    }))
+  const nango = initNangoSDK({
+    headers: {authorization: `Bearer ${env.NANGO_SECRET_KEY}`},
+  })
+  const res = await nango.GET('/connection')
+
+  return res.data.configs.map((c) => ({
+    id: c.id,
+    provider: c.provider,
+    connection_id: c.connection_id,
+    // CustomerId does not exist in nango...
+  }))
   // }
   // throw new Error('Neither Supaglue nor nango is initialized')
 }

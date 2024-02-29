@@ -52,4 +52,6 @@ export const mgmtRouter = trpc.router({
       )
       return {record: await getCustomerOrFail(ctx.db, input.id)}
     }),
+
+    
 })

@@ -27,10 +27,10 @@ const generated = <T = undefined>(
     // https://discord.com/channels/1043890932593987624/1156712008893354084/1209669640637382739
     // however it is still useful to leave it here so migration can produce semi-correct SQL
     dataType() {
-      // console.log(
-      //   'Please manually modify the migration to add the generated column',
-      //   `${name} ${dataType} GENERATED ALWAYS AS (${expr}) STORED`,
-      // )
+      console.debug(
+        'Please manually modify the migration to add the generated column',
+        `${name} ${dataType} GENERATED ALWAYS AS (${expr}) STORED`,
+      )
       return dataType
     },
   })(name)
@@ -60,8 +60,8 @@ export const customer = pgTable('customer', {
 })
 
 /** aka connection */
-export const resource = pgTable(
-  'resource',
+export const connection = pgTable(
+  'connection',
   {
     id: text('id')
       .notNull()
@@ -79,15 +79,15 @@ export const resource = pgTable(
     })
       .notNull()
       .defaultNow(),
-    connector_name: text('connector_name').notNull(),
+    provider_name: text('provider_name').notNull(),
     customer_id: text('customer_id').references(() => customer.id, {
       onDelete: 'cascade',
       onUpdate: 'cascade',
     }),
   },
   (table) => ({
-    connector_name_idx: index('resource_connector_name').on(
-      table.connector_name,
+    provider_name_idx: index('connection_provider_name').on(
+      table.provider_name,
     ),
   }),
 )

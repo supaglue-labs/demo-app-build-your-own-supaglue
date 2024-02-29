@@ -5,7 +5,7 @@
   "module": "./index.ts",
   "scripts": {},
   "dependencies": {
-    "@opensdks/sdk-nango": "0.0.2",
+    "@opensdks/sdk-nango": "0.0.4",
     "@opensdks/sdk-supaglue": "0.0.3",
     "@supaglue/db": "workspace:*",
     "@supaglue/sdk": "workspace:*",
