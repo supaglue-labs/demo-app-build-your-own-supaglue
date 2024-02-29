@@ -20,7 +20,7 @@ async function getCustomerOrFail(db: typeof _db, id: string) {
   return cus
 }
 
-export const customerRouter = trpc.router({
+export const mgmtRouter = trpc.router({
   listCustomers: dbProcedure
     .meta({openapi: {method: 'GET', path: '/customers'}})
     .input(z.void())
