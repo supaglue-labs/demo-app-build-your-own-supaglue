@@ -2,7 +2,7 @@ import {sql} from 'drizzle-orm'
 import prettier from 'prettier'
 import prettierSql from 'prettier-plugin-sql'
 import {db} from '.'
-import {engagement_sequences} from './schema-dynamic'
+import {engagement_sequence} from './schema-dynamic'
 import {dbUpsert} from './upsert'
 
 async function formatSql(sqlString: string) {
@@ -14,12 +14,12 @@ async function formatSql(sqlString: string) {
   })
 }
 
-console.log(engagement_sequences._)
+console.log(engagement_sequence._)
 
 test('upsert query', async () => {
   const query = dbUpsert(
     db,
-    engagement_sequences,
+    engagement_sequence,
     [
       {
         _supaglue_application_id: '$YOUR_APPLICATION_ID',

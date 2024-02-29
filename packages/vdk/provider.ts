@@ -63,7 +63,7 @@ export async function proxyCallProvider({
   const instance = ctx.provider.__init__({
     getCredentials: async () => {
       if (featureFlags.mode === 'nango') {
-        throw new Error('Not implemented')
+        throw new Error('Nango getCredentials not implemented')
       }
       const supaglueApiKey = ctx.headers.get('x-api-key') ?? ctx.supaglueApiKey
       if (!supaglueApiKey) {

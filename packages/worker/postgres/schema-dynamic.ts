@@ -12,12 +12,39 @@ import {
 
 export const mySchema = pgSchema('my_schema')
 
+/**
+ * Supaglue inconsistently pluralized table names... Only did it for common objects too not standard objects...
+ * @see https://github.com/supaglue-labs/supaglue/blob/d482ca9468b8047c0fa874b77a38ab765dc5e9c3/packages/core/destination_writers/postgres.ts#L373-L393
+ */
+function pluralizeCommonObjectName(name: string) {
+  switch (name) {
+    case 'crm_opportunity':
+      return 'crm_opportunities'
+    case 'engagement_mailbox':
+      return 'engagement_mailboxes'
+    case 'crm_account':
+    case 'crm_contact':
+    case 'crm_lead':
+    case 'crm_user':
+    case 'engagement_account':
+    case 'engagement_contact':
+    case 'engagement_sequence_state':
+    case 'engagement_sequence_step':
+    case 'engagement_user':
+    case 'engagement_sequence':
+      return `${name}s`
+    default:
+      return name
+  }
+}
+
 /** e.g. crm_accounts */
 export function getCommonObjectTable<TName extends string>(
-  tableName: TName,
+  _tableName: TName,
   opts: {schema?: string} = {},
 ) {
   const schema = opts.schema ? pgSchema(opts.schema) : undefined
+  const tableName = pluralizeCommonObjectName(_tableName)
   const table = (schema ? schema.table : pgTable)(
     tableName,
     {
@@ -77,23 +104,25 @@ export function getCommonObjectTable<TName extends string>(
   return table as typeof table & typeof extension
 }
 
-/** e.g. salesforce_contact */
+/** e.g. salesforce_contact, also `custom_objects` too...  */
 export function getProviderObjectTable<TName extends string>(
-  tableName: TName,
+  _tableName: TName,
   opts: {custom?: boolean; schema?: string} = {},
 ) {
   const schema = opts.schema ? pgSchema(opts.schema) : undefined
+  // Supaglue put all custom objects into a single table... so we need to handle that too...
+  const tableName = opts.custom ? 'custom_objects' : _tableName
   const table = (schema ? schema.table : pgTable)(
     tableName,
     {
       _supaglue_application_id: text('_supaglue_application_id').notNull(),
       _supaglue_provider_name: text('_supaglue_provider_name').notNull(),
       _supaglue_customer_id: text('_supaglue_customer_id').notNull(),
+      _supaglue_id: text('_supaglue_id').notNull(),
       _supaglue_emitted_at: timestamp('_supaglue_emitted_at', {
         precision: 3,
         mode: 'string',
       }).notNull(),
-      id: text('id').notNull(),
       _supaglue_last_modified_at: timestamp('_supaglue_last_modified_at', {
         precision: 3,
         mode: 'string',
@@ -114,7 +143,7 @@ export function getProviderObjectTable<TName extends string>(
           table._supaglue_application_id,
           table._supaglue_provider_name,
           table._supaglue_customer_id,
-          table.id,
+          table._supaglue_id,
         ],
         name: `${tableName}_pkey`,
       }),
@@ -133,5 +162,8 @@ export function getProviderObjectTable<TName extends string>(
 // beyond initial creation anyways...
 
 export const crm_account = getCommonObjectTable('crm_account')
-export const engagement_sequences = getCommonObjectTable('engagement_sequences')
+export const engagement_sequence = getCommonObjectTable('engagement_sequence')
 export const salesforce_account = getProviderObjectTable('salesforce_account')
+export const custom_objects = getProviderObjectTable('hubspot_productgaps', {
+  custom: true,
+})
