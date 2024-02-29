@@ -209,36 +209,28 @@ const mappers = {
   account: mapper(HSAccount, commonModels.account, {
     id: 'id',
     name: 'properties.name',
-    updated_at: (record) =>
-      record.properties.lastmodifieddate
-        ? new Date(record.properties.lastmodifieddate)
-        : null,
-    isDeleted: (record) => !!record.archived,
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
+    is_deleted: (record) => !!record.archived,
     website: 'properties.website',
     industry: 'properties.industry',
-    numberOfEmployees: (record) =>
+    number_of_employees: (record) =>
       record.properties.numberofemployees
-        ? parseInt(record.properties.numberofemployees, 10)
+        ? Number.parseInt(record.properties.numberofemployees, 10)
         : null,
-    ownerId: 'properties.hubspot_owner_id',
-    createdAt: (record) => new Date(record.createdAt),
-    updatedAt: (record) => new Date(record.updatedAt),
+    owner_id: 'properties.hubspot_owner_id',
+    created_at: (record) => new Date(record.createdAt).toISOString(),
   }),
   contact: mapper(HSContact, commonModels.contact, {
     id: 'id',
     first_name: 'properties.firstname',
     last_name: 'properties.lastname',
-    updated_at: 'updatedAt',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
   opportunity: mapper(HSOpportunity, commonModels.opportunity, {
     id: 'id',
     name: 'properties.name',
-    updated_at: (record) =>
-      record.properties.lastmodifieddate
-        ? new Date(record.properties.lastmodifieddate)
-        : null,
     description: 'properties.description',
-    ownerId: 'properties.owner_id',
+    owner_id: 'properties.owner_id',
     status: (record) =>
       record.properties.hs_is_closed_won
         ? 'WON'
@@ -246,44 +238,45 @@ const mappers = {
           ? 'LOST'
           : 'Open',
     stage: 'properties.stage',
-    closeDate: (record) =>
+    close_date: (record) =>
       record.properties.closedate
         ? new Date(record.properties.closedate)
         : null,
-    accountId: 'properties.account_id',
-    amount: 'properties.amount',
-    lastActivityAt: (record) =>
+    account_id: 'properties.account_id',
+    amount: (record) =>
+      record.properties.amount
+        ? Number.parseFloat(record.properties.amount)
+        : null,
+    last_activity_at: (record) =>
       record.properties.last_activity_at
         ? new Date(record.properties.last_activity_at)
         : null,
-    createdAt: (record) => new Date(record.properties.createdate),
-    updatedAt: (record) => new Date(record.properties.createdate),
-    isDeleted: 'properties.is_deleted',
-    lastModifiedAt: (record) => new Date(record.updatedAt),
+    created_at: (record) =>
+      new Date(record.properties.createdate).toISOString(),
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
+    last_modified_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
   lead: mapper(HSBase, commonModels.lead, {
     id: 'id',
-    updated_at: 'updatedAt',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
   }),
   user: mapper(HSUser, commonModels.user, {
     id: 'id',
-    updated_at: 'updatedAt',
+    updated_at: (record) => new Date(record.updatedAt).toISOString(),
     name: (record) =>
       [record.properties.firstname, record.properties.lastname]
         .filter((n) => !!n?.trim())
         .join(' '),
     email: 'properties.email',
-    isActive: (record) => !record.archived, // Assuming archived is a boolean
-    createdAt: (record) => new Date(record.properties.createdate),
-    updatedAt: (record) =>
-      record.properties.lastmodifieddate
-        ? new Date(record.properties.lastmodifieddate)
-        : null,
-    isDeleted: (record) => !!record.archived, // Assuming archived is a boolean
-    lastModifiedAt: (record) =>
-      record.updatedAt ? new Date(record.updatedAt) : null,
+    is_active: (record) => !record.archived, // Assuming archived is a boolean
+    created_at: (record) =>
+      new Date(record.properties.createdate).toISOString(),
+    is_deleted: (record) => !!record.archived, // Assuming archived is a boolean
+    last_modified_at: (record) =>
+      record.updatedAt ? new Date(record.updatedAt).toISOString() : null,
   }),
 }
+
 const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
   instance: HubspotSDK,
   {
@@ -292,7 +285,7 @@ const _listEntityIncrementalThenMap = async <TIn, TOut extends BaseRecord>(
     ...opts
   }: {
     entity: string
-    fields: Array<Extract<keyof TIn, string>>
+    fields: string[]
     mapper: {parse: (rawData: unknown) => TOut; _in: TIn}
     page_size?: number
     cursor?: string | null
@@ -409,7 +402,7 @@ export const hubspotProvider = {
       ...input,
       entity: 'contacts',
       mapper: mappers.contact,
-      fields: [],
+      fields: propertiesToFetch.contact,
     }),
   listAccounts: async ({instance, input}) =>
     _listEntityIncrementalThenMap(instance, {
@@ -475,29 +468,27 @@ export const hubspotProvider = {
   //   // console.log('res:', res)
   //   return [{id: '123', name: input.name}]
   // },
-  metadataCreateAssociation: async ({instance, input}) => {
-    const res = await instance.crm_associations.POST(
-      '/crm/v3/associations/{fromObjectType}/{toObjectType}/batch/create',
-      {
-        params: {
-          path: {
-            fromObjectType: input.sourceObject,
-            toObjectType: input.targetObject,
-          },
-        },
-        body: {
-          inputs: [
-            {
-              from: {id: input.sourceObject},
-              to: {id: input.targetObject},
-              type: `${input.sourceObject}_${input.targetObject}`,
-            },
-          ],
-        },
-      },
-    )
-    console.log('res:', res.data.errors[0])
-    console.log('res:', res.data.errors[1])
-    return res.data
-  },
+  // metadataCreateAssociation: async ({instance, input}) => {
+  //   const res = await instance.crm_associations.POST(
+  //     '/crm/v3/associations/{fromObjectType}/{toObjectType}/batch/create',
+  //     {
+  //       params: {
+  //         path: {
+  //           fromObjectType: input.sourceObject,
+  //           toObjectType: input.targetObject,
+  //         },
+  //       },
+  //       body: {
+  //         inputs: [
+  //           {
+  //             from: {id: input.sourceObject},
+  //             to: {id: input.targetObject},
+  //             type: `${input.sourceObject}_${input.targetObject}`,
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   )
+  //   return res.data
+  // },
 } satisfies CRMProvider<HubspotSDK>
