@@ -11,6 +11,13 @@ export interface paths {
   '/openapi.json': {
     get: operations['public-getOpenAPISpec']
   }
+  '/customers': {
+    get: operations['customer-listCustomers']
+  }
+  '/customers/{id}': {
+    get: operations['customer-getCustomer']
+    put: operations['customer-upsertCustomer']
+  }
   '/engagement/v2/contacts': {
     get: operations['salesEngagement-listContacts']
   }
@@ -114,46 +121,16 @@ export interface components {
         message: string
       }[]
     }
-    'sales-engagement.contact': {
+    customer: {
       id: string
-      first_name: string
-      last_name: string
-      owner_id: string
-      account_id?: string
-      job_title: string
-      address: components['schemas']['sales-engagement.address']
-      email_addresses: components['schemas']['sales-engagement.email_addresses']
-      phone_numbers: components['schemas']['sales-engagement.phone_numbers']
-      open_count: number
-      click_count: number
-      reply_count: number
-      bounced_count: number
-      created_at: string
+      /** @description ISO8601 date string */
       updated_at: string
-      is_deleted: boolean
-      last_modified_at: string
-      raw_data?: {
-        [key: string]: unknown
-      }
+      /** @description ISO8601 date string */
+      created_at: string
+      name?: string | null
+      /** Format: email */
+      email?: string | null
     }
-    'sales-engagement.address': {
-      city: string
-      country: string
-      postal_code: string
-      state: string
-      street_1: string
-      street_2: string
-    }
-    'sales-engagement.email_addresses': {
-      email_address: string
-      /** @enum {string} */
-      email_address_type: 'primary' | 'personal' | 'work'
-    }[]
-    'sales-engagement.phone_numbers': {
-      phone_number: string
-      /** @enum {string} */
-      phone_number_type: 'primary' | 'work' | 'home' | 'mobile' | 'other'
-    }[]
     /**
      * Error
      * @description The error information
@@ -210,6 +187,46 @@ export interface components {
         message: string
       }[]
     }
+    'sales-engagement.contact': {
+      id: string
+      first_name: string
+      last_name: string
+      owner_id: string
+      account_id?: string
+      job_title: string
+      address: components['schemas']['sales-engagement.address']
+      email_addresses: components['schemas']['sales-engagement.email_addresses']
+      phone_numbers: components['schemas']['sales-engagement.phone_numbers']
+      open_count: number
+      click_count: number
+      reply_count: number
+      bounced_count: number
+      created_at: string
+      updated_at: string
+      is_deleted: boolean
+      last_modified_at: string
+      raw_data?: {
+        [key: string]: unknown
+      }
+    }
+    'sales-engagement.address': {
+      city: string
+      country: string
+      postal_code: string
+      state: string
+      street_1: string
+      street_2: string
+    }
+    'sales-engagement.email_addresses': {
+      email_address: string
+      /** @enum {string} */
+      email_address_type: 'primary' | 'personal' | 'work'
+    }[]
+    'sales-engagement.phone_numbers': {
+      phone_number: string
+      /** @enum {string} */
+      phone_number_type: 'primary' | 'work' | 'home' | 'mobile' | 'other'
+    }[]
     'sales-engagement.sequence': {
       id: string
       name?: string
@@ -394,6 +411,103 @@ export interface operations {
       200: {
         content: {
           'application/json': unknown
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'customer-listCustomers': {
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            records: components['schemas']['customer'][]
+          }
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'customer-getCustomer': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['customer']
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'customer-upsertCustomer': {
+    parameters: {
+      path: {
+        id: string
+      }
+    }
+    requestBody: {
+      content: {
+        'application/json': {
+          name?: string | null
+          /** Format: email */
+          email?: string | null
+        }
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            record: components['schemas']['customer']
+          }
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
         }
       }
       /** @description Internal server error */

@@ -1,3 +1,4 @@
+
 import {drizzle} from 'drizzle-orm/postgres-js'
 import {migrate} from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
@@ -29,3 +30,5 @@ export async function runMigration(opts?: {keepAlive?: boolean}) {
     await pgClient.end()
   }
 }
+
+export * from 'drizzle-orm'

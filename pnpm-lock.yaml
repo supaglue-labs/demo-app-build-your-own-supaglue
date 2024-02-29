@@ -192,12 +192,18 @@ importers:
       '@opensdks/runtime':
         specifier: 0.0.17
         version: 0.0.17
+      '@supaglue/db':
+        specifier: workspace:*
+        version: link:../db
       '@supaglue/vertical-crm':
         specifier: workspace:*
         version: link:../../verticals/vertical-crm
       '@supaglue/vertical-sales-engagement':
         specifier: workspace:*
         version: link:../../verticals/vertical-sales-engagement
+      '@trpc/server':
+        specifier: 10.40.0
+        version: 10.40.0
     devDependencies:
       '@supaglue/vdk':
         specifier: workspace:*
@@ -277,6 +283,9 @@ importers:
       '@opensdks/sdk-supaglue':
         specifier: 0.0.3
         version: 0.0.3
+      '@supaglue/db':
+        specifier: workspace:*
+        version: link:../db
       '@supaglue/sdk':
         specifier: workspace:*
         version: link:../sdk

@@ -46,8 +46,15 @@ async function main() {
   //     },
   //   },
   // })
-  const res = await supaglue.GET('/crm/v2/metadata/properties', {
-    params: {query: {name: 'MyStuff', type: 'custom'}},
+  // const res = await supaglue.GET('/crm/v2/metadata/properties', {
+  //   params: {query: {name: 'MyStuff', type: 'custom'}},
+  // })
+  await supaglue.PUT('/customers/{id}', {
+    body: {email: 'hello@gda.com', name: 'world'},
+    params: {path: {id: '1123'}},
+  })
+  const res = await supaglue.GET('/customers', {
+    // params: {query: {name: 'MyStuff', type: 'custom'}},
   })
   console.log('Success', res.data)
   // res.data.record.name

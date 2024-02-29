@@ -27,10 +27,10 @@ const generated = <T = undefined>(
     // https://discord.com/channels/1043890932593987624/1156712008893354084/1209669640637382739
     // however it is still useful to leave it here so migration can produce semi-correct SQL
     dataType() {
-      console.log(
-        'Please manually modify the migration to add the generated column',
-        `${name} ${dataType} GENERATED ALWAYS AS (${expr}) STORED`,
-      )
+      // console.log(
+      //   'Please manually modify the migration to add the generated column',
+      //   `${name} ${dataType} GENERATED ALWAYS AS (${expr}) STORED`,
+      // )
       return dataType
     },
   })(name)
@@ -44,11 +44,15 @@ export const customer = pgTable('customer', {
   created_at: timestamp('created_at', {
     precision: 3,
     mode: 'string',
-  }).defaultNow(),
+  })
+    .notNull()
+    .defaultNow(),
   updated_at: timestamp('updated_at', {
     precision: 3,
     mode: 'string',
-  }).defaultNow(),
+  })
+    .notNull()
+    .defaultNow(),
 
   // Specific cols
   name: text('name'),
@@ -66,11 +70,15 @@ export const resource = pgTable(
     created_at: timestamp('created_at', {
       precision: 3,
       mode: 'string',
-    }).defaultNow(),
+    })
+      .notNull()
+      .defaultNow(),
     updated_at: timestamp('updated_at', {
       precision: 3,
       mode: 'string',
-    }).defaultNow(),
+    })
+      .notNull()
+      .defaultNow(),
     connector_name: text('connector_name').notNull(),
     customer_id: text('customer_id').references(() => customer.id, {
       onDelete: 'cascade',
