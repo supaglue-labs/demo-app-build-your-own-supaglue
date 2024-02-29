@@ -31,6 +31,7 @@ export async function getCustomerOrFail(db: typeof _db, id: string) {
 }
 
 export const mgmtRouter = trpc.router({
+  // Customer management
   listCustomers: mgmtProcedure
     .meta({openapi: {method: 'GET', path: '/customers'}})
     .input(z.void())
@@ -82,5 +83,118 @@ export const mgmtRouter = trpc.router({
       //   },
       // )
       // return {record: await getCustomerOrFail(ctx.db, input.id)}
+    ),
+
+  // Connection management
+
+  listConnections: mgmtProcedure
+    .meta({
+      openapi: {method: 'GET', path: '/customers/{customer_id}/connections'},
+    })
+    .input(z.object({customer_id: z.string()}))
+    .output(z.array(models.connection))
+    .query(async ({ctx, input}) =>
+      ctx.supaglue.mgmt
+        .GET('/customers/{customer_id}/connections', {
+          params: {path: {customer_id: input.customer_id}},
+        })
+        .then((r) => r.data),
+    ),
+
+  getConnection: mgmtProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/customers/{customer_id}/connections/{provider_name}',
+      },
+    })
+    .input(z.object({customer_id: z.string(), provider_name: z.string()}))
+    .output(models.connection)
+    .query(async ({ctx, input}) =>
+      ctx.supaglue.mgmt
+        .GET('/customers/{customer_id}/connections/{provider_name}', {
+          params: {
+            path: {
+              customer_id: input.customer_id,
+              provider_name: input.provider_name as 'hubspot',
+            },
+          },
+        })
+        .then((r) => r.data),
+    ),
+  deleteConnection: mgmtProcedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/customers/{customer_id}/connections/{provider_name}',
+      },
+    })
+    .input(z.object({customer_id: z.string(), provider_name: z.string()}))
+    .output(z.void())
+    .query(async ({ctx, input}) =>
+      ctx.supaglue.mgmt
+        .DELETE('/customers/{customer_id}/connections/{provider_name}', {
+          params: {
+            path: {
+              customer_id: input.customer_id,
+              provider_name: input.provider_name as 'hubspot',
+            },
+          },
+        })
+        .then((r) => r.data),
+    ),
+
+  // MARK: - connection sync config
+
+  getConnectionSyncConfig: mgmtProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/connection_sync_configs',
+      },
+    })
+    .input(z.void())
+    .output(models.connection_sync_config)
+    .query(async ({ctx}) =>
+      ctx.supaglue.mgmt
+        .GET('/connection_sync_configs', {
+          params: {
+            header: {
+              'x-customer-id': ctx.headers.get('x-customer-id')!,
+              'x-provider-name': ctx.headers.get('x-provider-name')!,
+            },
+          },
+        })
+
+        .then((r) => r.data),
+    ),
+
+  upsertConnectionSyncConfig: mgmtProcedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/connection_sync_configs',
+      },
+    })
+    .input(models.connection_sync_config)
+    .output(models.connection_sync_config)
+    .query(async ({ctx, input}) =>
+      ctx.supaglue.mgmt
+        .PUT('/connection_sync_configs', {
+          params: {
+            header: {
+              'x-customer-id': ctx.headers.get('x-customer-id')!,
+              'x-provider-name': ctx.headers.get('x-provider-name')!,
+            },
+          },
+          body: {
+            custom_objects: input.custom_objects!,
+            destination_config: input.destination_config as {
+              type: 'postgres'
+              schema: string
+            },
+          },
+        })
+        .then((r) => r.data),
     ),
 })
