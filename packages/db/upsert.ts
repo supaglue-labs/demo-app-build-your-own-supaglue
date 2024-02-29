@@ -47,7 +47,9 @@ export function dbUpsert<
   }
 
   const keyColumns =
-    options.keyColumns?.map(getColumn) ?? tbCfg.primaryKeys[0]?.columns
+    options.keyColumns?.map(getColumn) ??
+    tbCfg.primaryKeys[0]?.columns ??
+    tbCfg.columns.filter((c) => c.primary) // Presumably only a single primary key column will be possible in this scenario
   const shallowMergeJsonbColumns =
     options.shallowMergeJsonbColumns?.map(getColumn)
   const noDiffColumns = options.noDiffColumns?.map(getColumn)
