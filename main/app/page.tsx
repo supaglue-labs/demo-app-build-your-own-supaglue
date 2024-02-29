@@ -30,7 +30,7 @@ async function listConnections() {
   })
   const res = await nango.GET('/connection')
 
-  return res.data.configs.map((c) => ({
+  return res.data.configs?.map((c) => ({
     id: c.id,
     provider: c.provider,
     connection_id: c.connection_id,
