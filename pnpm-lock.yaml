@@ -192,6 +192,12 @@ importers:
       '@opensdks/runtime':
         specifier: 0.0.17
         version: 0.0.17
+      '@opensdks/sdk-nango':
+        specifier: 0.0.4
+        version: 0.0.4
+      '@opensdks/sdk-supaglue':
+        specifier: 0.0.3
+        version: 0.0.3
       '@supaglue/db':
         specifier: workspace:*
         version: link:../db

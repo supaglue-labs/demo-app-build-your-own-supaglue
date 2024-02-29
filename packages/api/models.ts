@@ -6,14 +6,15 @@ const zTimestamp = z
   .describe('ISO8601 date string')
 
 const dbRecord = z.object({
-  id: z.string(),
+  // id: z.string(),
   /** z.string().datetime() does not work for simple things like `2023-07-19T23:46:48.000+0000`  */
   updated_at: zTimestamp,
   created_at: zTimestamp,
 })
 
-export const customer = dbRecord
-  .extend({
+export const customer = z
+  .object({
+    customer_id: z.string(),
     name: z.string().nullish(),
     email: z.string().email().nullish(),
   })

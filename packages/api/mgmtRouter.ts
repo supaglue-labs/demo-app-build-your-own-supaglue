@@ -1,13 +1,23 @@
-import {db as _db, dbUpsert, eq, schema, sql} from '@supaglue/db'
+import {db as _db, eq, schema} from '@supaglue/db'
 import {publicProcedure, trpc, z} from '@supaglue/vdk'
 import {TRPCError} from '@trpc/server'
+import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
 import * as models from './models'
 
-export const dbProcedure = publicProcedure.use(async ({next, ctx}) =>
-  next({ctx: {...ctx, db: _db}}),
-)
+export const mgmtProcedure = publicProcedure.use(async ({next, ctx}) => {
+  const supaglueApiKey =
+    ctx.headers.get('x-api-key') ?? ctx.supaglueApiKey ?? ''
+  if (!supaglueApiKey) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'x-api-key header is required',
+    })
+  }
+  const supaglue = initSupaglueSDK({headers: {'x-api-key': supaglueApiKey}})
+  return next({ctx: {...ctx, db: _db, supaglue}})
+})
 
-async function getCustomerOrFail(db: typeof _db, id: string) {
+export async function getCustomerOrFail(db: typeof _db, id: string) {
   const cus = await db.query.customer.findFirst({
     where: eq(schema.customer.id, id),
   })
@@ -21,37 +31,56 @@ async function getCustomerOrFail(db: typeof _db, id: string) {
 }
 
 export const mgmtRouter = trpc.router({
-  listCustomers: dbProcedure
+  listCustomers: mgmtProcedure
     .meta({openapi: {method: 'GET', path: '/customers'}})
     .input(z.void())
-    .output(z.object({records: z.array(models.customer)}))
-    .query(async ({ctx}) => ({
-      records: await ctx.db.query.customer.findMany(),
-    })),
+    .output(z.array(models.customer))
+    .query(async ({ctx}) =>
+      ctx.supaglue.mgmt.GET('/customers').then((r) => r.data),
+    ),
+  // .query(async ({ctx}) => ({
+  //   records: await ctx.db.query.customer.findMany(),
+  // })),
 
-  getCustomer: dbProcedure
+  getCustomer: mgmtProcedure
     .meta({openapi: {method: 'GET', path: '/customers/{id}'}})
     .input(z.object({id: z.string()}))
-    .output(z.object({record: models.customer}))
-    .query(async ({ctx, input}) => ({
-      record: await getCustomerOrFail(ctx.db, input.id),
-    })),
-
-  upsertCustomer: dbProcedure
-    .meta({openapi: {method: 'PUT', path: '/customers/{id}'}})
-    .input(models.customer.pick({id: true, name: true, email: true}))
-    .output(z.object({record: models.customer}))
-    .mutation(async ({ctx, input}) => {
-      await dbUpsert(
-        ctx.db,
-        schema.customer,
-        [{...input, updated_at: sql.raw('now()')}],
-        {
-          noDiffColumns: ['updated_at'],
-        },
-      )
-      return {record: await getCustomerOrFail(ctx.db, input.id)}
-    }),
-
-    
+    .output(models.customer)
+    .query(async ({ctx, input}) =>
+      ctx.supaglue.mgmt
+        .GET('/customers/{customer_id}', {
+          params: {path: {customer_id: input.id}},
+        })
+        .then((r) => r.data),
+    ),
+  // .query(async ({ctx, input}) => ({
+  //   record: await getCustomerOrFail(ctx.db, input.id),
+  // })),
+  upsertCustomer: mgmtProcedure
+    .meta({openapi: {method: 'PUT', path: '/customers/{customer_id}'}})
+    .input(models.customer.pick({customer_id: true, name: true, email: true}))
+    .output(models.customer)
+    .mutation(
+      async ({ctx, input}) =>
+        ctx.supaglue.mgmt
+          .PUT('/customers', {
+            body: {
+              customer_id: input.customer_id,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              email: input.email!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              name: input.name!,
+            },
+          })
+          .then((r) => r.data),
+      // await dbUpsert(
+      //   ctx.db,
+      //   schema.customer,
+      //   [{...input, updated_at: sql.raw('now()')}],
+      //   {
+      //     noDiffColumns: ['updated_at'],
+      //   },
+      // )
+      // return {record: await getCustomerOrFail(ctx.db, input.id)}
+    ),
 })
