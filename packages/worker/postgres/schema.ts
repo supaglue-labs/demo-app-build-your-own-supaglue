@@ -1,6 +1,7 @@
 import {sql} from 'drizzle-orm'
 import {
   customType,
+  index,
   jsonb,
   pgTable,
   primaryKey,
@@ -34,7 +35,53 @@ const generated = <T = undefined>(
     },
   })(name)
 
-/** Execution  */
+export const customer = pgTable('customer', {
+  // Standard cols
+  id: text('id')
+    .notNull()
+    .primaryKey()
+    .default(sql`substr(md5(random()::text), 0, 25)`),
+  created_at: timestamp('created_at', {
+    precision: 3,
+    mode: 'string',
+  }).defaultNow(),
+  updated_at: timestamp('updated_at', {
+    precision: 3,
+    mode: 'string',
+  }).defaultNow(),
+
+  // Specific cols
+  name: text('name'),
+  email: text('email'),
+})
+
+/** aka connection */
+export const resource = pgTable(
+  'resource',
+  {
+    id: text('id')
+      .notNull()
+      .primaryKey()
+      .default(sql`substr(md5(random()::text), 0, 25)`),
+    created_at: timestamp('created_at', {
+      precision: 3,
+      mode: 'string',
+    }).defaultNow(),
+    updated_at: timestamp('updated_at', {
+      precision: 3,
+      mode: 'string',
+    }).defaultNow(),
+    connector_name: text('connector_name').notNull(),
+    customer_id: text('customer_id').references(() => customer.id),
+  },
+  (table) => ({
+    connector_name_idx: index('resource_connector_name').on(
+      table.connector_name,
+    ),
+  }),
+)
+
+/** Aka sync execution or sync log  */
 export const sync_run = pgTable('sync_run', {
   // Standard cols
   id: text('id')
