@@ -1,24 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type {BaseRecord} from '@supaglue/vdk'
 import {
   LastUpdatedAtId,
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
-  z,
   zCast,
 } from '@supaglue/vdk'
 import * as jsforce from 'jsforce'
-import type {
-  CustomField as SalesforceCustomField,
-  CustomObject as SalesforceCustomObject,
-} from 'jsforce/lib/api/metadata/schema'
+import type {CustomField as SalesforceCustomField} from 'jsforce/lib/api/metadata/schema'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {
   initSalesforceSDK,
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
-import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
-import type {PropertyType, PropertyUnified} from '../../types/property'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
@@ -26,6 +24,54 @@ import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
 // import {updateFieldPermissions} from './salesforce/updatePermissions'
 
 export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
+
+type PropertyType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'picklist'
+  | 'multipicklist'
+  | 'date'
+  | 'datetime'
+  | 'boolean'
+  | 'url'
+  | 'other'
+
+type PicklistOption = {
+  label: string
+  value: string
+  description?: string
+  hidden?: boolean
+}
+
+type PropertyUnified = {
+  id: string
+  customName?: string
+  label: string
+  description?: string
+  isRequired?: boolean
+  defaultValue?: string | number | boolean
+  groupName?: string
+  type: PropertyType
+  precision?: number
+  scale?: number
+  options?: PicklistOption[]
+  rawDetails?: Record<string, unknown>
+}
+
+type CustomObjectSchema = {
+  name: string
+  description: string | null
+  labels: {
+    singular: string
+    plural: string
+  }
+  primaryFieldId: string
+  fields: PropertyUnified[]
+  // TODO: timestamps?
+}
+
+type CustomObjectSchemaCreateParams = CustomObjectSchema
 
 const mappers = {
   contact: mapper(zCast<SFDC['ContactSObject']>(), commonModels.contact, {
@@ -183,7 +229,7 @@ type ToolingAPIValueSet = {
   restricted: boolean
   valueSetDefinition: {
     sorted: boolean
-    value: {label: string; valueName: string; description: string}[]
+    value: Array<{label: string; valueName: string; description: string}>
   }
 }
 type ToolingAPICustomField = {
@@ -282,25 +328,6 @@ type OpportunityFields =
   | 'CloseDate'
   | 'CreatedDate'
   | 'AccountId'
-type LeadFields =
-  | 'OwnerId'
-  | 'Title'
-  | 'FirstName'
-  | 'LastName'
-  | 'ConvertedDate'
-  | 'CreatedDate'
-  | 'SystemModstamp'
-  | 'ConvertedContactId'
-  | 'ConvertedAccountId'
-  | 'Company'
-  | 'City'
-  | 'State'
-  | 'Street'
-  | 'Country'
-  | 'PostalCode'
-  | 'Phone'
-  | 'Email'
-  | 'IsDeleted'
 type UserFields = 'Name' | 'Email' | 'IsActive' | 'CreatedDate'
 
 export const CRM_COMMON_OBJECT_TYPES = [
@@ -805,7 +832,7 @@ export const salesforceProvider = {
       'CustomObject',
       toSalesforceCustomObjectCreateParams(
         objectName,
-        input.label,
+        input.labels,
         input.description || null,
         primaryFieldMapped,
         nonPrimaryFieldsMapped,
