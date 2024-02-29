@@ -4,21 +4,17 @@ import {
   mapper,
   modifyRequest,
   PLACEHOLDER_BASE_URL,
-  z,
   zCast,
 } from '@supaglue/vdk'
 import * as jsforce from 'jsforce'
-import type {
-  CustomField as SalesforceCustomField,
-  CustomObject as SalesforceCustomObject,
-} from 'jsforce/lib/api/metadata/schema'
+import type {CustomField as SalesforceCustomField} from 'jsforce/lib/api/metadata/schema'
 import type {SalesforceSDKTypes} from '@opensdks/sdk-salesforce'
 import {
   initSalesforceSDK,
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
-import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
-import type {PropertyType, PropertyUnified} from '../../types/property'
+import {CustomObjectSchemaCreateParams} from '../../types/custom_object'
+import {PropertyType, PropertyUnified} from '../../types/property'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
@@ -282,25 +278,6 @@ type OpportunityFields =
   | 'CloseDate'
   | 'CreatedDate'
   | 'AccountId'
-type LeadFields =
-  | 'OwnerId'
-  | 'Title'
-  | 'FirstName'
-  | 'LastName'
-  | 'ConvertedDate'
-  | 'CreatedDate'
-  | 'SystemModstamp'
-  | 'ConvertedContactId'
-  | 'ConvertedAccountId'
-  | 'Company'
-  | 'City'
-  | 'State'
-  | 'Street'
-  | 'Country'
-  | 'PostalCode'
-  | 'Phone'
-  | 'Email'
-  | 'IsDeleted'
 type UserFields = 'Name' | 'Email' | 'IsActive' | 'CreatedDate'
 
 export const CRM_COMMON_OBJECT_TYPES = [
@@ -346,7 +323,7 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
   }
 
   const primaryField = params.fields.find(
-    (field) => field.id === params.primaryFieldId,
+    (field: PropertyUnified) => field.id === params.primaryFieldId,
   )
 
   if (!primaryField) {
@@ -374,16 +351,18 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
   }
 
   const nonPrimaryFields = params.fields.filter(
-    (field) => field.id !== params.primaryFieldId,
+    (field: PropertyUnified) => field.id !== params.primaryFieldId,
   )
 
-  if (nonPrimaryFields.some((field) => !field.id.endsWith('__c'))) {
+  if (
+    nonPrimaryFields.some((field: PropertyUnified) => !field.id.endsWith('__c'))
+  ) {
     throw new Error('Custom object field key names must end with __c')
   }
 
   if (
     nonPrimaryFields.some(
-      (field) => field.type === 'boolean' && field.isRequired,
+      (field: PropertyUnified) => field.type === 'boolean' && field.isRequired,
     )
   ) {
     throw new Error('Boolean fields cannot be required in Salesforce')

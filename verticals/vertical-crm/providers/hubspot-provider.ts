@@ -1,5 +1,5 @@
 import type {BaseRecord} from '@supaglue/vdk'
-import {LastUpdatedAtNextOffset, mapper, z, zCast} from '@supaglue/vdk'
+import {LastUpdatedAtNextOffset, mapper, z} from '@supaglue/vdk'
 import type {Oas_crm_contacts, Oas_crm_owners} from '@opensdks/sdk-hubspot'
 import {initHubspotSDK, type HubspotSDK} from '@opensdks/sdk-hubspot'
 import type {CRMProvider} from '../router'

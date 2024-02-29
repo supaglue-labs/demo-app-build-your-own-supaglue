@@ -1,10 +1,6 @@
 import * as jsforce from 'jsforce'
 import {API_VERSION} from '../salesforce-provider'
 
-interface SalesforceInstance {
-  getJsForce: () => Promise<jsforce.Connection>
-}
-
 export async function updateFieldPermissions(
   sfdc: jsforce.Connection,
   objectName: string,
