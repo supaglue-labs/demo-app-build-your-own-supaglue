@@ -27,7 +27,7 @@ const generated = <T = undefined>(
     // https://discord.com/channels/1043890932593987624/1156712008893354084/1209669640637382739
     // however it is still useful to leave it here so migration can produce semi-correct SQL
     dataType() {
-      console.debug(
+      console.error(
         'Please manually modify the migration to add the generated column',
         `${name} ${dataType} GENERATED ALWAYS AS (${expr}) STORED`,
       )

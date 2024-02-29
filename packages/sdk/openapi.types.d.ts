@@ -12,11 +12,24 @@ export interface paths {
     get: operations['public-getOpenAPISpec']
   }
   '/customers': {
-    get: operations['customer-listCustomers']
+    get: operations['mgmt-listCustomers']
   }
   '/customers/{id}': {
-    get: operations['customer-getCustomer']
-    put: operations['customer-upsertCustomer']
+    get: operations['mgmt-getCustomer']
+  }
+  '/customers/{customer_id}': {
+    put: operations['mgmt-upsertCustomer']
+  }
+  '/customers/{customer_id}/connections': {
+    get: operations['mgmt-listConnections']
+  }
+  '/customers/{customer_id}/connections/{provider_name}': {
+    get: operations['mgmt-getConnection']
+    delete: operations['mgmt-deleteConnection']
+  }
+  '/connection_sync_configs': {
+    get: operations['mgmt-getConnectionSyncConfig']
+    put: operations['mgmt-upsertConnectionSyncConfig']
   }
   '/engagement/v2/contacts': {
     get: operations['salesEngagement-listContacts']
@@ -122,11 +135,7 @@ export interface components {
       }[]
     }
     customer: {
-      id: string
-      /** @description ISO8601 date string */
-      updated_at: string
-      /** @description ISO8601 date string */
-      created_at: string
+      customer_id: string
       name?: string | null
       /** Format: email */
       email?: string | null
@@ -186,6 +195,21 @@ export interface components {
       issues?: {
         message: string
       }[]
+    }
+    connection: {
+      customer_id?: string | null
+      provider_name: string
+    }
+    connection_sync_config: {
+      destination_config?: {
+        type: string
+        schema?: string | null
+      } | null
+      custom_objects?:
+        | {
+            object: string
+          }[]
+        | null
     }
     'sales-engagement.contact': {
       id: string
@@ -421,14 +445,12 @@ export interface operations {
       }
     }
   }
-  'customer-listCustomers': {
+  'mgmt-listCustomers': {
     responses: {
       /** @description Successful response */
       200: {
         content: {
-          'application/json': {
-            records: components['schemas']['customer'][]
-          }
+          'application/json': components['schemas']['customer'][]
         }
       }
       /** @description Internal server error */
@@ -439,7 +461,7 @@ export interface operations {
       }
     }
   }
-  'customer-getCustomer': {
+  'mgmt-getCustomer': {
     parameters: {
       path: {
         id: string
@@ -449,9 +471,7 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          'application/json': {
-            record: components['schemas']['customer']
-          }
+          'application/json': components['schemas']['customer']
         }
       }
       /** @description Invalid input data */
@@ -474,10 +494,10 @@ export interface operations {
       }
     }
   }
-  'customer-upsertCustomer': {
+  'mgmt-upsertCustomer': {
     parameters: {
       path: {
-        id: string
+        customer_id: string
       }
     }
     requestBody: {
@@ -493,9 +513,167 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          'application/json': {
-            record: components['schemas']['customer']
-          }
+          'application/json': components['schemas']['customer']
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'mgmt-listConnections': {
+    parameters: {
+      path: {
+        customer_id: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['connection'][]
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'mgmt-getConnection': {
+    parameters: {
+      path: {
+        customer_id: string
+        provider_name: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['connection']
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'mgmt-deleteConnection': {
+    parameters: {
+      path: {
+        customer_id: string
+        provider_name: string
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': unknown
+        }
+      }
+      /** @description Invalid input data */
+      400: {
+        content: {
+          'application/json': components['schemas']['error.BAD_REQUEST']
+        }
+      }
+      /** @description Not found */
+      404: {
+        content: {
+          'application/json': components['schemas']['error.NOT_FOUND']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'mgmt-getConnectionSyncConfig': {
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['connection_sync_config']
+        }
+      }
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['error.INTERNAL_SERVER_ERROR']
+        }
+      }
+    }
+  }
+  'mgmt-upsertConnectionSyncConfig': {
+    requestBody: {
+      content: {
+        'application/json': {
+          destination_config?: {
+            type: string
+            schema?: string | null
+          } | null
+          custom_objects?:
+            | {
+                object: string
+              }[]
+            | null
+        }
+      }
+    }
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': components['schemas']['connection_sync_config']
         }
       }
       /** @description Invalid input data */

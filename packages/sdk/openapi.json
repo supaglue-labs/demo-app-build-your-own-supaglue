@@ -65,25 +65,17 @@
     },
     "/customers": {
       "get": {
-        "operationId": "customer-listCustomers",
+        "operationId": "mgmt-listCustomers",
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "records": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/customer"
-                      }
-                    }
-                  },
-                  "required": [
-                    "records"
-                  ]
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/customer"
+                  }
                 }
               }
             }
@@ -103,7 +95,7 @@
     },
     "/customers/{id}": {
       "get": {
-        "operationId": "customer-getCustomer",
+        "operationId": "mgmt-getCustomer",
         "parameters": [
           {
             "in": "path",
@@ -120,15 +112,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "record": {
-                      "$ref": "#/components/schemas/customer"
-                    }
-                  },
-                  "required": [
-                    "record"
-                  ]
+                  "$ref": "#/components/schemas/customer"
                 }
               }
             }
@@ -164,13 +148,15 @@
             }
           }
         }
-      },
+      }
+    },
+    "/customers/{customer_id}": {
       "put": {
-        "operationId": "customer-upsertCustomer",
+        "operationId": "mgmt-upsertCustomer",
         "parameters": [
           {
             "in": "path",
-            "name": "id",
+            "name": "customer_id",
             "schema": {
               "type": "string"
             },
@@ -208,15 +194,314 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "record": {
-                      "$ref": "#/components/schemas/customer"
-                    }
+                  "$ref": "#/components/schemas/customer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.NOT_FOUND"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{customer_id}/connections": {
+      "get": {
+        "operationId": "mgmt-listConnections",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/connection"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.NOT_FOUND"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{customer_id}/connections/{provider_name}": {
+      "get": {
+        "operationId": "mgmt-getConnection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "provider_name",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/connection"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.NOT_FOUND"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "mgmt-deleteConnection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "provider_name",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.BAD_REQUEST"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.NOT_FOUND"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connection_sync_configs": {
+      "get": {
+        "operationId": "mgmt-getConnectionSyncConfig",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/connection_sync_config"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error.INTERNAL_SERVER_ERROR"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "mgmt-upsertConnectionSyncConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "destination_config": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "schema": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "type"
+                    ]
                   },
-                  "required": [
-                    "record"
-                  ]
+                  "custom_objects": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "object": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "object"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/connection_sync_config"
                 }
               }
             }
@@ -2188,30 +2473,8 @@
       "customer": {
         "type": "object",
         "properties": {
-          "id": {
+          "customer_id": {
             "type": "string"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "description": "ISO8601 date string"
-          },
-          "created_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "description": "ISO8601 date string"
           },
           "name": {
             "type": [
@@ -2228,9 +2491,7 @@
           }
         },
         "required": [
-          "id",
-          "updated_at",
-          "created_at"
+          "customer_id"
         ]
       },
       "error.BAD_REQUEST": {
@@ -2315,6 +2576,65 @@
           "code": "NOT_FOUND",
           "message": "Not found",
           "issues": []
+        }
+      },
+      "connection": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_name"
+        ]
+      },
+      "connection_sync_config": {
+        "type": "object",
+        "properties": {
+          "destination_config": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "custom_objects": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "object": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "object"
+              ]
+            }
+          }
         }
       },
       "sales-engagement.contact": {
