@@ -1,13 +1,10 @@
+import {db, dbUpsert, getCommonObjectTable, schema} from '@supaglue/db'
 import {initBYOSupaglueSDK} from '@supaglue/sdk'
 import {and, eq, sql} from 'drizzle-orm'
 import type {SendEventPayload} from 'inngest/helpers/types'
 import {initSupaglueSDK} from '@opensdks/sdk-supaglue'
 import {env} from './env'
 import type {Events} from './events'
-import {db, schema} from './postgres'
-import {sync_state} from './postgres/schema'
-import {getCommonObjectTable} from './postgres/schema-dynamic'
-import {dbUpsert} from './postgres/upsert'
 
 /**
  * Unlike functions, routines are designed to run without dependency on Inngest
@@ -245,7 +242,7 @@ export async function syncConnection({
         // Persist state. TODO: Figure out how to make this work with step function
         await dbUpsert(
           db,
-          sync_state,
+          schema.sync_state,
           [
             {
               ...syncState,

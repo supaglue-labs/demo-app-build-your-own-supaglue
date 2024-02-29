@@ -1,10 +1,13 @@
 import {drizzle} from 'drizzle-orm/postgres-js'
 import {migrate} from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
-import {env} from '../env'
+import {env} from './env'
 import * as schema from './schema'
 
-export {schema}
+export * from './upsert'
+export * from './schema-dynamic'
+
+export {schema, env}
 export const pgClient = postgres(env.POSTGRES_URL)
 export const db = drizzle(pgClient, {schema, logger: !!process.env['DEBUG']})
 

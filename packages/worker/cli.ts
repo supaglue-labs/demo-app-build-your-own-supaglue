@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {parseArgs} from 'node:util'
-import {pgClient} from './postgres'
+import {pgClient} from '@supaglue/db'
 import * as routines from './routines'
 
 /** Mimic subset of Inngest StepTools UI */
