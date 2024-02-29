@@ -1,13 +1,12 @@
 import * as jsforce from 'jsforce'
+import {API_VERSION} from '../salesforce-provider'
 
 interface SalesforceInstance {
   getJsForce: () => Promise<jsforce.Connection>
 }
 
-const API_VERSION = '59.0'
-
 export async function updateFieldPermissions(
-  instance: SalesforceInstance,
+  sfdc: jsforce.Connection,
   objectName: string,
   nonPrimaryFields: string[],
 ) {
@@ -21,7 +20,6 @@ export async function updateFieldPermissions(
   // adding permissions, and we want the second call to this endpoint to fix that.
   //
   // TODO: do we want to make it visible for all profiles?
-  const sfdc = await instance.getJsForce()
 
   const {userInfo} = sfdc
   if (!userInfo) {

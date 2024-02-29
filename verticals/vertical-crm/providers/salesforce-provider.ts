@@ -17,13 +17,14 @@ import {
   initSalesforceSDK,
   type SalesforceSDK as _SalesforceSDK,
 } from '@opensdks/sdk-salesforce'
-import {CustomObjectSchemaCreateParams} from '../../types/custom_object'
-import {PropertyUnified} from '../../types/property'
+import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
+import type {PropertyUnified} from '../../types/property'
 import {BadRequestError} from '../errors'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
-import {updateFieldPermissions} from './salesforce/updatePermissions'
+
+// import {updateFieldPermissions} from './salesforce/updatePermissions'
 
 export type SFDC = SalesforceSDKTypes['oas']['components']['schemas']
 
@@ -39,12 +40,12 @@ const mappers = {
     updated_at: (record) =>
       record.SystemModstamp ? new Date(record.SystemModstamp) : null,
     name: 'Name',
-    isDeleted: 'IsDeleted',
+    is_deleted: 'IsDeleted',
     website: 'Website',
     industry: 'Industry',
-    numberOfEmployees: 'NumberOfEmployees',
-    ownerId: 'OwnerId',
-    createdAt: (record) =>
+    number_of_employees: 'NumberOfEmployees',
+    owner_id: 'OwnerId',
+    created_at: (record) =>
       record.CreatedDate ? new Date(record.CreatedDate) : null,
   }),
   opportunity: mapper(
@@ -52,40 +53,41 @@ const mappers = {
     commonModels.opportunity,
     {
       id: 'Id',
-      updated_at: 'SystemModstamp',
+      updated_at: (record) =>
+        record.SystemModstamp ? new Date(record.SystemModstamp) : null,
       name: 'Name',
       description: 'Description',
-      ownerId: 'OwnerId',
+      owner_id: 'OwnerId',
       status: (record) => (record.IsClosed ? 'Closed' : 'Open'),
       stage: 'StageName',
-      closeDate: (record) =>
+      close_date: (record) =>
         record.CloseDate ? new Date(record.CloseDate) : null,
-      accountId: 'AccountId',
+      account_id: 'AccountId',
       amount: 'Amount',
-      lastActivityAt: (record) =>
+      last_activity_at: (record) =>
         record.LastActivityDate ? new Date(record.LastActivityDate) : null,
-      createdAt: (record) =>
+      created_at: (record) =>
         record.CreatedDate ? new Date(record.CreatedDate) : null,
-      isDeleted: 'IsDeleted',
-      lastModifiedAt: (record) =>
+      is_deleted: 'IsDeleted',
+      last_modified_at: (record) =>
         record.LastModifiedDate ? new Date(record.LastModifiedDate) : null,
-      rawData: (record) => record,
+      raw_data: (record) => record,
     },
   ),
   lead: mapper(zCast<SFDC['LeadSObject']>(), commonModels.lead, {
     id: 'Id',
     updated_at: 'SystemModstamp',
     name: 'Name',
-    firstName: 'FirstName',
-    lastName: 'LastName',
-    ownerId: 'OwnerId',
+    first_name: 'FirstName',
+    last_name: 'LastName',
+    owner_id: 'OwnerId',
     title: 'Title',
     company: 'Company',
-    convertedDate: (record) =>
+    converted_date: (record) =>
       record.ConvertedDate ? new Date(record.ConvertedDate) : null,
-    leadSource: 'LeadSource',
-    convertedAccountId: 'ConvertedAccountId',
-    convertedContactId: 'ConvertedContactId',
+    lead_source: 'LeadSource',
+    converted_account_id: 'ConvertedAccountId',
+    converted_contact_id: 'ConvertedContactId',
     addresses: (record) =>
       record.Street ||
       record.City ||
@@ -99,45 +101,45 @@ const mappers = {
               city: record.City ?? null,
               state: record.State ?? null,
               country: record.Country ?? null,
-              postalCode: record.PostalCode ?? null,
-              addressType: 'primary',
+              postal_code: record.PostalCode ?? null,
+              address_type: 'primary',
             },
           ]
         : [],
-    emailAddresses: (record) =>
+    email_addresses: (record) =>
       record.Email
-        ? [{emailAddress: record.Email, emailAddressType: 'primary'}]
+        ? [{email_address: record.Email, email_address_type: 'primary'}]
         : [],
-    phoneNumbers: (record) =>
+    phone_numbers: (record) =>
       record.Phone
         ? [
             {
-              phoneNumber: record.Phone ?? null,
-              phoneNumberType: 'primary',
+              phone_number: record.Phone ?? null,
+              phone_number_type: 'primary',
             },
           ]
         : [],
-    createdAt: (record) =>
+    created_at: (record) =>
       record.CreatedDate ? new Date(record.CreatedDate) : null,
-    isDeleted: 'IsDeleted',
-    lastModifiedAt: (record) =>
+    is_deleted: 'IsDeleted',
+    last_modified_at: (record) =>
       record.SystemModstamp ? new Date(record.SystemModstamp) : new Date(0),
-    rawData: (record) => record,
+    raw_data: (record) => record,
   }),
   user: mapper(zCast<SFDC['UserSObject']>(), commonModels.user, {
     id: 'Id',
-    updated_at: 'SystemModstamp',
     name: 'Name',
     email: 'Email',
-    isActive: 'IsActive',
-    createdAt: (record) =>
+    is_active: 'IsActive',
+    created_at: (record) =>
       record.CreatedDate ? new Date(record.CreatedDate) : null,
-    updatedAt: (record) =>
+    updated_at: (record) =>
       record.CreatedDate ? new Date(record.CreatedDate) : null,
-    lastModifiedAt: (record) =>
+    last_modified_at: (record) =>
       record.CreatedDate ? new Date(record.CreatedDate) : null,
-    // rawData: (rawData) => rawData,
+    // raw_data: (rawData) => rawData,
   }),
+
   customObject: {
     parse: (rawData: any) => ({
       id: rawData.Id,
@@ -337,7 +339,7 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
     )
   }
 
-  if (!primaryField.is_required) {
+  if (!primaryField.isRequired) {
     throw new BadRequestError(
       `Primary field must be required, but was not with key name ${params.primaryFieldId}`,
     )
@@ -420,23 +422,21 @@ export const toSalesforceCustomObjectCreateParams = (
   description: string | null,
   primaryField: PropertyUnified,
   nonPrimaryFieldsToUpdate: PropertyUnified[],
-) => {
-  return {
-    deploymentStatus: 'Deployed',
-    sharingModel: 'ReadWrite',
-    fullName: objectName,
-    description,
-    label: labels.singular,
-    pluralLabel: labels.plural,
-    nameField: {
-      label: primaryField?.label,
-      type: 'Text',
-    },
-    fields: nonPrimaryFieldsToUpdate.map((field) =>
-      toSalesforceCustomFieldCreateParams(objectName, field),
-    ),
-  }
-}
+) => ({
+  deploymentStatus: 'Deployed',
+  sharingModel: 'ReadWrite',
+  fullName: objectName,
+  description,
+  label: labels.singular,
+  pluralLabel: labels.plural,
+  nameField: {
+    label: primaryField?.label,
+    type: 'Text',
+  },
+  fields: nonPrimaryFieldsToUpdate.map((field) =>
+    toSalesforceCustomFieldCreateParams(objectName, field),
+  ),
+})
 
 const propertiesForCommonObject: Record<CRMCommonObjectType, string[]> = {
   account: [
@@ -538,7 +538,7 @@ type SalesforceSDK = _SalesforceSDK & {
  * 2) Allow it to be configured on a per request basis via a `x-salesforce-api-version` header.
  * Simpler but we would be forcing the consumer to have to worry about it.
  */
-const API_VERSION = '59.0'
+export const API_VERSION = '59.0'
 
 function sdkExt(instance: SalesforceSDK) {
   /** NOTE: extract these into a helper functions inside sdk-salesforce */
@@ -755,6 +755,10 @@ export const salesforceProvider = {
     const primaryField = input.fields.find(
       (field) => field.id === input.primaryFieldId,
     )
+    if (!primaryField) {
+      throw new Error('Primary field not found')
+    }
+
     const nonPrimaryFields = input.fields.filter(
       (field) => field.id !== input.primaryFieldId,
     )
@@ -765,17 +769,17 @@ export const salesforceProvider = {
         objectName,
         input.label,
         input.description || null,
-        primaryField!,
+        primaryField,
         nonPrimaryFields,
       ),
     )
 
     // const nonRequiredFields = nonPrimaryFields.filter(
-    //   (field) => !field.is_required,
+    //   (field) => !field.isRequired,
     // )
 
     // await updateFieldPermissions(
-    //   instance,
+    //   sfdc,
     //   objectName,
     //   nonRequiredFields.map((field) => field.id),
     // )
@@ -804,9 +808,7 @@ export const salesforceProvider = {
   },
   createCustomObjectRecord: async ({instance, input}) => {
     const sfdc = await instance.getJsForce()
-    const result = await sfdc
-      .sobject(input.id)
-      .create(input.record as Record<string, any>)
+    const result = await sfdc.sobject(input.id).create(input.record)
     return {record: {id: result.id}}
   },
   metadataCreateAssociation: async ({instance, input}) => {

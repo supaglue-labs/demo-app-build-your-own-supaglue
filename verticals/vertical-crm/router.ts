@@ -126,12 +126,12 @@ export const crmRouter = trpc.router({
         fields: z.array(
           z.object({
             id: z.string(),
-            description: z.string().optional().nullish(),
+            description: z.string().nullish(),
             type: z.string(),
             label: z.string(),
-            is_required: z.boolean(),
+            isRequired: z.boolean(),
             default_value: z.string().nullish(),
-            group_name: z.string().nullish().nullish(),
+            group_name: z.string().nullish(),
           }),
         ),
       }),

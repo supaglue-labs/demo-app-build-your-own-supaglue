@@ -9,6 +9,26 @@ export type SimplePublicObject =
   Oas_crm_contacts['components']['schemas']['SimplePublicObject']
 export type Owner = Oas_crm_owners['components']['schemas']['PublicOwner']
 
+//   // In certain cases, Hubspot cannot determine the object type based on just the name for custom objects,
+//   // so we need to get the ID.
+//  const getObjectTypeIdFromNameOrId = async(nameOrId: string): Promise<string> => {
+//     // Standard objects can be referred by name no problem
+//     if (isStandardObjectType(nameOrId)) {
+//       return nameOrId;
+//     }
+//     if (this.#isAlreadyObjectTypeId(nameOrId)) {
+//       return nameOrId;
+//     }
+//     await this.maybeRefreshAccessToken();
+//     const schemas = await this.#client.crm.schemas.coreApi.getAll();
+//     const schemaId = schemas.results.find((schema) => schema.name === nameOrId || schema.objectTypeId === nameOrId)
+//       ?.objectTypeId;
+//     if (!schemaId) {
+//       throw new NotFoundError(`Could not find custom object schema with name or id ${nameOrId}`);
+//     }
+//     return schemaId;
+//   }
+
 export const HUBSPOT_STANDARD_OBJECTS = [
   'company',
   'contact',
@@ -426,5 +446,58 @@ export const hubspotProvider = {
   metadataListCustomObjects: async ({instance}) => {
     const res = await instance.crm_schemas.GET('/crm/v3/schemas')
     return res.data.results.map((obj) => ({id: obj.id, name: obj.name}))
+  },
+  metadataListProperties: async ({instance, input}) => {
+    const res = await instance.crm_properties.GET(
+      '/crm/v3/properties/{objectType}',
+      {
+        params: {path: {objectType: input.name}},
+      },
+    )
+    return res.data.results.map((obj) => ({id: obj.name, label: obj.label}))
+  },
+  // metadataCreateObjectsSchema: async ({instance, input}) => {
+  //   const res = await instance.crm_schemas.POST('/crm/v3/schemas', {
+  //     body: {
+  //       name: input.name,
+  //       labels: input.label.singular,
+  //       description: input.description || '',
+  //       properties: input.fields.map((p) => ({
+  //         type: p.type || 'string',
+  //         label: p.label,
+  //         name: p.label,
+  //         fieldType: p.type || 'string',
+  //       })),
+  //       primaryFieldId: input.primaryFieldId,
+  //     },
+  //   })
+  //   console.log('input:', input)
+  //   // console.log('res:', res)
+  //   return [{id: '123', name: input.name}]
+  // },
+  metadataCreateAssociation: async ({instance, input}) => {
+    const res = await instance.crm_associations.POST(
+      '/crm/v3/associations/{fromObjectType}/{toObjectType}/batch/create',
+      {
+        params: {
+          path: {
+            fromObjectType: input.sourceObject,
+            toObjectType: input.targetObject,
+          },
+        },
+        body: {
+          inputs: [
+            {
+              from: {id: input.sourceObject},
+              to: {id: input.targetObject},
+              type: `${input.sourceObject}_${input.targetObject}`,
+            },
+          ],
+        },
+      },
+    )
+    console.log('res:', res.data.errors[0])
+    console.log('res:', res.data.errors[1])
+    return res.data
   },
 } satisfies CRMProvider<HubspotSDK>
