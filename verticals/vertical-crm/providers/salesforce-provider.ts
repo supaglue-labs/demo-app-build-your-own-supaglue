@@ -19,7 +19,6 @@ import {
 } from '@opensdks/sdk-salesforce'
 import type {CustomObjectSchemaCreateParams} from '../../types/custom_object'
 import type {PropertyType, PropertyUnified} from '../../types/property'
-import {BadRequestError} from '../errors'
 import type {CRMProvider} from '../router'
 import {commonModels} from '../router'
 import {SALESFORCE_STANDARD_OBJECTS} from './salesforce/constants'
@@ -343,7 +342,7 @@ export const toSalesforceType = (
 
 function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
   if (!params.fields.length) {
-    throw new BadRequestError('Cannot create custom object with no fields')
+    throw new Error('Cannot create custom object with no fields')
   }
 
   const primaryField = params.fields.find(
@@ -351,25 +350,25 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
   )
 
   if (!primaryField) {
-    throw new BadRequestError(
+    throw new Error(
       `Could not find primary field with key name ${params.primaryFieldId}`,
     )
   }
 
   if (primaryField.type !== 'text') {
-    throw new BadRequestError(
+    throw new Error(
       `Primary field must be of type text, but was ${primaryField.type} with key name ${params.primaryFieldId}`,
     )
   }
 
   if (!primaryField.isRequired) {
-    throw new BadRequestError(
+    throw new Error(
       `Primary field must be required, but was not with key name ${params.primaryFieldId}`,
     )
   }
 
   if (capitalizeString(primaryField.id) !== 'Name') {
-    throw new BadRequestError(
+    throw new Error(
       `Primary field for salesforce must have key name 'Name', but was ${primaryField.id}`,
     )
   }
@@ -379,7 +378,7 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
   )
 
   if (nonPrimaryFields.some((field) => !field.id.endsWith('__c'))) {
-    throw new BadRequestError('Custom object field key names must end with __c')
+    throw new Error('Custom object field key names must end with __c')
   }
 
   if (
@@ -387,7 +386,7 @@ function validateCustomObject(params: CustomObjectSchemaCreateParams): void {
       (field) => field.type === 'boolean' && field.isRequired,
     )
   ) {
-    throw new BadRequestError('Boolean fields cannot be required in Salesforce')
+    throw new Error('Boolean fields cannot be required in Salesforce')
   }
 }
 
